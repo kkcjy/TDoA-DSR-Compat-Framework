@@ -3,7 +3,6 @@
 
 #include "swarm_ranging.h"
 #include "adhocuwb_impl.h"
-#include "debug_print.h"
 
 #ifndef RANGING_DEBUG_ENABLE
 #undef DEBUG_PRINT
@@ -742,9 +741,6 @@ void printNeighborSet(Neighbor_Set_t *set) {
   }
 }
 
-int16_t dist___[32];
-int houyunxi_i=0;
-
 static int16_t computeDistance(Timestamp_Tuple_t Tp, Timestamp_Tuple_t Rp,
                                Timestamp_Tuple_t Tr, Timestamp_Tuple_t Rr,
                                Timestamp_Tuple_t Tf, Timestamp_Tuple_t Rf) {
@@ -753,7 +749,6 @@ static int16_t computeDistance(Timestamp_Tuple_t Tp, Timestamp_Tuple_t Rp,
 
   if (Tp.seqNumber != Rp.seqNumber || Tr.seqNumber != Rr.seqNumber || Tf.seqNumber != Rf.seqNumber) {
     DEBUG_PRINT("Ranging Error: sequence number mismatch\n");
-
     isErrorOccurred = true;
   }
 
@@ -771,12 +766,6 @@ static int16_t computeDistance(Timestamp_Tuple_t Tp, Timestamp_Tuple_t Rp,
   diff2 = tRound2 - tReply2;
   t = (diff1 * tReply2 + diff2 * tReply1 + diff2 * diff1) / (tRound1 + tRound2 + tReply1 + tReply2);
   int16_t distance = (int16_t) t * 0.4691763978616;
-  houyunxi_i++;
-      	if(houyunxi_i==30){
-      		houyunxi_i=0;
-      	}
-      	dist___[houyunxi_i] = distance;
-//  debugprint("dist:%d\n",distance);
   static int16_t distances[65], distidx=0;
   distances[distidx++] = distance;
   if(distidx==64)
@@ -795,7 +784,6 @@ static int16_t computeDistance(Timestamp_Tuple_t Tp, Timestamp_Tuple_t Rp,
   if (isErrorOccurred) {
     return -1;
   }
-
 
   return distance;
 }
@@ -964,7 +952,6 @@ static void S4_RX_Rf(Ranging_Table_t *rangingTable) {
   if (distance > 0) {
     rangingTable->distance = distance;
     setDistance(rangingTable->neighborAddress, distance);
-
   } else {
 //    DEBUG_PRINT("distance is not updated since some error occurs\n");
   }
@@ -1026,11 +1013,7 @@ void rangingTableOnEvent(Ranging_Table_t *table, RANGING_TABLE_EVENT event) {
 }
 
 /* Swarm Ranging */
-
-
 static void processRangingMessage(Ranging_Message_With_Timestamp_t *rangingMessageWithTimestamp) {
-
-
   Ranging_Message_t *rangingMessage = &rangingMessageWithTimestamp->rangingMessage;
   uint16_t neighborAddress = rangingMessage->header.srcAddress;
   int neighborIndex = rangingTableSetSearchTable(&rangingTableSet, neighborAddress);
@@ -1270,9 +1253,6 @@ static void uwbRangingRxTask(void *parameters) {
     vTaskDelay(M2T(1));
   }
 }
-//uint64_t time___[10];
-//int8_t index_time = 0;
-
 
 void rangingRxCallback(void *parameters) {
   // DEBUG_PRINT("rangingRxCallback \n");
@@ -1281,12 +1261,6 @@ void rangingRxCallback(void *parameters) {
 
   dwTime_t rxTime;
   adhocuwb_readrxtimestamp((uint8_t *) &rxTime.raw);
-
-//  time___[index_time++] = rxTime.full;
-//
-//  if(index_time>10){
-//	  index_time = 0;
-//  }
 
   Ranging_Message_With_Timestamp_t rxMessageWithTimestamp;
   rxMessageWithTimestamp.rxTime = rxTime;
