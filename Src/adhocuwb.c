@@ -11,7 +11,7 @@
   #define DEBUG_PRINT
 #endif
 
-static uint16_t MY_UWB_ADDRESS;
+static uint16_t MY_UWB_ADDRESS=0;
 
 TaskHandle_t adhocuwbTxTaskHandle = 0;
 
