@@ -13,6 +13,9 @@
 #include "timers.h"
 //#include "static_mem.h"没有用到
 
+#include "swarm_ranging.h"
+#include "adhocuwb_impl.h"
+
 #ifndef RANGING_DEBUG_ENABLE
 #undef DEBUG_PRINT
 #define DEBUG_PRINT
