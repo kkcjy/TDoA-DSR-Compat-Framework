@@ -5,7 +5,7 @@
 
 #define DEFAULT_RX_TIMEOUT 0xFFFFF
 
-//log.c中的部分
+//以下是log.c中的部分
 #define LOG_TYPE_MASK (0x0f)
 static struct log_s * logs;
 static int logsLen;

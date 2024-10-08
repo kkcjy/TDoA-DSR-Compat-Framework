@@ -44,5 +44,4 @@ BaseType_t adhocuwb_xQueueSendFromISR(
     const void * pvItemToQueue);
 
 
-
 #endif
