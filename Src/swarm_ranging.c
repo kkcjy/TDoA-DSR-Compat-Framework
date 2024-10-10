@@ -1490,9 +1490,12 @@ static void processRangingMessage(Ranging_Message_With_Timestamp_t *rangingMessa
 
   DEBUG_PRINT("seq:%d\n", rangingMessage->header.msgSequence);
 
-  float posiX = logGetFloat(idX);
-  float posiY = logGetFloat(idY);
-  float posiZ = logGetFloat(idZ);
+//  float posiX = logGetFloat(idX);
+//  float posiY = logGetFloat(idY);
+//  float posiZ = logGetFloat(idZ);
+    float posiX = 1.f;
+    float posiY = 1.f;
+    float posiZ = 1.f;
   computeRealDistance(neighborAddress, posiX, posiY, posiZ, rangingMessage->header.posiX, rangingMessage->header.posiY, rangingMessage->header.posiZ);
 
   statistic[neighborAddress].recvnum++;
