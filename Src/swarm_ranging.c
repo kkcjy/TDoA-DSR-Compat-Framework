@@ -6,7 +6,7 @@
 //#include "system.h"
 //#include "autoconf.h"注释
 //#include "debug.h"注释
-#include "log.h"
+//#include "log.h"
 #include "swarm_ranging.h"
 //#include "routing.h"没有用到
 //#include "olsr.h"没有用到
@@ -38,9 +38,8 @@ static int TfBufferIndex = 0;
 static Timestamp_Tuple_t TfBuffer[Tf_BUFFER_POOL_SIZE] = {0};
 static SemaphoreHandle_t TfBufferMutex;
 static int rangingSeqNumber = 1;
-static logVarId_t idVelocityX, idVelocityY, idVelocityZ;
-static logVarId_t idX, idY, idZ;
 static float velocity;
+static int16_t distances[65], distidx=0;
 static Ranging_Table_t EMPTY_RANGING_TABLE = {
     .neighborAddress = UWB_DEST_EMPTY,
     .Rp.timestamp.full = 0,
@@ -1088,7 +1087,11 @@ static int16_t computeDistance(Timestamp_Tuple_t Tp, Timestamp_Tuple_t Rp,
   diff2 = tRound2 - tReply2;
   t = (diff1 * tReply2 + diff2 * tReply1 + diff2 * diff1) / (tRound1 + tRound2 + tReply1 + tReply2);
   int16_t distance = (int16_t)t * 0.4691763978616;
-  DEBUG_PRINT("compute dist 1:%d\n", distance);
+
+  distances[distidx++] = distance;
+  if(distidx==64)
+	  distidx =0;
+
   if (distance < 0)
   {
     DEBUG_PRINT("Ranging Error: distance < 0\n");
@@ -1146,6 +1149,10 @@ static int16_t computeDistance2(Timestamp_Tuple_t Tx, Timestamp_Tuple_t Rx,
   diff2 = tRound2 - tReply2;
   t = (diff1 * tReply2 + diff2 * tReply1 + diff2 * diff1) / (tRound1 + tRound2 + tReply1 + tReply2);
   int16_t distance = (int16_t)t * 0.4691763978616;
+
+  distances[distidx++] = distance;
+  if(distidx==64)
+	  distidx =0;
 
   DEBUG_PRINT("compute dist 2:%d\n", distance);
   if (distance < 0)
@@ -1727,13 +1734,13 @@ static Time_t generateRangingMessage(Ranging_Message_t *rangingMessage)
   }
   // xSemaphoreGive(TfBufferMutex);
 
-  float velocityX = logGetFloat(idVelocityX);
-  float velocityY = logGetFloat(idVelocityY);
-  float velocityZ = logGetFloat(idVelocityZ);
+  float velocityX = 0;
+  float velocityY = 0;
+  float velocityZ = 0;
 
-  float posiX = logGetFloat(idX);
-  float posiY = logGetFloat(idY);
-  float posiZ = logGetFloat(idZ);
+  float posiX = 0;
+  float posiY = 0;
+  float posiZ = 0;
   DEBUG_PRINT("%f\n", posiX);
 
   rangingMessage->header.posiX = posiX;
@@ -1768,13 +1775,13 @@ static void uwbRangingTxTask(void *parameters)
 //  idZ = logGetVarId("lighthouse", "z");
 
     /* velocity log variable id */
-  idVelocityX = 0;
-  idVelocityY = 0;
-  idVelocityZ = 0;
-
-  idX = 0;
-  idY = 0;
-  idZ = 0;
+//  idVelocityX = 0;
+//  idVelocityY = 0;
+//  idVelocityZ = 0;
+//
+//  idX = 0;
+//  idY = 0;
+//  idZ = 0;
 
   UWB_Packet_t txPacketCache;
   txPacketCache.header.srcAddress = uwbGetAddress();
