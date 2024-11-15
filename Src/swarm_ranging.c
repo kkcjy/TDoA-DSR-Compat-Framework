@@ -39,7 +39,7 @@ static Timestamp_Tuple_t TfBuffer[Tf_BUFFER_POOL_SIZE] = {0};
 static SemaphoreHandle_t TfBufferMutex;
 static int rangingSeqNumber = 1;
 static float velocity;
-static int16_t distances[65], distidx=0;
+static int16_t distances[65], distidx=0, abnormal_dist_count=0;
 static Ranging_Table_t EMPTY_RANGING_TABLE = {
     .neighborAddress = UWB_DEST_EMPTY,
     .Rp.timestamp.full = 0,
@@ -1070,12 +1070,17 @@ static int16_t computeDistance(Timestamp_Tuple_t Tp, Timestamp_Tuple_t Rp,
     // DEBUG_PRINT("Tp:%d,Rp:%d,Tr:%d,Rr:%d,Tf:%d,Rf:%d\n", Tp.seqNumber, Rp.seqNumber, Tr.seqNumber, Rr.seqNumber, Tf.seqNumber, Rf.seqNumber);
     DEBUG_PRINT("Ranging Error: sequence number mismatch\n");
     isErrorOccurred = true;
+    return -1;
+  }
+  if(Tr.timestamp.full == 0){
+	return -1;
   }
 
   if (Tp.seqNumber >= Tf.seqNumber || Rp.seqNumber >= Rf.seqNumber)
   {
     DEBUG_PRINT("Ranging Error: sequence number out of order\n");
     isErrorOccurred = true;
+    return -1;
   }
 
   int64_t tRound1, tReply1, tRound2, tReply2, diff1, diff2, t;
@@ -1091,6 +1096,9 @@ static int16_t computeDistance(Timestamp_Tuple_t Tp, Timestamp_Tuple_t Rp,
   distances[distidx++] = distance;
   if(distidx==64)
 	  distidx =0;
+  if(distance<-30 || distance>30)
+	  if(abnormal_dist_count++>=3)
+		  abnormal_dist_count=abnormal_dist_count;
 
   if (distance < 0)
   {
@@ -1124,6 +1132,7 @@ static int16_t computeDistance2(Timestamp_Tuple_t Tx, Timestamp_Tuple_t Rx,
   bool isErrorOccurred = false;
   DEBUG_PRINT("Tx:%d,Rx:%d,Tp:%d,Rp:%d,Tr:%d,Rr:%d\n", Tx.seqNumber, Rx.seqNumber, Tp.seqNumber, Rp.seqNumber, Tr.seqNumber, Rr.seqNumber);
 
+  //TODO: to replace the following condition with timestamp.full==0
   if(Tx.seqNumber==0 || Rx.seqNumber==0){
     return -1;
   }
@@ -1132,12 +1141,17 @@ static int16_t computeDistance2(Timestamp_Tuple_t Tx, Timestamp_Tuple_t Rx,
   {
     DEBUG_PRINT("Ranging Error: sequence number mismatch\n");
     isErrorOccurred = true;
+	return -1;
+  }
+  if(Tp.timestamp.full == 0){
+	return -1;
   }
 
   if (Tx.seqNumber >= Tr.seqNumber || Rx.seqNumber >= Rr.seqNumber)
   {
     DEBUG_PRINT("Ranging Error: sequence number out of order\n");
     isErrorOccurred = true;
+    return -1;
   }
 
   int64_t tRound1, tReply1, tRound2, tReply2, diff1, diff2, t;
@@ -1153,6 +1167,9 @@ static int16_t computeDistance2(Timestamp_Tuple_t Tx, Timestamp_Tuple_t Rx,
   distances[distidx++] = distance;
   if(distidx==64)
 	  distidx =0;
+  if(distance<-30 || distance>30)
+	  if(abnormal_dist_count++>=3)
+		  abnormal_dist_count=abnormal_dist_count;
 
   DEBUG_PRINT("compute dist 2:%d\n", distance);
   if (distance < 0)
