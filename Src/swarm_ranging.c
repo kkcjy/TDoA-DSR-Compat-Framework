@@ -1929,10 +1929,10 @@ void rangingInit()
 
   statisticInit();
 
-  xTaskCreate(uwbRangingTxTask, ADHOC_DECK_RANGING_TX_TASK_NAME, UWB_TASK_STACK_SIZE, NULL,
-              ADHOC_DECK_TASK_PRI, &uwbRangingTxTaskHandle);
-  xTaskCreate(uwbRangingRxTask, ADHOC_DECK_RANGING_RX_TASK_NAME, UWB_TASK_STACK_SIZE, NULL,
-              ADHOC_DECK_TASK_PRI, &uwbRangingRxTaskHandle);
+  xTaskCreate(uwbRangingTxTask, ADHOC_UWB_RANGING_TX_TASK_NAME, UWB_TASK_STACK_SIZE, NULL,
+              ADHOC_UWB_TASK_PRI, &uwbRangingTxTaskHandle);
+  xTaskCreate(uwbRangingRxTask, ADHOC_UWB_RANGING_RX_TASK_NAME, UWB_TASK_STACK_SIZE, NULL,
+              ADHOC_UWB_TASK_PRI, &uwbRangingRxTaskHandle);
 }
 
 LOG_GROUP_START(Ranging)
