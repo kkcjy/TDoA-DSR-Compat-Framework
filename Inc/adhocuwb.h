@@ -31,6 +31,7 @@ typedef enum {
   UWB_DATA_MESSAGE = 2,
   UWB_AODV_MESSAGE = 3,
   UWB_OLSR_MESSAGE = 4,
+  PRINT = 5,
   UWB_MESSAGE_TYPE_COUNT, /* only used for counting message types. */
 } UWB_MESSAGE_TYPE;
 
