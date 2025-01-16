@@ -38,8 +38,11 @@ typedef enum {
 typedef struct {
   UWB_Address_t srcAddress; // mac address, currently using MY_UWB_ADDRESS
   UWB_Address_t destAddress; // mac address
-  UWB_MESSAGE_TYPE type: 6;
-  uint16_t length: 10;
+  uint16_t seqNumber;
+  struct {
+	  UWB_MESSAGE_TYPE type: 6;
+      uint16_t length: 10;
+    } __attribute__((packed));
 } __attribute__((packed)) UWB_Packet_Header_t;
 
 typedef struct {

@@ -15,6 +15,7 @@
 
 #include "swarm_ranging.h"
 #include "adhocuwb_impl.h"
+#include "uwb_send_print.h"
 
 #ifndef RANGING_DEBUG_ENABLE
 #undef DEBUG_PRINT
@@ -1814,7 +1815,8 @@ static void uwbRangingTxTask(void *parameters)
     Time_t taskDelay = RANGING_PERIOD;
     generateRangingMessage(rangingMessage);
     txPacketCache.header.length = sizeof(UWB_Packet_Header_t) + rangingMessage->header.msgLength;
-    uwbSendPacketBlock(&txPacketCache);
+//    uwbSendPacketBlock(&txPacketCache);
+    UWB_DEBUG_PRINTF("abc 123\n");
     //    printRangingTableSet(&rangingTableSet);
     //    printNeighborSet(&neighborSet);
 
