@@ -204,6 +204,7 @@ static int handleLong(putc_t putcf, const char** fmt, unsigned long int val, int
 
 int evUwbprintf(putc_t putcf, const char * fmt, va_list ap)
 {
+  xSemaphoreTake(uwbPacketsMu, portMAX_DELAY);
   int len=0;
   float num;
   char* str;
@@ -309,6 +310,7 @@ int evUwbprintf(putc_t putcf, const char * fmt, va_list ap)
       len++;
     }
   }
+  xSemaphoreGive(uwbPacketsMu);
   
   return len;
 }
@@ -328,7 +330,7 @@ int uwbprintf(putc_t putcf, const char * fmt, ...)
 int uwbPutchar(int ch)
 {
   // return ch;
-  xSemaphoreTake(uwbPacketsMu, portMAX_DELAY);
+
   if(len < UWB_PAYLOAD_SIZE_MAX)
   {
     uwbPackets[uwbPacketsWriteIndex].payload[len] = (uint8_t)ch;
@@ -348,7 +350,7 @@ int uwbPutchar(int ch)
     uwbPackets[uwbPacketsWriteIndex].header.length = sizeof(UWB_Packet_Header_t);
     len = 0;
   }
-  xSemaphoreGive(uwbPacketsMu);
+
   return ch;
 }
 static void debugPrintTimerCallback(TimerHandle_t timer){
