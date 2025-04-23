@@ -30,7 +30,3 @@ The following defination must be given in somewhere outside the AdHocUWB repo be
 #define CONFIG_ADHOCUWB_PLATFORM_UBUNTUMAC y
 ```
 
-```python
-def hello():
-    print("Hello, world!")
-```
