@@ -2,10 +2,15 @@
 #include "dwTypes.h"
 #include "libdw3000.h"
 #include "dw3000.h"
+#include "adhocuwb_platform.h"
+#include "dw3000_init.h"
+
 #ifdef CONFIG_ADHOCUWB_PLATFORM_ADHOCUWB
   #include "main.h"
 #endif
-#include "dw3000_init.h"
+#ifdef CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE
+  #include "deck.h"
+#endif
 
 /* PHR configuration */
 static dwt_config_t uwbPhrConfig = {
@@ -37,29 +42,74 @@ static dwt_txconfig_t uwbTxConfigOptions = {
     .power = 0xfdfdfdfd
 };
 
-#define DW3000Deck_Enable()          LL_GPIO_ResetOutputPin(DW3000Deck_CS_GPIO_Port, DW3000Deck_CS_Pin)
-#define DW3000Deck_Disable()         LL_GPIO_SetOutputPin(DW3000Deck_CS_GPIO_Port, DW3000Deck_CS_Pin)
+#ifdef CONFIG_ADHOCUWB_PLATFORM_ADHOCUWB
+  #define DW3000Deck_Enable()          LL_GPIO_ResetOutputPin(DW3000Deck_CS_GPIO_Port, DW3000Deck_CS_Pin)
+  #define DW3000Deck_Disable()         LL_GPIO_SetOutputPin(DW3000Deck_CS_GPIO_Port, DW3000Deck_CS_Pin)
+#endif
+#ifdef CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE
+  #define CS_PIN DECK_GPIO_IO1
+  // LOCO deck alternative IRQ and RESET pins(IO_2, IO_4) instead of default (RX1, TX1), leaving UART1 free for use
+  #ifdef CONFIG_DECK_ADHOCDECK_USE_ALT_PINS
+    #define GPIO_PIN_IRQ      DECK_GPIO_IO2
+    #ifndef ADHOCDECK_ALT_PIN_RESET
+      #define GPIO_PIN_RESET    DECK_GPIO_IO4
+    #else
+      #define GPIO_PIN_RESET 	ADHOCDECK_ALT_PIN_RESET
+    #endif
+    #define EXTI_PortSource EXTI_PortSourceGPIOB
+    #define EXTI_PinSource    EXTI_PinSource5
+    #define EXTI_LineN          EXTI_Line5
+  #elif defined(CONFIG_DECK_ADHOCDECK_USE_UART2_PINS)
+    #define GPIO_PIN_IRQ 	  DECK_GPIO_TX2
+    #define GPIO_PIN_RESET 	DECK_GPIO_RX2
+    #define EXTI_PortSource EXTI_PortSourceGPIOA
+    #define EXTI_PinSource 	EXTI_PinSource2
+    #define EXTI_LineN 		  EXTI_Line2
+  #else
+    #define GPIO_PIN_IRQ      DECK_GPIO_RX1
+    #define GPIO_PIN_RESET    DECK_GPIO_TX1
+    #define EXTI_PortSource   EXTI_PortSourceGPIOC
+    #define EXTI_PinSource    EXTI_PinSource11
+    #define EXTI_LineN        EXTI_Line11
+  #endif
+#endif
 
 static adhocuwb_hdw_cb_t _txCallback = 0;
 static adhocuwb_hdw_cb_t _rxCallback = 0;
+
+static SemaphoreHandle_t uwbIrqSemaphore;
 
 /************ Low level ops for libdw **********/
 
 #define SPI_DECK_BUFFER_MAX_SIZE 300
 static uint8_t spiDeckTxBuffer[SPI_DECK_BUFFER_MAX_SIZE];
 static uint8_t spiDeckRxBuffer[SPI_DECK_BUFFER_MAX_SIZE];
+#ifdef CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE
+  static uint16_t spiSpeed = SPI_BAUDRATE_2MHZ;
+#endif
 
 static void spiDeckWrite(const void* cmd,
 			size_t cmdLength,
 			const void *data,
 			size_t dataLength)
 {
-	spiDeckBeginTransaction();
-	DW3000Deck_Enable();
-    memcpy(spiDeckTxBuffer, cmd, cmdLength);
-    memcpy(spiDeckTxBuffer + cmdLength, data, dataLength);
-    spiDeckExchange(cmdLength + dataLength, spiDeckTxBuffer, spiDeckRxBuffer);
-	DW3000Deck_Disable();
+  #ifdef CONFIG_ADHOCUWB_PLATFORM_ADHOCUWB
+	  spiDeckBeginTransaction();
+	  DW3000Deck_Enable();
+  #endif
+  #ifdef CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE
+    spiBeginTransaction(spiSpeed);
+	  digitalWrite(CS_PIN, LOW);
+  #endif 
+  memcpy(spiDeckTxBuffer, cmd, cmdLength);
+  memcpy(spiDeckTxBuffer + cmdLength, data, dataLength);
+  spiDeckExchange(cmdLength + dataLength, spiDeckTxBuffer, spiDeckRxBuffer);
+  #ifdef CONFIG_ADHOCUWB_PLATFORM_ADHOCUWB
+    DW3000Deck_Disable();
+  #endif
+  #ifdef CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE
+    digitalWrite(CS_PIN, HIGH);
+  #endif 
 	spiDeckEndTransaction();
 }
 
@@ -68,13 +118,24 @@ static void spiDeckRead(const void* cmd,
 			void *data,
 			size_t dataLength)
 {
-	spiDeckBeginTransaction();
-	DW3000Deck_Enable();
+  #ifdef CONFIG_ADHOCUWB_PLATFORM_ADHOCUWB
+	  spiDeckBeginTransaction();
+	  DW3000Deck_Enable();
+  #endif
+  #ifdef CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE
+    spiBeginTransaction(spiSpeed);
+	  digitalWrite(CS_PIN, LOW);
+  #endif 
 	memcpy(spiDeckTxBuffer, cmd, cmdLength);
 	memset(spiDeckTxBuffer + cmdLength, DUMMY_BYTE, dataLength);
 	spiDeckExchange(cmdLength + dataLength, spiDeckTxBuffer, spiDeckRxBuffer);
 	memcpy(data, spiDeckRxBuffer + cmdLength, dataLength);
-	DW3000Deck_Disable();
+  #ifdef CONFIG_ADHOCUWB_PLATFORM_ADHOCUWB
+    DW3000Deck_Disable();
+  #endif
+  #ifdef CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE
+    digitalWrite(CS_PIN, HIGH);
+  #endif 
 	spiDeckEndTransaction();
 }
 
@@ -84,10 +145,19 @@ static void delayms(unsigned int delay) { vTaskDelay(delay); }
 
 static void reset(void)
 {
-	LL_GPIO_ResetOutputPin(GPIOC, LL_GPIO_PIN_13); // Set PC13 low
-	vTaskDelay(10);
-	LL_GPIO_SetOutputPin(GPIOC, LL_GPIO_PIN_13);  // Set PC13 high
-	vTaskDelay(10);
+  #ifdef CONFIG_ADHOCUWB_PLATFORM_ADHOCUWB
+	  LL_GPIO_ResetOutputPin(GPIOC, LL_GPIO_PIN_13);
+    vTaskDelay(M2T(10));
+	  LL_GPIO_SetOutputPin(GPIOC, LL_GPIO_PIN_13);
+    vTaskDelay(M2T(10));
+  #endif
+
+  #ifdef CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE
+    digitalWrite(GPIO_PIN_RESET, LOW);
+    vTaskDelay(M2T(10));
+    digitalWrite(GPIO_PIN_RESET, HIGH);
+    vTaskDelay(M2T(10));
+  #endif 
 }
 
 dwOps_t dwt_ops = {
@@ -200,7 +270,13 @@ void uwbISRTask(void *parameters) {
         xSemaphoreTake(uwbIrqSemaphore, portMAX_DELAY);
         dwt_isr();
         xSemaphoreGive(uwbIrqSemaphore);
-      } while (LL_EXTI_IsActiveFlag_0_31(LL_EXTI_LINE_15) != RESET);
+      } 
+      #ifdef CONFIG_ADHOCUWB_PLATFORM_ADHOCUWB
+        while (LL_EXTI_IsActiveFlag_0_31(LL_EXTI_LINE_15) != RESET);
+      #endif
+      #ifdef CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE
+        while (digitalRead(GPIO_PIN_IRQ) != 0);
+      #endif
     }
   }
 }
