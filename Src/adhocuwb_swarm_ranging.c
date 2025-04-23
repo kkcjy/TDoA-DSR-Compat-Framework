@@ -3,18 +3,23 @@
 #include "FreeRTOS.h"
 #include "queue.h"
 #include "task.h"
-//#include "system.h"
-//#include "autoconf.h"注释
-//#include "debug.h"注释
-//#include "log.h"
-//#include "routing.h"没有用到
-//#include "olsr.h"没有用到
 #include "timers.h"
-//#include "static_mem.h"没有用到
+#include "adhocuwb_platform.h"
+
+#ifdef CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE
+//#include "system.h"
+//#include "autoconf.h"
+  #include "log.h"
+//#include "routing.h"
+//#include "olsr.h"
+  #include "static_mem.h"
+#endif
 
 #include "adhocuwb_swarm_ranging.h"
 #include "adhocuwb_init.h"
-#include "uwb_send_print.h"
+#ifdef CONFIG_ADHOCUWB_PLATFORM_ADHOCUWB
+  #include "uwb_send_print.h"
+#endif
 
 #ifndef RANGING_DEBUG_ENABLE
 #undef DEBUG_PRINT
