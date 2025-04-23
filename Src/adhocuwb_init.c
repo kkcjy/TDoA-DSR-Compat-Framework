@@ -3,6 +3,7 @@
 #include <stdbool.h>
 
 #include "adhocuwb_init.h"
+#include "adhocuwb_swarm_ranging.h"
 
 #ifdef CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE
   //
@@ -10,7 +11,7 @@
 
 #ifndef UWB_DEBUG_ENABLE
   #undef DEBUG_PRINT
-  #define DEBUG_PRINT
+  #define DEBUG_PRINT 
 #endif
 
 static uint16_t MY_UWB_ADDRESS=0;

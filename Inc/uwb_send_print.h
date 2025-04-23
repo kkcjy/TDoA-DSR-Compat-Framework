@@ -1,7 +1,7 @@
 #ifndef _ADHOCDECK_UWB_PRINTF_H_
 #define _ADHOCDECK_UWB_PRINTF_H_
 
-#include "adhocuwb.h"
+#include "adhocuwb_init.h"
 #include <stdint.h> 
 #include <stdbool.h>
 #include <stdarg.h>
