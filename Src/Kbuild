@@ -1,4 +1,4 @@
-obj-y += adhocuwb_init.c
-obj-y += adhocuwb_swarm_ranging.c
-obj-y += dw3000_init.c
-obj-y += uwb_send_print.c
+obj-y += adhocuwb_init.o
+obj-y += adhocuwb_swarm_ranging.o
+obj-y += dw3000_init.o
+obj-y += uwb_send_print.o
