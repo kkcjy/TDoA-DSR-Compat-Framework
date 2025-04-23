@@ -14,10 +14,10 @@ The connection between the hardware platform and the configuration.
 |---|-------------------|------------------------------------|-----------| 
 | 1 | Crazyflie 2.1     | CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE | platform_crazyflie | 
 | 2 | Crazyflie 2.1 bl  | CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE | platform_crazyflie | 
-| 3 | Athena-efficiency | CONFIG_ADHOCUWB_PLATFORM_ATHENAEFF | platform_athenaeff |
-| 4 | AdHoc UWB H7M     | CONFIG_ADHOCUWB_PLATFORM_ADHOCUH7M | platform_adhocuh7m |
-| 5 | Ubuntu            | CONFIG_ADHOCUWB_PLATFORM_UBUNTUMAC | platform_ubuntumac |
-| 6 | MacOS             | CONFIG_ADHOCUWB_PLATFORM_UBUNTUMAC | platform_ubuntumac |
+| 3 | Athena-efficiency | CONFIG_ADHOCUWB_PLATFORM_ATHENAEFF | platform_athena3.2 |
+| 4 | AdHoc UWB H7M     | CONFIG_ADHOCUWB_PLATFORM_ADHOCUH7M | platform_adhocuwb |
+| 5 | Linux             | CONFIG_ADHOCUWB_PLATFORM_UBUNTUMAC | platform_linux |
+| 6 | MacOS             | CONFIG_ADHOCUWB_PLATFORM_UBUNTUMAC | platform_macos |
 
 
 The following defination must be given in somewhere outside the AdHocUWB repo before compile.
