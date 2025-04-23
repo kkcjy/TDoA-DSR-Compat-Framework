@@ -1,0 +1,2 @@
+obj-y += platform.c
+obj-y += platform_crazyflie.c
