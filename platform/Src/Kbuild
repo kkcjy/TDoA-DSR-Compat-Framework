@@ -1,2 +1,2 @@
-obj-y += adhocuwb_platform.c
-obj-y += adhocuwb_platform_crazyflie.c
+obj-y += adhocuwb_platform.o
+obj-y += adhocuwb_platform_crazyflie.o
