@@ -2,6 +2,15 @@
 #define __ADHOCUWB_INIT_H__
 
 #include "adhocuwb_platform.h"
+#include "dw3000_init.h"
+#include "adhocuwb_swarm_ranging.h"
+
+#ifdef CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE
+  #include "FreeRTOS.h"
+  #include "queue.h"
+  #include "semphr.h"
+  #include "task.h"
+#endif
 
 //#define UWB_DEBUG_ENABLE
 #define UWB_RANGING_ENABLE

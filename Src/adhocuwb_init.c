@@ -1,8 +1,12 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
-#include "adhocuwb_platform.h"
-#include "dw3000_init.h"
+
+#include "adhocuwb_init.h"
+
+#ifdef CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE
+  //
+#endif
 
 #ifndef UWB_DEBUG_ENABLE
   #undef DEBUG_PRINT

@@ -30,10 +30,12 @@
 
 #define DUMMY_BYTE 0x00
 
-extern SemaphoreHandle_t spiDeckTxComplete;
-extern SemaphoreHandle_t spiDeckRxComplete;
-extern SemaphoreHandle_t spiDeckMutex;
-extern SemaphoreHandle_t uwbIrqSemaphore;
+#ifdef CONFIG_ADHOCUWB_PLATFORM_ADHOCUWB
+  extern SemaphoreHandle_t spiDeckTxComplete;
+  extern SemaphoreHandle_t spiDeckRxComplete;
+  extern SemaphoreHandle_t spiDeckMutex;
+  extern SemaphoreHandle_t uwbIrqSemaphore;
+#endif 
 
 typedef void (*adhocuwb_hdw_cb_t)(void *);
 
