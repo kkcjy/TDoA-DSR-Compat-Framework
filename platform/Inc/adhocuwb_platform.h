@@ -1,5 +1,5 @@
-#ifndef __PLATFORM_H__
-#define __PLATFORM_H__
+#ifndef __ADHOCUWB_PLATFORM_H__
+#define __ADHOCUWB_PLATFORM_H__
 
 #define CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE y
 
