@@ -1,5 +1,6 @@
-#ifndef __ADHOCUWB_IMPL_H__
-#define __ADHOCUWB_IMPL_H__
+#ifndef __PLATFORM_ATHENA32_H__
+#define __PLATFORM_ATHENA32_H__
+
 #include <assert.h>
 #include <cmsis_os.h>
 

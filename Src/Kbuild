@@ -1,8 +1,4 @@
-obj-y += adhocuwb_freertos_athena3.2.o
-obj-y += adhocuwb_freertos_crazyflie.o
-obj-y += adhocuwb_impl.o
-obj-y += adhocuwb_linux.o
-obj-y += adhocuwb_macos.o
-obj-y += adhocuwb.o
-obj-y += swarm_ranging.o
-obj-y += uwb_send_print.o
+obj-y += adhocuwb_init.c
+obj-y += adhocuwb_swarm_ranging.c
+obj-y += dw3000_init.c
+obj-y += uwb_send_print.c

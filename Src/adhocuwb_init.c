@@ -2,9 +2,26 @@
 #include <string.h>
 #include <stdbool.h>
 
+#include "adhocuwb_init.h"
 
-#include "adhocuwb.h"
-#include "adhocuwb_impl.h"
+
+#if defined(CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE)
+    #include "platform_crazyflie.h"
+#elif defined(CONFIG_ADHOCUWB_PLATFORM_ATHENA)
+    #include "platform_athena3.2.h"
+#elif defined(CONFIG_ADHOCUWB_PLATFORM_ADHOCUWB)
+    #include "platform_adhocuwb.h"
+#elif defined(CONFIG_ADHOCUWB_PLATFORM_LINUX)
+    #include "platform_linux.h"
+#elif defined(CONFIG_ADHOCUWB_PLATFORM_MACOS)
+    #include "platform_macos.h"
+#else
+    #include "platform.h"
+#endif
+
+#ifdef 
+
+#include "platform.h"
 
 #ifndef UWB_DEBUG_ENABLE
   #undef DEBUG_PRINT

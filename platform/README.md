@@ -14,10 +14,10 @@ The connection between the hardware platform and the configuration.
 |---|-------------------|------------------------------------|-----------| 
 | 1 | Crazyflie 2.1     | CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE | platform_crazyflie | 
 | 2 | Crazyflie 2.1 bl  | CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE | platform_crazyflie | 
-| 3 | Athena-efficiency | CONFIG_ADHOCUWB_PLATFORM_ATHENAEFF | platform_athena3.2 |
-| 4 | AdHoc UWB H7M     | CONFIG_ADHOCUWB_PLATFORM_ADHOCUH7M | platform_adhocuwb |
-| 5 | Linux             | CONFIG_ADHOCUWB_PLATFORM_UBUNTUMAC | platform_linux |
-| 6 | MacOS             | CONFIG_ADHOCUWB_PLATFORM_UBUNTUMAC | platform_macos |
+| 3 | Athena-efficiency | CONFIG_ADHOCUWB_PLATFORM_ATHENA    | platform_athena3.2 |
+| 4 | AdHoc UWB         | CONFIG_ADHOCUWB_PLATFORM_ADHOCUWB  | platform_adhocuwb |
+| 5 | Linux             | CONFIG_ADHOCUWB_PLATFORM_LINUX     | platform_linux |
+| 6 | MacOS             | CONFIG_ADHOCUWB_PLATFORM_MACOS     | platform_macos |
 
 
 The following defination must be given in somewhere outside the AdHocUWB repo before compile.
@@ -25,8 +25,8 @@ The following defination must be given in somewhere outside the AdHocUWB repo be
 ```c
 //one the following must be defined
 #define CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE y
-#define CONFIG_ADHOCUWB_PLATFORM_ATHENAEFF y
-#define CONFIG_ADHOCUWB_PLATFORM_ADHOCUH7M y
-#define CONFIG_ADHOCUWB_PLATFORM_UBUNTUMAC y
+#define CONFIG_ADHOCUWB_PLATFORM_ATHENA y
+#define CONFIG_ADHOCUWB_PLATFORM_ADHOCUWB  y
+#define CONFIG_ADHOCUWB_PLATFORM_LINUX y
+#define CONFIG_ADHOCUWB_PLATFORM_MACOS y
 ```
-
