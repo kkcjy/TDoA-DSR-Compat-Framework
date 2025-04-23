@@ -1,9 +1,9 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
+#include "adhocuwb_platform.h"
 
 #include "adhocuwb_init.h"
-
 
 #if defined(CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE)
     #include "platform_crazyflie.h"
@@ -16,7 +16,7 @@
 #elif defined(CONFIG_ADHOCUWB_PLATFORM_MACOS)
     #include "platform_macos.h"
 #else
-    #include "platform.h"
+    //
 #endif
 
 #ifdef 

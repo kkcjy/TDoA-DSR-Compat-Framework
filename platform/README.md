@@ -30,3 +30,21 @@ The following defination must be given in somewhere outside the AdHocUWB repo be
 #define CONFIG_ADHOCUWB_PLATFORM_LINUX y
 #define CONFIG_ADHOCUWB_PLATFORM_MACOS y
 ```
+
+For example, the following usage is provided for reference.
+
+```c
+#if defined(CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE)
+    #include "platform_crazyflie.h"
+#elif defined(CONFIG_ADHOCUWB_PLATFORM_ATHENA)
+    #include "platform_athena3.2.h"
+#elif defined(CONFIG_ADHOCUWB_PLATFORM_ADHOCUWB)
+    #include "platform_adhocuwb.h"
+#elif defined(CONFIG_ADHOCUWB_PLATFORM_LINUX)
+    #include "platform_linux.h"
+#elif defined(CONFIG_ADHOCUWB_PLATFORM_MACOS)
+    #include "platform_macos.h"
+#else
+    //
+#endif
+```
