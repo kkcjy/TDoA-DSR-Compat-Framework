@@ -1,7 +1,7 @@
-#ifndef __ADHOCUWB_H__
-#define __ADHOCUWB_H__
+#ifndef __ADHOCUWB_INIT_H__
+#define __ADHOCUWB_INIT_H__
 
-#include "adhocuwb_impl.h"
+#include "adhocuwb_platform.h"
 
 //#define UWB_DEBUG_ENABLE
 #define UWB_RANGING_ENABLE

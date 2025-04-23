@@ -1,14 +1,10 @@
-/*
- * dw3000_cbll.h
- *
- *  Created on: Aug 4, 2024
- *      Author: twinhorse
- */
-#ifndef __DW3000_CBLL_H__
-#define __DW3000_CBLL_H__
+#ifndef __DW3000_INIT_H__
+#define __DW3000_INIT_H__
 
-#include "stm32h7xx_ll_gpio.h"
-#include "spi_drv.h"
+#ifdef CONFIG_ADHOCUWB_PLATFORM_ADHOCUWB
+  #include "stm32h7xx_ll_gpio.h"
+  #include "spi_drv.h"
+#endif
 #include "libdw3000.h"
 
 /* Function Switch */

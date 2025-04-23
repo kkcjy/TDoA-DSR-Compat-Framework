@@ -9,8 +9,10 @@
 #include "dwTypes.h"
 #include "libdw3000.h"
 #include "dw3000.h"
-#include "main.h"
-#include "dw3000_cbll.h"
+#ifdef CONFIG_ADHOCUWB_PLATFORM_ADHOCUWB
+  #include "main.h"
+#endif
+#include "dw3000_init.h"
 
 /* PHR configuration */
 static dwt_config_t uwbPhrConfig = {

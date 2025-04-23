@@ -2,6 +2,7 @@
 #define _SWARM_RANGING_H_
 
 #include "dwTypes.h"
+#include "adhocuwb_platform.h"
 #include "adhocuwb_impl.h"
 #include "adhocuwb.h"
 #include "semphr.h"
