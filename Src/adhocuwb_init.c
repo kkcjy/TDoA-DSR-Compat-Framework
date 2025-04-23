@@ -2,26 +2,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include "adhocuwb_platform.h"
-
-#include "adhocuwb_init.h"
-
-#if defined(CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE)
-    #include "platform_crazyflie.h"
-#elif defined(CONFIG_ADHOCUWB_PLATFORM_ATHENA)
-    #include "platform_athena3.2.h"
-#elif defined(CONFIG_ADHOCUWB_PLATFORM_ADHOCUWB)
-    #include "platform_adhocuwb.h"
-#elif defined(CONFIG_ADHOCUWB_PLATFORM_LINUX)
-    #include "platform_linux.h"
-#elif defined(CONFIG_ADHOCUWB_PLATFORM_MACOS)
-    #include "platform_macos.h"
-#else
-    //
-#endif
-
-#ifdef 
-
-#include "platform.h"
+#include "dw3000_init.h"
 
 #ifndef UWB_DEBUG_ENABLE
   #undef DEBUG_PRINT

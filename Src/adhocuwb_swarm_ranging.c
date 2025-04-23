@@ -7,14 +7,13 @@
 //#include "autoconf.h"注释
 //#include "debug.h"注释
 //#include "log.h"
-#include "swarm_ranging.h"
 //#include "routing.h"没有用到
 //#include "olsr.h"没有用到
 #include "timers.h"
 //#include "static_mem.h"没有用到
 
-#include "swarm_ranging.h"
-#include "adhocuwb_impl.h"
+#include "adhocuwb_swarm_ranging.h"
+#include "adhocuwb_init.h"
 #include "uwb_send_print.h"
 
 #ifndef RANGING_DEBUG_ENABLE
