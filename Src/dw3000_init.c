@@ -1,10 +1,3 @@
-/*
- * dw3000deck_ll.c
- *
- *  Created on: Aug 4, 2024
- *      Author: twinhorse
- */
-
 #include <string.h>
 #include "dwTypes.h"
 #include "libdw3000.h"
