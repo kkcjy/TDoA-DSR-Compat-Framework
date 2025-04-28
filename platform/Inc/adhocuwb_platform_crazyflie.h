@@ -10,6 +10,8 @@
 #include "system.h"
 #include "debug.h"
 
+#define ADHOC_DECK_TASK_NAME    "ADHOCUWB"
+#define ADHOC_DECK_TASK_PRI     3
 #define ADHOC_UWB_TX_TASK_NAME "adhocuwbTxTask"
 #define ADHOC_UWB_RANGING_TX_TASK_NAME "uwbRangingTxTask"
 #define ADHOC_UWB_RANGING_RX_TASK_NAME "uwbRangingRxTask"

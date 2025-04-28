@@ -17,8 +17,6 @@
 //#define UWB_RAFT_ENABLE
 //#define UWB_FLOODING_ENABLE
 
-#define UWB_TASK_STACK_SIZE (2 * UWB_FRAME_LEN_MAX)
-
 /* Queue Constants */
 #define UWB_TX_QUEUE_SIZE 5
 #define UWB_TX_QUEUE_ITEM_SIZE sizeof(UWB_Packet_t)

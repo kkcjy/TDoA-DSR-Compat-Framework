@@ -10,7 +10,9 @@
 #endif
 #ifdef CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE
   #include "deck.h"
+  static uint16_t MY_UWB_ADDRESS;
   static bool isInit = false;
+  static TaskHandle_t uwbTaskHandle = 0;
 #endif
 
 /* PHR configuration */
@@ -336,7 +338,7 @@ static void pinInit() {
 
 //DECK dw3000_adhocuwb_deck 
 /*********** Deck driver initialization ***************/
-static void dwm3000Init(DeckInfo *info) {
+static void dwm3000_adhocuwb_Init(DeckInfo *info) {
   pinInit();
   if (dw3000_init() == DWT_SUCCESS) {
     xTaskCreate(uwbISRTask, ADHOC_DECK_TASK_NAME, UWB_TASK_STACK_SIZE, NULL,
@@ -348,18 +350,18 @@ static void dwm3000Init(DeckInfo *info) {
   DEBUG_PRINT("MY_UWB_ADDRESS = %d \n", MY_UWB_ADDRESS);
 }
 
-static bool dwm3000Test() {
+static bool dwm3000_adhocuwb_Test() {
   if (!isInit) {
-    DEBUG_PRINT("Error while initializing DWM3000\n");
+    DEBUG_PRINT("Error while initializing DWM3000_ADHOCUWB\n");
   }
 
   return isInit;
 }
 
-static const DeckDriver dwm3000_deck = {
+static const DeckDriver dwm3000_adhocuwb_deck = {
     .vid = 0xBC,
     .pid = 0x06,
-    .name = "DWM3000",
+    .name = "DWM3000_ADHOCUWB",
 
 #ifdef CONFIG_DECK_ADHOCDECK_USE_ALT_PINS
     .usedGpio = DECK_USING_IO_1 | DECK_USING_IO_2 | DECK_USING_IO_4,
@@ -375,11 +377,11 @@ static const DeckDriver dwm3000_deck = {
     .requiredLowInterferenceRadioMode = true,
 #endif
 
-    .init = dwm3000Init,
-    .test = dwm3000Test,
+    .init = dwm3000_adhocuwb_Init,
+    .test = dwm3000_adhocuwb_Test,
 };
 
-DECK_DRIVER(dwm3000_deck);
+DECK_DRIVER(dwm3000_adhocuwb_deck);
 
 PARAM_GROUP_START(deck)
         PARAM_ADD_CORE(PARAM_UINT8 | PARAM_RONLY, DWM3000, &isInit)
