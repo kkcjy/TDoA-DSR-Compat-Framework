@@ -4,7 +4,7 @@
 #include "dwTypes.h"
 #include "adhocuwb_platform.h"
 #include "adhocuwb_init.h"
-#include "dw3000_init.h"
+#include "dwm3000_init.h"
 
 
 // #define RANGING_DEBUG_ENABLE

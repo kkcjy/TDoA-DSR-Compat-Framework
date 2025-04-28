@@ -2,7 +2,7 @@
 #define __ADHOCUWB_INIT_H__
 
 #include "adhocuwb_platform.h"
-#include "dw3000_init.h"
+#include "dwm3000_init.h"
 
 #ifdef CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE
   #include "FreeRTOS.h"
