@@ -10,6 +10,7 @@
 #endif
 #ifdef CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE
   #include "deck.h"
+  #include "param.h"
   static uint16_t MY_UWB_ADDRESS;
   static bool isInit = false;
   static TaskHandle_t uwbTaskHandle = 0;
@@ -246,7 +247,7 @@ int dw3000_init()
 
   /* Enable wanted interrupts (TX confirmation, RX good frames, RX timeouts and RX errors). */
   dwt_setinterrupt(SYS_ENABLE_LO_TXFRS_ENABLE_BIT_MASK |
-                       SYS_Estatic bool isInit = false;NABLE_LO_RXFCG_ENABLE_BIT_MASK |
+                       SYS_ENABLE_LO_RXFCG_ENABLE_BIT_MASK |
                        SYS_ENABLE_LO_RXFTO_ENABLE_BIT_MASK |
                        SYS_ENABLE_LO_RXPTO_ENABLE_BIT_MASK |
                        SYS_ENABLE_LO_RXPHE_ENABLE_BIT_MASK |
