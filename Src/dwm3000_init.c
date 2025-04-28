@@ -14,6 +14,7 @@
   static uint16_t MY_UWB_ADDRESS;
   static bool isInit = false;
   static TaskHandle_t uwbTaskHandle = 0;
+  static SemaphoreHandle_t irqSemaphore;
 #endif
 
 /* PHR configuration */
@@ -240,6 +241,10 @@ int dw3000_init()
   /* Configure the TX spectrum parameters (power, PG delay and PG count) */
   dwt_configuretxrf(&uwbTxConfigOptions);
 
+  /* Configure Antenna Delay */
+  dwt_setrxantennadelay(UWB_RX_ANT_DLY);
+  dwt_settxantennadelay(UWB_TX_ANT_DLY);
+
   dwt_setrxtimeout(0xFFFFF);
 
   /* Set callback functions */
@@ -258,6 +263,8 @@ int dw3000_init()
 
   /* Clearing the SPI ready interrupt */
   dwt_write32bitreg(SYS_STATUS_ID, SYS_STATUS_RCINIT_BIT_MASK | SYS_STATUS_SPIRDY_BIT_MASK);
+
+  irqSemaphore = xSemaphoreCreateMutex();
 
   return DWT_SUCCESS;
 }
