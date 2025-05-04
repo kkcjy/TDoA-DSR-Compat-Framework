@@ -83,7 +83,7 @@ Add new file `src/deck/Kconfig`, an examply content is below.
 ```config
 config DECK_ADHOC
     bool "Support the Adhoc deck"
-    default y
+    default n
     help
         The Adhoc deck is used for ranging, networking and communication within the
         swarm, based on the DW3000 UWB chip.
