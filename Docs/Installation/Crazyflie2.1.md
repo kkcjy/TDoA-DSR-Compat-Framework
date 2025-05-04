@@ -35,7 +35,6 @@ Double check the setting in `.gitmodules`.
 [submodule "vendor/libdw3000"]
         path = vendor/libdw3000
         url = https://github.com/SEU-NetSI/libdw3000.git
-[submodule "vendor/libdw3000"]
 ```
 
 In `Makefile`, add 
@@ -49,7 +48,7 @@ In `vendor/Kbuild`, add
 obj-y += libdw3000/src/libdw3000.o
 obj-y += libdw3000/src/libdw3000Spi.o
 obj-y += libdw3000/src/mac_802_15_4.o
-````
+```
 
 ### Add Submodule AdHocUWB
 
@@ -70,10 +69,91 @@ In `Makefile`, add
 INCLUDES += -I$(srctree)/src/deck/drivers/AdHocUWB/Inc -I$(srctree)/src/deck/drivers/AdHocUWB/platform/Inc
 ```
 
+Modify `src/deck/Kbuild`, see the next part.
+
+
+### Add and modify Kconfig and Kbuild files
+
 In `src/deck/Kbuild`, add
 ```
 obj-y += drivers/AdHocUWB/
-````
+```
+
+Add new file `src/deck/Kconfig`, an examply content is below.
+```config
+config DECK_ADHOC
+    bool "Support the Adhoc deck"
+    default y
+    help
+        The Adhoc deck is used for ranging, networking and communication within the
+        swarm, based on the DW3000 UWB chip.
+
+    config DECK_ADHOCDECK_USE_ALT_PINS
+    bool "adhoc deck alternative IRQ and RESET pins"
+    default name
+    depends on DECK_ADHOC
+    help
+        ADHOC deck alternative IRQ and RESET pins(IO_2, IO_4) instead of
+        default (RX1, TX1), leaving UART1 free for use.
+
+    config DECK_ADHOCDECK_USE_UART2_PINS
+    bool "adhoc deck use UART2 (TX2, RX2) pins"
+    default name
+    depends on DECK_ADHOC
+    help
+       ADHOC deck alternative IRQ and RESET pins(TX2, RX2) instead of
+       default (RX1, TX1).
+```
+
+In `Kconfig`, change from 
+```config
+menu "Expansion deck configuration"
+
+config DECK_FORCE
+    string "Force load specified custom deck driver"
+    default "none"
+    help
+        A colon seperated list of custom drivers to force load or "none".
+
+source src/deck/drivers/src/Kconfig
+
+endmenu
+```
+to 
+```config
+menu "Expansion deck configuration"
+
+config DECK_FORCE
+    string "Force load specified custom deck driver"
+    default "none"
+    help
+        A colon seperated list of custom drivers to force load or "none".
+
+source src/deck/drivers/src/Kconfig
+source src/deck/Kconfig
+
+endmenu
+```
+
+In folder `configs`, add new config files: 
+* `adhoc_defconfig` 
+* `adhoc_alt_defconfig`
+* `adhoc_uart2_defconfig`
+
+An examply content for `adhoc_uart2_defconfig` file is as follows.
+```config
+CONFIG_DECK_ACTIVE_MARKER=n
+CONFIG_DECK_AI=n
+CONFIG_DECK_LEDRING=n
+CONFIG_DECK_BUZZ=n
+CONFIG_DECK_LIGHTHOUSE=n
+CONFIG_DECK_LOCO=n
+CONFIG_DECK_MULTIRANGER=n
+CONFIG_DECK_USD=n
+CONFIG_DECK_RPM=n
+CONFIG_DECK_ADHOC=y
+CONFIG_DECK_ADHOCDECK_USE_UART2_PINS=y
+```
 
 ### Other important settings.
 
@@ -95,7 +175,3 @@ to
 ARCH_CFLAGS += -Os
 ```
 
-In folder `configs`, add new config files: 
-* `adhoc_defconfig` 
-* `adhoc_alt_defconfig`
-* `adhoc_uart2_defconfig`
