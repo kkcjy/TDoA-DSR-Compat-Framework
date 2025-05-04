@@ -76,7 +76,7 @@ Modify `src/deck/Kbuild`, see the next part.
 
 In `src/deck/Kbuild`, add
 ```
-obj-y += drivers/AdHocUWB/
+obj-$(CONFIG_DECK_ADHOC) += drivers/AdHocUWB/
 ```
 
 Add new file `src/deck/Kconfig`, an examply content is below.
