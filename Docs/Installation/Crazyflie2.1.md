@@ -175,3 +175,38 @@ to
 ARCH_CFLAGS += -Os
 ```
 
+### Addtion to support Crazyflie 2.1 Brushless
+
+In folder `configs`, add new config files: 
+* `adhoc_c21b_defconfig` 
+* `adhoc_c21b_alt_defconfig`
+* `adhoc_c21b_uart2_defconfig`
+
+An examply content for `adhoc_c21b_alt_defconfig` file is as follows.
+```config
+CONFIG_PLATFORM_CF21BL=y
+
+CONFIG_MOTORS_REQUIRE_ARMING=y
+CONFIG_MOTORS_ESC_PROTOCOL_DSHOT=y
+
+CONFIG_DECK_ACTIVE_MARKER=n
+CONFIG_DECK_AI=n
+CONFIG_DECK_LEDRING=n
+CONFIG_DECK_BUZZ=n
+CONFIG_DECK_LIGHTHOUSE=n
+CONFIG_DECK_LOCO=n
+CONFIG_DECK_MULTIRANGER=n
+CONFIG_DECK_USD=n
+CONFIG_DECK_RPM=n
+CONFIG_DECK_ADHOC=y
+CONFIG_DECK_ADHOCDECK_USE_ALT_PINS=y
+```
+
+In file `src/platform/src/platform_stm32f4.c`, change from 
+```c
+#define DEFAULT_PLATFORM_STRING "0;CF20"
+```
+to
+```c
+#define DEFAULT_PLATFORM_STRING "0;C21B"
+```
