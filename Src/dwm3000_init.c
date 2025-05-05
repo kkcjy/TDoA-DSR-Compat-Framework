@@ -4,6 +4,7 @@
 #include "dw3000.h"
 #include "adhocuwb_platform.h"
 #include "dwm3000_init.h"
+#include "adhocuwb_init.h"
 
 #ifdef CONFIG_ADHOCUWB_PLATFORM_ADHOCUWB
   #include "main.h"
@@ -351,6 +352,7 @@ static void dwm3000_adhocuwb_Init(DeckInfo *info) {
   if (dw3000_init() == DWT_SUCCESS) {
     xTaskCreate(uwbISRTask, ADHOC_DECK_TASK_NAME, UWB_TASK_STACK_SIZE, NULL,
       ADHOC_DECK_TASK_PRI, &uwbTaskHandle);
+    adhocuwbInit();
     isInit = true;
   } else {
     isInit = false;
