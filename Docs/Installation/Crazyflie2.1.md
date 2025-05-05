@@ -1,6 +1,5 @@
 
-## How to install AdHocUWB on Crazyflie 2.1 w/o brushless
-
+## How to install AdHocUWB on Crazyflie 2.1 w/ or w/o brushless
 
 ### Clone Crazyflie firmware and create branch
 
