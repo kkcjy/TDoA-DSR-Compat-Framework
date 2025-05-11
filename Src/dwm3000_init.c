@@ -379,8 +379,8 @@ static void dwm3000_adhocuwb_Init(DeckInfo *info) {
   if (dw3000_init() == DWT_SUCCESS) {
     xTaskCreate(uwbISRTask, ADHOC_DECK_TASK_NAME, UWB_TASK_STACK_SIZE, NULL,
       ADHOC_DECK_TASK_PRI, &uwbISRTaskHandle);
-    //adhocuwbInit();
-    uwbTransceiveInit();
+    adhocuwbInit();
+    // uwbTransceiveInit();
     isInit = true;
   } else {
     isInit = false;

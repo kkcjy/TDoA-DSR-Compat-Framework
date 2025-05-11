@@ -1105,6 +1105,8 @@ static int16_t computeDistance(Timestamp_Tuple_t Tp, Timestamp_Tuple_t Rp,
 	  if(abnormal_dist_count++>=3)
 		  abnormal_dist_count=abnormal_dist_count;
 
+  DEBUG_PRINT("compute dist 1:%d\n", distance);
+  
   if (distance < 0)
   {
     DEBUG_PRINT("Ranging Error: distance < 0\n");

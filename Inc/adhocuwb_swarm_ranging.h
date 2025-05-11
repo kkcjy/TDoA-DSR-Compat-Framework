@@ -7,7 +7,7 @@
 #include "dwm3000_init.h"
 
 
-// #define RANGING_DEBUG_ENABLE
+#define RANGING_DEBUG_ENABLE
 
 /* Function Switch */
 //#define ENABLE_BUS_BOARDING_SCHEME
