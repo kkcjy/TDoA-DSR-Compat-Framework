@@ -1,4 +1,7 @@
 #include <string.h>
+
+#include "stm32fxxx.h"
+
 #include "dwTypes.h"
 #include "libdw3000.h"
 #include "dw3000.h"
@@ -15,7 +18,7 @@
   #include "param.h"
   static uint16_t MY_UWB_ADDRESS;
   static bool isInit = false;
-  static TaskHandle_t uwbTaskHandle = 0;
+  static TaskHandle_t uwbISRTaskHandle = 0;
   static SemaphoreHandle_t irqSemaphore;
 #endif
 
@@ -146,6 +149,24 @@ static void spiDeckRead(const void* cmd,
 	spiDeckEndTransaction();
 }
 
+#ifdef CONFIG_DECK_ADHOCDECK_USE_ALT_PINS
+void __attribute__((used)) EXTI5_Callback(void)
+#elif defined(CONFIG_DECK_ADHOCDECK_USE_UART2_PINS)
+void __attribute__((used)) EXTI2_Callback(void)
+#else
+void __attribute__((used)) EXTI11_Callback(void)
+#endif
+{
+  portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
+
+  // Unlock interrupt handling task
+  vTaskNotifyGiveFromISR(uwbISRTaskHandle, &xHigherPriorityTaskWoken);
+
+  if (xHigherPriorityTaskWoken) {
+    portYIELD();
+  }
+}
+
 static void spiDeckSetSpeed(dwSpiSpeed_t speed) { return; }
 
 static void delayms(unsigned int delay) { vTaskDelay(delay); }
@@ -180,7 +201,7 @@ static uint8_t rxBuffer[UWB_FRAME_LEN_MAX];
 
 static void txCallback()
 {
-  //  DEBUG_PRINT("txCallback \n");
+  DEBUG_PRINT("txCallback \n");
 	if(_txCallback)	{
 		_txCallback(NULL);
 	}
@@ -346,13 +367,13 @@ static void pinInit() {
   dwt_ops.reset();
 }
 
-//DECK dw3000_adhocuwb_deck 
 /*********** Deck driver initialization ***************/
 static void dwm3000_adhocuwb_Init(DeckInfo *info) {
+
   pinInit();
   if (dw3000_init() == DWT_SUCCESS) {
     xTaskCreate(uwbISRTask, ADHOC_DECK_TASK_NAME, UWB_TASK_STACK_SIZE, NULL,
-      ADHOC_DECK_TASK_PRI, &uwbTaskHandle);
+      ADHOC_DECK_TASK_PRI, &uwbISRTaskHandle);
     //adhocuwbInit();
     uwbTransceiveInit();
     isInit = true;

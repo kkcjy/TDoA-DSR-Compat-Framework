@@ -13,6 +13,7 @@
 TaskHandle_t uwbTransceiveTaskHandle = 0;
 
 void simpleTxCallback(void *argument) {	// 发送完数据包后的回调函数
+	DEBUG_PRINT("simpleTxCallback\n");
 	return;
 }
 
