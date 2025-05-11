@@ -50,4 +50,4 @@ void adhocuwb_set_hdw_cbs(adhocuwb_hdw_cb_t txCb, adhocuwb_hdw_cb_t rxCb);
 void adhocuwb_hdw_force_rx();
 int adhocuwb_hdw_send(void *data, uint32_t datalen);
 
-#endif /* __DW3000_CBLL_H__ */
+#endif /* __DWM3000_INIT_H__ */

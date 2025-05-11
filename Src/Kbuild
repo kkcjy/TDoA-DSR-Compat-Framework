@@ -1,3 +1,2 @@
-obj-y += adhocuwb_init.o
-obj-y += adhocuwb_swarm_ranging.o
 obj-y += dwm3000_init.o
+obj-y += dwm3000_transceive.o
