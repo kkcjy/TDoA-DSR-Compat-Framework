@@ -2,6 +2,11 @@
 
 #include "stm32fxxx.h"
 
+#include "FreeRTOS.h"
+#include "queue.h"
+#include "semphr.h"
+#include "task.h"
+
 #include "dwTypes.h"
 #include "libdw3000.h"
 #include "dw3000.h"
@@ -19,7 +24,7 @@
   static uint16_t MY_UWB_ADDRESS;
   static bool isInit = false;
   static TaskHandle_t uwbISRTaskHandle = 0;
-  static SemaphoreHandle_t irqSemaphore;
+  static SemaphoreHandle_t uwbIrqSemaphore;
 #endif
 
 /* PHR configuration */
@@ -87,7 +92,6 @@ static dwt_txconfig_t uwbTxConfigOptions = {
 static adhocuwb_hdw_cb_t _txCallback = 0;
 static adhocuwb_hdw_cb_t _rxCallback = 0;
 
-static SemaphoreHandle_t uwbIrqSemaphore;
 
 /************ Low level ops for libdw **********/
 
@@ -160,7 +164,8 @@ void __attribute__((used)) EXTI11_Callback(void)
   portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
 
   // Unlock interrupt handling task
-  vTaskNotifyGiveFromISR(uwbISRTaskHandle, &xHigherPriorityTaskWoken);
+ if(uwbISRTaskHandle)
+   vTaskNotifyGiveFromISR(uwbISRTaskHandle, &xHigherPriorityTaskWoken);
 
   if (xHigherPriorityTaskWoken) {
     portYIELD();
@@ -287,13 +292,13 @@ int dw3000_init()
   /* Clearing the SPI ready interrupt */
   dwt_write32bitreg(SYS_STATUS_ID, SYS_STATUS_RCINIT_BIT_MASK | SYS_STATUS_SPIRDY_BIT_MASK);
 
-  irqSemaphore = xSemaphoreCreateMutex();
+  uwbIrqSemaphore = xSemaphoreCreateMutex();
 
   return DWT_SUCCESS;
 }
 
 void uwbISRTask(void *parameters) {
-  vTaskDelay(32);
+  systemWaitStart();
 
   while (1)
   {
