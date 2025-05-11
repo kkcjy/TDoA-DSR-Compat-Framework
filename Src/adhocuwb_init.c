@@ -29,7 +29,7 @@ int uwbSendPacket(UWB_Packet_t *packet) {
 
 int uwbSendPacketBlock(UWB_Packet_t *packet) {
   ASSERT(packet);
- DEBUG_PRINT("uwbSend, from %d to %d, seq %d\n",packet->header.srcAddress, packet->header.destAddress, packet->header.seqNumber);
+  //DEBUG_PRINT("uwbSend, from %d to %d, seq %d\n",packet->header.srcAddress, packet->header.destAddress, packet->header.seqNumber);
   return xQueueSend(txQueue, packet, portMAX_DELAY);
 }
 
