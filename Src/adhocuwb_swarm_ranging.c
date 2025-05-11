@@ -91,6 +91,7 @@ int16_t getDistance(UWB_Address_t neighborAddress)
 
 void setDistance(UWB_Address_t neighborAddress, int16_t distance, uint8_t source)
 {
+  DEBUG_PRINT("setDistance in mode %d to %d at %d\n", source, neighborAddress, distance);
   ASSERT(neighborAddress <= NEIGHBOR_ADDRESS_MAX);
   distanceTowards[neighborAddress] = distance;
   distanceSource[neighborAddress] = source;
@@ -517,7 +518,7 @@ static void rangingTableSetClearExpireTimerCallback(TimerHandle_t timer)
   xSemaphoreTake(rangingTableSet.mu, portMAX_DELAY);
 
   Time_t curTime = xTaskGetTickCount();
-  DEBUG_PRINT("rangingTableSetClearExpireTimerCallback: Trigger expiration timer at %lu.\n", curTime);
+  // DEBUG_PRINT("rangingTableSetClearExpireTimerCallback: Trigger expiration timer at %lu.\n", curTime);
 
   int evictionCount = rangingTableSetClearExpire(&rangingTableSet);
   if (evictionCount > 0)
@@ -1069,7 +1070,7 @@ static int16_t computeDistance(Timestamp_Tuple_t Tp, Timestamp_Tuple_t Rp,
 
   bool isErrorOccurred = false;
 
-  DEBUG_PRINT("Tp:%d,Rp:%d,Tr:%d,Rr:%d,Tf:%d,Rf:%d\n", Tp.seqNumber, Rp.seqNumber, Tr.seqNumber, Rr.seqNumber, Tf.seqNumber, Rf.seqNumber);
+  // DEBUG_PRINT("Tp:%d,Rp:%d,Tr:%d,Rr:%d,Tf:%d,Rf:%d\n", Tp.seqNumber, Rp.seqNumber, Tr.seqNumber, Rr.seqNumber, Tf.seqNumber, Rf.seqNumber);
   if (Tp.seqNumber != Rp.seqNumber || Tr.seqNumber != Rr.seqNumber || Tf.seqNumber != Rf.seqNumber)
   {
     // DEBUG_PRINT("Tp:%d,Rp:%d,Tr:%d,Rr:%d,Tf:%d,Rf:%d\n", Tp.seqNumber, Rp.seqNumber, Tr.seqNumber, Rr.seqNumber, Tf.seqNumber, Rf.seqNumber);
@@ -1105,7 +1106,7 @@ static int16_t computeDistance(Timestamp_Tuple_t Tp, Timestamp_Tuple_t Rp,
 	  if(abnormal_dist_count++>=3)
 		  abnormal_dist_count=abnormal_dist_count;
 
-  DEBUG_PRINT("compute dist 1:%d\n", distance);
+  DEBUG_PRINT("compute dist:\t%d\n", distance);
   
   if (distance < 0)
   {
@@ -1137,7 +1138,7 @@ static int16_t computeDistance2(Timestamp_Tuple_t Tx, Timestamp_Tuple_t Rx,
   rangingTable->TxRxHistory.Rx.timestamp.full=0;
   statistic[rangingTable->neighborAddress].compute3num++;
   bool isErrorOccurred = false;
-  DEBUG_PRINT("Tx:%d,Rx:%d,Tp:%d,Rp:%d,Tr:%d,Rr:%d\n", Tx.seqNumber, Rx.seqNumber, Tp.seqNumber, Rp.seqNumber, Tr.seqNumber, Rr.seqNumber);
+  // DEBUG_PRINT("Tx:%d,Rx:%d,Tp:%d,Rp:%d,Tr:%d,Rr:%d\n", Tx.seqNumber, Rx.seqNumber, Tp.seqNumber, Rp.seqNumber, Tr.seqNumber, Rr.seqNumber);
 
   //TODO: to replace the following condition with timestamp.full==0
   if(Tx.seqNumber==0 || Rx.seqNumber==0){
@@ -1296,7 +1297,6 @@ static void S3_Tf(Ranging_Table_t *rangingTable)
 }
 
 static void S3_RX_NO_Rf(Ranging_Table_t *rangingTable)
-
 {
   DEBUG_PRINT("T1-");
   Ranging_Table_Tr_Rr_Candidate_t Tr_Rr_Candidate = rangingTableBufferGetLatest(&rangingTable->TrRrBuffer);
@@ -1519,7 +1519,7 @@ static void processRangingMessage(Ranging_Message_With_Timestamp_t *rangingMessa
   uint16_t neighborAddress = rangingMessage->header.srcAddress;
   int neighborIndex = rangingTableSetSearchTable(&rangingTableSet, neighborAddress);
 
-  DEBUG_PRINT("seq:%d\n", rangingMessage->header.msgSequence);
+  // DEBUG_PRINT("seq:%d\n", rangingMessage->header.msgSequence);
 
 //  float posiX = logGetFloat(idX);
 //  float posiY = logGetFloat(idY);
@@ -1765,7 +1765,6 @@ static Time_t generateRangingMessage(Ranging_Message_t *rangingMessage)
   float posiX = 0;
   float posiY = 0;
   float posiZ = 0;
-  DEBUG_PRINT("%f\n", posiX);
 
   rangingMessage->header.posiX = posiX;
   rangingMessage->header.posiY = posiY;
@@ -1945,6 +1944,7 @@ void rangingInit()
 
 LOG_GROUP_START(Ranging)
 
+LOG_ADD(LOG_INT16, distTo0, distanceTowards + 0)
 LOG_ADD(LOG_INT16, distTo1, distanceTowards + 1)
 LOG_ADD(LOG_INT16, distTo2, distanceTowards + 2)
 LOG_ADD(LOG_INT16, distTo3, distanceTowards + 3)

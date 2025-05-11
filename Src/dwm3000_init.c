@@ -206,7 +206,7 @@ static uint8_t rxBuffer[UWB_FRAME_LEN_MAX];
 
 static void txCallback()
 {
-  DEBUG_PRINT("txCallback \n");
+  // DEBUG_PRINT("txCallback \n");
 	if(_txCallback)	{
 		_txCallback(NULL);
 	}
