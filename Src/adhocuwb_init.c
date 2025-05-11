@@ -22,11 +22,6 @@ static QueueHandle_t txQueue;
 static xQueueHandle queues[UWB_MESSAGE_TYPE_COUNT];
 static UWB_Message_Listener_t listeners[UWB_MESSAGE_TYPE_COUNT];
 
-
-uint16_t uwbGetAddress() {
-  return MY_UWB_ADDRESS;
-}
-
 int uwbSendPacket(UWB_Packet_t *packet) {
   ASSERT(packet);
   return xQueueSend(txQueue, packet, 0);
@@ -34,6 +29,7 @@ int uwbSendPacket(UWB_Packet_t *packet) {
 
 int uwbSendPacketBlock(UWB_Packet_t *packet) {
   ASSERT(packet);
+ DEBUG_PRINT("uwbSend, from %d to %d, seq %d\n",packet->header.srcAddress, packet->header.destAddress, packet->header.seqNumber);
   return xQueueSend(txQueue, packet, portMAX_DELAY);
 }
 

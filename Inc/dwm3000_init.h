@@ -43,6 +43,7 @@
 
 typedef void (*adhocuwb_hdw_cb_t)(void *);
 
+uint16_t uwbGetAddress();
 
 void uwbISRTask(void *parameters);
 int dw3000_init();

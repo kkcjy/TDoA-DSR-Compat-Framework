@@ -297,6 +297,10 @@ int dw3000_init()
   return DWT_SUCCESS;
 }
 
+uint16_t uwbGetAddress() {
+  return MY_UWB_ADDRESS;
+}
+
 void uwbISRTask(void *parameters) {
   systemWaitStart();
 
