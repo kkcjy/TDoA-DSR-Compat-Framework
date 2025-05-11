@@ -18,7 +18,7 @@
 #endif
 
 /* Ranging Constants */
-#define RANGING_PERIOD 60 // default in 200ms
+#define RANGING_PERIOD 500 // default in 200ms
 #define RANGING_PERIOD_MIN 50 // default 50ms
 #define RANGING_PERIOD_MAX 500 // default 500ms
 
