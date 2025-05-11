@@ -76,7 +76,6 @@ typedef struct {
 } UWB_Message_Listener_t;
 
 /* UWB operations */
-uint16_t uwbGetAddress();
 int uwbSendPacket(UWB_Packet_t *packet);
 int uwbSendPacketBlock(UWB_Packet_t *packet);
 int uwbSendPacketWait(UWB_Packet_t *packet, int wait);
