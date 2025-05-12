@@ -4,6 +4,7 @@
 
 #include "adhocuwb_init.h"
 #include "adhocuwb_swarm_ranging.h"
+#include "adhocuwb_sniffer.h"
 
 #ifdef CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE
   //
@@ -76,7 +77,9 @@ void adhocuwb_rxCallback(void *parameters) {
   if (!(packet->header.destAddress == MY_UWB_ADDRESS || packet->header.destAddress == UWB_DEST_ANY)) {
     return;
   }
-
+#ifdef ENABLE_SNIFFER
+  listeners[SNIFFER].rxCb(packet);
+#else
   if (listeners[msgType].rxCb) {
     listeners[msgType].rxCb(packet);
   }
@@ -84,6 +87,7 @@ void adhocuwb_rxCallback(void *parameters) {
   if (listeners[msgType].rxQueue) {
 	  adhocuwb_xQueueSendFromISR(listeners[msgType].rxQueue, packet);
   }
+#endif
 }
 
 static void adhocuwbTxTask(void *parameters) {
@@ -128,5 +132,8 @@ void adhocuwbInit() {
 #endif
 #ifdef UWB_FLOODING_ENABLE
   floodingInit();
+#endif
+#ifdef ENABLE_SNIFFER
+  snifferInit(); 
 #endif
 }

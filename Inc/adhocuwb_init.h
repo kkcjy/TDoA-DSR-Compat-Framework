@@ -9,6 +9,8 @@
   #include "queue.h"
   #include "semphr.h"
   #include "task.h"
+
+  #include "dwTypes.h"
 #endif
 
 #define UWB_DEBUG_ENABLE
@@ -16,6 +18,7 @@
 //#define UWB_ROUTING_ENABLE
 //#define UWB_RAFT_ENABLE
 //#define UWB_FLOODING_ENABLE
+// #define ENABLE_SNIFFER
 
 /* Queue Constants */
 #define UWB_TX_QUEUE_SIZE 5
@@ -38,6 +41,7 @@ typedef enum {
   UWB_AODV_MESSAGE = 3,
   UWB_OLSR_MESSAGE = 4,
   PRINT = 5,
+  SNIFFER =6,
   UWB_MESSAGE_TYPE_COUNT, /* only used for counting message types. */
 } UWB_MESSAGE_TYPE;
 
@@ -55,6 +59,12 @@ typedef struct {
   UWB_Packet_Header_t header; // Packet header
   uint8_t payload[UWB_PAYLOAD_SIZE_MAX];
 } __attribute__((packed)) UWB_Packet_t;
+
+// only used in Sniffer
+typedef struct {
+  UWB_Packet_t uwbPacket;
+  dwTime_t rxTime;
+} __attribute__((packed)) UWB_Packet_With_Timestamp_t;
 
 typedef void (*UWBCallback)(void *);
 
