@@ -91,7 +91,7 @@ int16_t getDistance(UWB_Address_t neighborAddress)
 
 void setDistance(UWB_Address_t neighborAddress, int16_t distance, uint8_t source)
 {
-  DEBUG_PRINT("setDistance in mode %d to %d at %d\n", source, neighborAddress, distance);
+  // DEBUG_PRINT("setDistance in mode %d to %d at %d\n", source, neighborAddress, distance);
   ASSERT(neighborAddress <= NEIGHBOR_ADDRESS_MAX);
   distanceTowards[neighborAddress] = distance;
   distanceSource[neighborAddress] = source;
@@ -1106,7 +1106,7 @@ static int16_t computeDistance(Timestamp_Tuple_t Tp, Timestamp_Tuple_t Rp,
 	  if(abnormal_dist_count++>=3)
 		  abnormal_dist_count=abnormal_dist_count;
 
-  DEBUG_PRINT("compute dist:\t%d\n", distance);
+  // DEBUG_PRINT("compute dist:\t%d\n", distance);
   
   if (distance < 0)
   {
