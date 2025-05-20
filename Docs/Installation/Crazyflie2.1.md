@@ -235,7 +235,7 @@ In file `src/deck/Kconfig`, and a new config
 
 In file 'src/modules/src/estimator/estimator_kalman.c', add some code:
 
-Add some defintion:
+Add some definition:
 ```
 static float swarmVelocityXInWorld;
 static float swarmVelocityYInWorld;
@@ -250,7 +250,6 @@ void estimatorKalmanGetSwarmInfo(short *vx, short *vy, float *gyroZ, uint16_t *h
   *vy = (short)(swarmVelocityYInWorld * 100);
   *gyroZ = swarmGyroZ;
   *height = (uint16_t)(swarmPositionZ * 100);
-  //DEBUG_PRINT("isRuning2\n");
 }
 ```
 
@@ -265,4 +264,9 @@ In kalmanTask() find kalmanCoreFinalize(&coreData), add these code:
       swarmPositionZ = coreData.S[KC_STATE_Z];
       STATS_CNT_RATE_EVENT(&finalizeCounter);
     }
+```
+
+In file 'src/modules/interface/estimator/estimator_kalman.h', add function declaration：
+```
+void estimatorKalmanGetSwarmInfo(short *vx, short *vy, float *gyroZ, uint16_t *height);
 ```
