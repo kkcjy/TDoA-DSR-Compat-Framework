@@ -31,7 +31,8 @@
 #define RANGING_MESSAGE_PAYLOAD_SIZE_MAX (RANGING_MESSAGE_SIZE_MAX - sizeof(Ranging_Message_Header_t))
 #define RANGING_MAX_Tr_UNIT 5
 #define RANGING_MAX_BODY_UNIT (RANGING_MESSAGE_PAYLOAD_SIZE_MAX / sizeof(Body_Unit_t))
-#define RANGING_TABLE_SIZE_MAX 32 // default up to 20 one-hop neighbors
+#define RANGING_TABLE_SIZE 32 // default up to 20 one-hop neighbors
+#define RANGING_TABLE_SIZE_MAX 32
 #define RANGING_TABLE_HOLD_TIME (6 * RANGING_PERIOD_MAX)
 #define Tr_Rr_BUFFER_POOL_SIZE 6
 // #define Tf_BUFFER_POOL_SIZE (2 * RANGING_PERIOD_MAX / RANGING_PERIOD_MIN)
@@ -39,10 +40,58 @@
 
 /* Topology Sensing */
 #define NEIGHBOR_ADDRESS_MAX 32
+#define RangingTableSize
 #define NEIGHBOR_SET_HOLD_TIME (6 * RANGING_PERIOD_MAX)
 
 typedef short set_index_t;
 
+#ifdef CONFIG_UWB_LOCALIZATION_ENABLE
+#define RESET_INIT_STAGE 123 
+#define ZERO_STAGE 124  // 飞行阶段，0阶段随机飞
+#define FIRST_STAGE 125 //
+#define SECOND_STAGE 126
+#define LAND_STAGE 127
+
+/*--2添加--*/
+typedef struct
+{
+    int16_t distance_history[3];
+    uint8_t index_inserting;
+} median_data_t;
+
+
+typedef struct
+{
+    uint16_t address;
+    int8_t stage;
+    bool keepFlying;
+    uint32_t keepFlyingTrueTick;
+    bool alreadyTakeoff;
+
+} leaderStateInfo_t;
+
+typedef struct
+{
+    uint16_t distanceTowards[RANGING_TABLE_SIZE + 1]; // cm
+    short velocityXInWorld[RANGING_TABLE_SIZE + 1];   // 2byte m/s 在世界坐标系下的速度（不是机体坐标系）
+    short velocityYInWorld[RANGING_TABLE_SIZE + 1];   // 2byte cm/s 在世界坐标系下的速度（不是机体坐标系）
+    float gyroZ[RANGING_TABLE_SIZE + 1];              // 4 byte rad/s
+    uint16_t positionZ[RANGING_TABLE_SIZE + 1];       // 2 byte cm/s
+    bool refresh[RANGING_TABLE_SIZE + 1];             // 当前信息从上次EKF获取，到现在是否更新
+    bool isNewAdd[RANGING_TABLE_SIZE + 1];            // 这个邻居是否是新加入的
+    bool isNewAddUsed[RANGING_TABLE_SIZE + 1];
+    bool isAlreadyTakeoff[RANGING_TABLE_SIZE + 1];
+    /* 用于辅助判断这个邻居是否是新加入的（注意：这里的'新加入'指的是，
+    是相对于EKF来说的，主要用于在EKF中判断是否需要执行初始化工作）*/
+} neighborStateInfo_t; /*存储正在和本无人机进行通信的邻居的所有信息（用于EKF）*/
+
+typedef struct
+{
+    UWB_Address_t address[RANGING_TABLE_SIZE + 1];
+    int size;
+} currentNeighborAddressInfo_t; /*当前正在和本无人机进行通信的邻居地址信息*/
+
+#endif
 /* Timestamp Tuple */
 typedef struct {
   dwTime_t timestamp; // 8 byte
@@ -82,12 +131,20 @@ typedef struct {
   uint16_t srcAddress; // 2 byte
   uint16_t msgSequence; // 2 byte
   Timestamp_Tuple_t_2 lastTxTimestamps[RANGING_MAX_Tr_UNIT]; // 10 byte * MAX_Tr_UNIT
-  // short velocity; // 2 byte cm/s
+   short velocity; // 2 byte cm/s
   uint16_t msgLength; // 2 byte
   uint16_t filter; // 16 bits bloom filter
-  float posiX;
-  float posiY;
-  float posiZ;
+ //// float posiX;
+ // float posiY;
+ //float posiZ;
+  #ifdef CONFIG_UWB_LOCALIZATION_ENABLE
+  short velocityXInWorld; // 2 byte cm/s 在世界坐标系下的速度（不是基于机体坐标系的速度）
+  short velocityYInWorld; // 2 byte cm/s 在世界坐标系下的速度（不是基于机体坐标系的速度）
+  float gyroZ;            // 4 byte rad/s
+  uint16_t positionZ;     // 2 byte cm/s
+  bool keep_flying;       // 无人机的飞行状态
+  int8_t stage;           // 飞行阶段
+  #endif
 } __attribute__((packed)) Ranging_Message_Header_t; // 10 byte + 10 byte * MAX_Tr_UNIT
 
 /* Ranging Message */
@@ -142,6 +199,8 @@ typedef struct {
   Timestamp_Tuple_t Rx;
   Timestamp_Tuple_t Tx;
 }Ranging_Table_Tx_Rx_History_t;
+
+
 
 typedef struct {
   uint16_t neighborAddress;
@@ -198,6 +257,35 @@ typedef struct {
   Neighbor_Set_Hooks_t neighborTopologyChangeHooks;
   Time_t expirationTime[NEIGHBOR_ADDRESS_MAX + 1];
 } Neighbor_Set_t;
+
+#ifdef CONFIG_UWB_LOCALIZATION_ENABLE
+/*设置当前无人机已经起飞*/
+void setMyTakeoff(bool isAlreadyTakeoff);
+
+/*获取leader的阶段信息*/
+int8_t getLeaderStage();
+
+/*初始化leader状态信息*/
+void initLeaderStateInfo();
+
+void setNeighborDistance(uint16_t neighborAddress, int16_t distance);
+
+/*set邻居的状态信息*/
+void setNeighborStateInfo(uint16_t neighborAddress,  Ranging_Message_Header_t *rangingMessageHeader);
+
+/*set邻居是否是新加入的*/
+void setNeighborStateInfo_isNewAdd(uint16_t neighborAddress, bool isNewAddNeighbor);
+
+/*get邻居的状态信息*/
+bool getNeighborStateInfo(uint16_t neighborAddress, uint16_t *distance, short *vx, short *vy, float *gyroZ, uint16_t *height, bool *isNewAddNeighbor);
+
+/*getOrSetKeepflying*/
+bool getOrSetKeepflying(uint16_t RobIDfromControl, bool keep_flying);
+
+/*get正在和本无人机进行通信的邻居地址信息，供外部调用*/
+void getCurrentNeighborAddressInfo_t(currentNeighborAddressInfo_t *currentNeighborAddressInfo);
+
+#endif
 
 /* Ranging Operations */
 void rangingInit();
