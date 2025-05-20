@@ -102,6 +102,15 @@ config DECK_ADHOC
     help
        ADHOC deck alternative IRQ and RESET pins(TX2, RX2) instead of
        default (RX1, TX1).
+    
+    config UWB_LOCALIZATION_ENABLE
+    bool "Enable UWB-based localization"
+    default y
+    depends on DECK_ADHOC
+    help
+        Enables UWB-based localization functionality.
+        This feature depends on the Adhoc deck (DW3000 UWB chip) being enabled.
+
 ```
 
 In `Kconfig`, change from 
@@ -208,4 +217,52 @@ In file `src/platform/src/platform_stm32f4.c`, change from
 to
 ```c
 #define DEFAULT_PLATFORM_STRING "0;C21B"
+```
+
+### Add Relative Localization Function
+
+In file `src/deck/Kconfig`, and a new config
+```config
+
+ config UWB_LOCALIZATION_ENABLE
+    bool "Enable UWB-based localization"
+    default y
+    depends on DECK_ADHOC
+    help
+        Enables UWB-based localization functionality.
+        This feature depends on the Adhoc deck (DW3000 UWB chip) being enabled.
+```
+
+In file 'src/modules/src/estimator/estimator_kalman.c', add some code:
+
+Add some defintion:
+```
+static float swarmVelocityXInWorld;
+static float swarmVelocityYInWorld;
+static float swarmGyroZ;
+static float swarmPositionZ;
+```
+Add a function :
+```
+void estimatorKalmanGetSwarmInfo(short *vx, short *vy, float *gyroZ, uint16_t *height)
+{
+  *vx = (short)(swarmVelocityXInWorld * 100);
+  *vy = (short)(swarmVelocityYInWorld * 100);
+  *gyroZ = swarmGyroZ;
+  *height = (uint16_t)(swarmPositionZ * 100);
+  //DEBUG_PRINT("isRuning2\n");
+}
+```
+
+In kalmanTask() find kalmanCoreFinalize(&coreData), add these code:
+```
+  if (kalmanCoreFinalize(&coreData))
+    {
+     
+      swarmVelocityXInWorld = coreData.R[0][0] * coreData.S[KC_STATE_PX] + coreData.R[0][1] * coreData.S[KC_STATE_PY] + coreData.R[0][2] * coreData.S[KC_STATE_PZ];
+      swarmVelocityYInWorld = coreData.R[1][0] * coreData.S[KC_STATE_PX] + coreData.R[1][1] * coreData.S[KC_STATE_PY] + coreData.R[1][2] * coreData.S[KC_STATE_PZ];
+      swarmGyroZ = gyroLatest.z * DEG_TO_RAD;
+      swarmPositionZ = coreData.S[KC_STATE_Z];
+      STATS_CNT_RATE_EVENT(&finalizeCounter);
+    }
 ```
