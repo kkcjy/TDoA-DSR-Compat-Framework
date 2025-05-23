@@ -1,3 +1,15 @@
+/*
+How to use sniffer.c
+in linux 
+0 Insert usb and crazyflie-sniffer
+1 cd ~/sniffer
+2 sudo rmmod cdc-acm
+3 make
+4 ./sniffer
+5 Ctrl+c to exit
+*/
+
+
 #include <libusb-1.0/libusb.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -6,15 +18,13 @@
 #include <signal.h>
 #include <time.h>
 
-// #include "adhocuwb_swarm_ranging.h"
-// #include "adhocuwb_sniffer.h"
-
 #define VENDOR_ID  0x0483
 #define PRODUCT_ID 0x5740
 #define MAX_PACKET_SIZE 64
 #define MAGIC_MATCH 0xBB88
-#define OUTPUT_FILENAME "data/log_data.csv"
+#define OUTPUT_FILENAME_BUFFER_SIZE 32
 
+char filename[OUTPUT_FILENAME_BUFFER_SIZE];
 volatile sig_atomic_t keep_running = 1;
 
 void handle_sigint(int sig) {
@@ -22,17 +32,7 @@ void handle_sigint(int sig) {
 }
 
 
-//swarm ranging struct
-typedef struct {
-    uint32_t magic;
-    uint16_t sender_addr;
-    uint16_t seq_num;
-    uint32_t msg_len;
-    uint64_t sniffer_rx_time;
-    uint8_t bin_data[256]; // 可动态分配，这里示例为固定最大值
-} LogEntry;
-
-
+//Swarm Ranging Struct
 #define RANGING_MAX_Tr_UNIT 5
 
 typedef union {
@@ -47,13 +47,26 @@ typedef union {
 typedef struct {
     uint16_t srcAddress;
     uint16_t msgSequence;
-    Timestamp_Tuple_t_2 lastTxTimestamps[RANGING_MAX_Tr_UNIT]; // 8 * 5 = 40 bytes
+    Timestamp_Tuple_t_2 lastTxTimestamps[RANGING_MAX_Tr_UNIT]; 
     uint16_t msgLength;
     uint16_t filter;
     float posiX;
     float posiY;
     float posiZ;
 } __attribute__((packed)) Ranging_Message_Header_t;
+
+typedef union {
+  uint8_t raw[18];
+  struct {
+    uint32_t magic;
+    uint16_t senderAddress;
+    uint16_t seqNumber;
+    uint16_t msgLength;
+    uint64_t rxTime;
+  } __attribute__((packed));
+} __attribute__((packed)) Sniffer_Meta_t;
+
+//to do move all struct into struct.h
 
 void fprintRangingMessageCSV(FILE* fp, uint8_t* bin_buffer, size_t length) {
     if (length < sizeof(Ranging_Message_Header_t)) {
@@ -66,7 +79,7 @@ void fprintRangingMessageCSV(FILE* fp, uint8_t* bin_buffer, size_t length) {
 
     // 写入基础字段
     fprintf(fp, "%u,%u,", header.srcAddress, header.msgSequence);
-
+    printf("srcAddress = %u,msgSequence = %u\n", header.srcAddress, header.msgSequence);
 
 
     // 写入每个时间戳字段（共 RANGING_MAX_Tr_UNIT 个）
@@ -85,7 +98,7 @@ void fprintRangingMessageCSV(FILE* fp, uint8_t* bin_buffer, size_t length) {
     }
 
     // 写入消息长度、过滤器、位置坐标
-    fprintf(fp, "%u,%u,%.3f,%.3f,%.3f\n",
+    fprintf(fp, "%u,%u,%.3f,%.3f,%.3f",
             header.msgLength,
             header.filter,
             header.posiX,
@@ -93,6 +106,15 @@ void fprintRangingMessageCSV(FILE* fp, uint8_t* bin_buffer, size_t length) {
             header.posiZ);
 }
 
+void generate_output_filename(char *buffer, size_t buffer_size) {
+    time_t rawtime;
+    struct tm *timeinfo;
+
+    time(&rawtime);
+    timeinfo = localtime(&rawtime);
+
+    strftime(buffer, buffer_size, "data/%Y-%m-%d-%H-%M-%S.csv", timeinfo);
+}
 
 int main() {
     libusb_device_handle *dev_handle = NULL;
@@ -117,12 +139,10 @@ int main() {
         return 1;
     }
 
-    printf("Begin trans");
-
     libusb_set_auto_detach_kernel_driver(dev_handle, 1);
     libusb_claim_interface(dev_handle, 0);
-
-    log_file = fopen(OUTPUT_FILENAME, "w");
+    generate_output_filename(filename, sizeof(filename));
+    log_file = fopen(filename, "w");
     if (!log_file) {
         perror("open log file");
         return 1;
@@ -142,11 +162,14 @@ int main() {
 
         if (r == 0 && transferred <= MAX_PACKET_SIZE) {
             // 解析数据
-            uint32_t magic = *(uint32_t*)(buffer);
-            uint16_t sender_addr = *(uint16_t*)(buffer + 4);
-            uint16_t seq_num = *(uint16_t*)(buffer + 6);
-            uint16_t msg_len = *(uint16_t*)(buffer + 8);
-            uint64_t sniffer_rx_time = *(uint64_t*)(buffer + 10);
+            Sniffer_Meta_t *meta = (Sniffer_Meta_t *)buffer;
+
+            // Accessing fields
+            uint32_t magic = meta->magic;
+            uint16_t sender_addr = meta->senderAddress;
+            uint16_t seq_num = meta->seqNumber;
+            uint16_t msg_len = meta->msgLength;
+            uint64_t sniffer_rx_time = meta->rxTime;
         
             // printf( "magic = 0x%x , msg_len = %d\n",magic ,msg_len);
             
@@ -160,6 +183,9 @@ int main() {
                     // 写一行到 CSV
                     fprintf(log_file, "%u,%u,%u,%u,%lu,",
                             magic, sender_addr, seq_num, msg_len, sniffer_rx_time);
+                    printf("magic=%u, sender_addr=%u, seq_num=%u, msg_len=%u, sniffer_rx_time=%lu\n",
+                            magic, sender_addr, seq_num, msg_len, sniffer_rx_time);
+                    
                     fprintRangingMessageCSV(log_file, bin_buffer, msg_len);
 
                     fprintf(log_file, "\n");
@@ -173,6 +199,6 @@ int main() {
     libusb_close(dev_handle);
     libusb_exit(ctx);
 
-    printf("✅ Logging finished. Data saved to %s\n", OUTPUT_FILENAME);
+    printf("✅ Logging finished. Data saved to %s\n", filename);
     return 0;
 }
