@@ -7,16 +7,6 @@ import pickle
 import pandas as pd
 
 
-# def loss_count(x: pd.DataFrame):
-#     seq_num = list(x['seq_num'])
-#     seq_num.sort()
-#     received_total = len(seq_num)
-#     seq_span = seq_num[-1] - seq_num[0] + 1
-#     print("sender: {0}, seq_span: {1}, total_received: {2}, loss_rate: {3}".format(x.iloc[0]['sender_addr'], seq_span,
-#                                                                                    received_total,
-#                                                                                    received_total / seq_span))
-
-
 if __name__ == '__main__':
     vendor_id = 0x0483
     product_id = 0x5740
@@ -54,12 +44,3 @@ if __name__ == '__main__':
                 pickle.dump(log_data, file)
         usb.util.release_interface(dev, 0)
         usb.util.dispose_resources(dev)
-    # files = os.listdir('./data')
-    # files.sort()
-    # for file_name in files:
-    #     with open('./data/' + file_name, 'rb') as file:
-    #         data = pickle.load(file)
-    #     df = pd.DataFrame(data)
-    #     print("drone count:", file_name.split('_')[1])
-    #     df.groupby('sender_addr').apply(loss_count)
-    #     print('-----')

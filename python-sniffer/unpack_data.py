@@ -89,15 +89,6 @@ def parse_header(header_orginal_data):
         'srcAddress': header_unpacked_data[0],
         'msgSequence': header_unpacked_data[1],
         'lastTxTimestamps':(header_unpacked_data[2]),
-        # 'lastTxTimestamp1':{"timestamp":header_unpacked_data[2]& 0xffffffffff,'address':header_unpacked_data[3],'seqNumber':header_unpacked_data[4]},
-        # 'lastTxTimestamp2':{"timestamp":header_unpacked_data[5]& 0xffffffffff,'address':header_unpacked_data[6],'seqNumber':header_unpacked_data[7]},
-        # 'lastTxTimestamp3':{"timestamp":header_unpacked_data[8]& 0xffffffffff,'address':header_unpacked_data[9],'seqNumber':header_unpacked_data[10]},
-        # 'lastTxTimestamp4':{"timestamp":header_unpacked_data[11]& 0xffffffffff,'address':header_unpacked_data[12],'seqNumber':header_unpacked_data[13]},
-        # 'lastTxTimestamp5':{"timestamp":header_unpacked_data[14]& 0xffffffffff,'address':header_unpacked_data[15],'seqNumber':header_unpacked_data[16]},
-        # 'posiX':header_unpacked_data[17],
-        # 'posiY':header_unpacked_data[18],
-        # 'posiZ':header_unpacked_data[19],
-        
     }
     return header
 
