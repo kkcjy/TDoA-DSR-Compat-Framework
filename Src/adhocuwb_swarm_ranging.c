@@ -72,6 +72,174 @@ int16_t distanceTowards[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX
 uint8_t distanceSource[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = -1};
 float distanceReal[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = -1};
 
+
+#ifdef CONFIG_UWB_LOCALIZATION_ENABLE
+static logVarId_t idVelocityX, idVelocityY, idVelocityZ;
+static leaderStateInfo_t leaderStateInfo;
+static neighborStateInfo_t neighborStateInfo; // 邻居的状态信息
+static median_data_t median_data[RANGING_TABLE_SIZE + 1];
+static currentNeighborAddressInfo_t currentNeighborAddressInfo;
+static float velocity;
+static bool MYisAlreadyTakeoff = false;
+static bool allIsTakeoff = false; // 判断是否所有的邻居无人机都起飞了
+static uint32_t tickInterval = 0; // 记录控制飞行的时间
+static int8_t stage = ZERO_STAGE; // 编队控制阶段
+
+
+static uint16_t txPeriodDelay = 0; // the tx send period delay
+static SemaphoreHandle_t rangingTxTaskBinary; // if it is open, then tx, Semaphore for synchronization
+inline static void txPeriodDelayset()
+{
+  txPeriodDelay = MY_UWB_ADDRESS * 4;
+}
+
+// 相对定位代码部分
+void initNeighborStateInfoAndMedian_data()
+{
+  for (int i = 0; i < RANGING_TABLE_SIZE + 1; i++)
+  {
+    median_data[i].index_inserting = 0;
+    neighborStateInfo.refresh[i] = false;
+    neighborStateInfo.isAlreadyTakeoff[i] = false;
+  }
+}
+
+void initLeaderStateInfo()
+{
+  leaderStateInfo.keepFlying = false;
+  leaderStateInfo.address = 0;
+  leaderStateInfo.stage = ZERO_STAGE;
+  // DEBUG_PRINT("--init--%d\n",leaderStateInfo.stage);
+}
+int8_t getLeaderStage()
+{
+  // DEBUG_PRINT("--get--%d\n",leaderStateInfo.stage);
+  return leaderStateInfo.stage;
+}
+
+void setMyTakeoff(bool isAlreadyTakeoff)
+{
+  MYisAlreadyTakeoff = isAlreadyTakeoff;
+}
+
+void setNeighborStateInfo(uint16_t neighborAddress, Ranging_Message_Header_t *rangingMessageHeader)
+{
+  ASSERT(neighborAddress <= RANGING_TABLE_SIZE);
+
+  neighborStateInfo.velocityXInWorld[neighborAddress] = rangingMessageHeader->velocityXInWorld;
+  neighborStateInfo.velocityYInWorld[neighborAddress] = rangingMessageHeader->velocityYInWorld;
+  neighborStateInfo.gyroZ[neighborAddress] = rangingMessageHeader->gyroZ;
+  neighborStateInfo.positionZ[neighborAddress] = rangingMessageHeader->positionZ;
+
+  if (neighborAddress == leaderStateInfo.address)
+  { /*无人机的keep_flying都是由0号无人机来设置的*/
+    leaderStateInfo.keepFlying = rangingMessageHeader->keep_flying;
+    leaderStateInfo.stage = rangingMessageHeader->stage;
+  //   DEBUG_PRINT("--before recv--%d\n", leaderStateInfo.stage);
+  }
+}
+
+void setNeighborDistance(uint16_t neighborAddress, int16_t distance)
+{
+  ASSERT(neighborAddress <= RANGING_TABLE_SIZE);
+
+  neighborStateInfo.distanceTowards[neighborAddress] = distance;
+  neighborStateInfo.refresh[neighborAddress] = true;
+}
+
+bool getOrSetKeepflying(uint16_t uwbAddress, bool keep_flying)
+{
+  if (uwbAddress == leaderStateInfo.address)
+  {
+    if (leaderStateInfo.keepFlying == false && keep_flying == true)
+    {
+      leaderStateInfo.keepFlyingTrueTick = xTaskGetTickCount();
+    }
+    leaderStateInfo.keepFlying = keep_flying;
+    return keep_flying;
+  }
+  else
+  {
+    return leaderStateInfo.keepFlying;
+  }
+}
+
+void setNeighborStateInfo_isNewAdd(uint16_t neighborAddress, bool isNewAddNeighbor)
+{
+  if (isNewAddNeighbor == true)
+  {
+    neighborStateInfo.isNewAdd[neighborAddress] = true;
+    neighborStateInfo.isNewAddUsed[neighborAddress] = false;
+  }
+  else
+  {
+    if (neighborStateInfo.isNewAddUsed[neighborAddress] == true)
+    {
+      neighborStateInfo.isNewAdd[neighborAddress] = false;
+    }
+  }
+}
+
+bool getNeighborStateInfo(uint16_t neighborAddress,
+                          uint16_t *distance,
+                          short *vx,
+                          short *vy,
+                          float *gyroZ,
+                          uint16_t *height,
+                          bool *isNewAddNeighbor)
+{
+  if (neighborStateInfo.refresh[neighborAddress] == true && leaderStateInfo.keepFlying == true)
+  {
+    neighborStateInfo.refresh[neighborAddress] = false;
+    *distance = neighborStateInfo.distanceTowards[neighborAddress];
+    *vx = neighborStateInfo.velocityXInWorld[neighborAddress];
+    *vy = neighborStateInfo.velocityYInWorld[neighborAddress];
+    *gyroZ = neighborStateInfo.gyroZ[neighborAddress];
+    *height = neighborStateInfo.positionZ[neighborAddress];
+    *isNewAddNeighbor = neighborStateInfo.isNewAdd[neighborAddress];
+    neighborStateInfo.isNewAddUsed[neighborAddress] = true;
+    return true;
+  }
+  else
+  {
+    return false;
+  }
+}
+
+void getCurrentNeighborAddressInfo_t(currentNeighborAddressInfo_t *currentNeighborAddressInfo)
+{
+  /*--11添加--*/
+  currentNeighborAddressInfo->size = rangingTableSet.size;
+  for (set_index_t iter = 0; iter < rangingTableSet.size; iter++)
+  {
+    currentNeighborAddressInfo->address[iter] = rangingTableSet.tables[iter].neighborAddress;
+  }
+
+  /*--11添加--*/
+}
+
+
+
+static int16_t median_filter_3(int16_t *data)
+{
+  int16_t middle;
+  if ((data[0] <= data[1]) && (data[0] <= data[2]))
+  {
+    middle = (data[1] <= data[2]) ? data[1] : data[2];
+  }
+  else if ((data[1] <= data[0]) && (data[1] <= data[2]))
+  {
+    middle = (data[0] <= data[2]) ? data[0] : data[2];
+  }
+  else
+  {
+    middle = (data[0] <= data[1]) ? data[0] : data[1];
+  }
+  return middle;
+}
+#define ABS(a) ((a) > 0 ? (a) : -(a))
+#endif
+
 typedef struct Stastistic
 {
   uint16_t recvSeq;
@@ -1308,6 +1476,7 @@ static void S3_RX_NO_Rf(Ranging_Table_t *rangingTable)
     statistic[rangingTable->neighborAddress].compute2num++;
     rangingTable->distance = distance;
     setDistance(rangingTable->neighborAddress, distance, 2);
+    setNeighborDistance(rangingTable->neighborAddress, distance);
   }
   else
   {
@@ -1386,6 +1555,7 @@ static void S4_RX_NO_Rf(Ranging_Table_t *rangingTable)
     statistic[rangingTable->neighborAddress].compute2num++;
     rangingTable->distance = distance;
     setDistance(rangingTable->neighborAddress, distance, 2);
+     setNeighborDistance(rangingTable->neighborAddress, distance);
   }
   else
   {
@@ -1428,6 +1598,7 @@ static void S4_RX_Rf(Ranging_Table_t *rangingTable)
     statistic[rangingTable->neighborAddress].compute1num++;
     rangingTable->distance = distance;
     setDistance(rangingTable->neighborAddress, distance, 1);
+     setNeighborDistance(rangingTable->neighborAddress, distance);
     /* update history tx,rx
      * only success distance,update history
      */
@@ -1524,14 +1695,17 @@ static void processRangingMessage(Ranging_Message_With_Timestamp_t *rangingMessa
 //  float posiX = logGetFloat(idX);
 //  float posiY = logGetFloat(idY);
 //  float posiZ = logGetFloat(idZ);
-    float posiX = 1.f;
-    float posiY = 1.f;
-    float posiZ = 1.f;
-  computeRealDistance(neighborAddress, posiX, posiY, posiZ, rangingMessage->header.posiX, rangingMessage->header.posiY, rangingMessage->header.posiZ);
+   // float posiX = 1.f;
+  //  float posiY = 1.f;
+  //  float posiZ = 1.f;
+ // computeRealDistance(neighborAddress, posiX, posiY, posiZ, rangingMessage->header.posiX, rangingMessage->header.posiY, rangingMessage->header.posiZ);
 
   statistic[neighborAddress].recvnum++;
   statistic[neighborAddress].recvSeq = rangingMessage->header.msgSequence;
-
+  #ifdef CONFIG_UWB_LOCALIZATION_ENABLE
+  bool isNewAddNeighbor = neighborIndex == -1 ? true : false; /*如果是新添加的邻居，则是true*/
+  setNeighborStateInfo_isNewAdd(neighborAddress, isNewAddNeighbor);
+  #endif
   /* Handle new neighbor */
   if (neighborIndex == -1)
   {
@@ -1594,7 +1768,9 @@ static void processRangingMessage(Ranging_Message_With_Timestamp_t *rangingMessa
     }
   }
   Timestamp_Tuple_t Tf = findTfBySeqNumber(neighborRf.seqNumber);
-
+  #ifdef CONFIG_UWB_LOCALIZATION_ENABLE
+  setNeighborStateInfo(neighborAddress, &rangingMessage->header);
+  #endif
   if (neighborRf.seqNumber != neighborRangingTable->Tp.seqNumber && Tf.timestamp.full)
   {
     neighborRangingTable->Rf = neighborRf;
@@ -1758,26 +1934,74 @@ static Time_t generateRangingMessage(Ranging_Message_t *rangingMessage)
   }
   // xSemaphoreGive(TfBufferMutex);
 
-  float velocityX = 0;
-  float velocityY = 0;
-  float velocityZ = 0;
+  float velocityX = logGetFloat(idVelocityX);
+  float velocityY = logGetFloat(idVelocityY);
+  float velocityZ = logGetFloat(idVelocityZ);
 
-  float posiX = 0;
-  float posiY = 0;
-  float posiZ = 0;
+//  float posiX = 0;
+ // float posiY = 0;
+ // float posiZ = 0;
 
-  rangingMessage->header.posiX = posiX;
-  rangingMessage->header.posiY = posiY;
-  rangingMessage->header.posiZ = posiZ;
+ // rangingMessage->header.posiX = posiX;
+  //rangingMessage->header.posiY = posiY;
+ // rangingMessage->header.posiZ = posiZ;
 
   velocity = sqrt(pow(velocityX, 2) + pow(velocityY, 2) + pow(velocityZ, 2));
   /* velocity in cm/s */
-  // rangingMessage->header.velocity = (short)(velocity * 100);
+   rangingMessage->header.velocity = (short)(velocity * 100);
   //  DEBUG_PRINT("generateRangingMessage: ranging message size = %u with %u body units.\n",
   //              rangingMessage->header.msgLength,
   //              bodyUnitNumber
   //  );
 
+#ifdef CONFIG_UWB_LOCALIZATION_ENABLE
+estimatorKalmanGetSwarmInfo(&rangingMessage->header.velocityXInWorld,
+                              &rangingMessage->header.velocityYInWorld,
+                              &rangingMessage->header.gyroZ,
+                              &rangingMessage->header.positionZ);
+  rangingMessage->header.keep_flying = leaderStateInfo.keepFlying;
+  // 如果是leader则进行阶段控制
+  stage = ZERO_STAGE;
+  if (MY_UWB_ADDRESS == leaderStateInfo.address && leaderStateInfo.keepFlying)
+  {
+    // 分阶段控制
+    tickInterval = xTaskGetTickCount() - leaderStateInfo.keepFlyingTrueTick;
+    // 所有邻居起飞判断
+    uint32_t convergeTick = 2000; // 收敛时间10s
+    uint32_t followTick = 10000;  // 跟随时间10s
+    uint32_t converAndFollowTick = convergeTick + followTick;
+    uint32_t maintainTick = 5000;                                            // 每转一次需要的时间
+    uint32_t rotationNums_3Stage = 8;                                        // 第3阶段旋转次数
+    uint32_t rotationNums_4Stage = 5;                                        // 第4阶段旋转次数
+    uint32_t rotationTick_3Stage = maintainTick * (rotationNums_3Stage + 1); // 旋转总时间
+    uint32_t rotationTick_4Stage = maintainTick * (rotationNums_4Stage + 1);
+
+    int8_t stageStartPoint_4 = 64; // 第4阶段起始stage值，因为阶段的区分靠的是stage的值域,(-30,30)为第三阶段
+    if (tickInterval < convergeTick)
+    {
+      stage = FIRST_STAGE; // 0阶段，[0，收敛时间 )，做随机运动
+    }
+    else if (tickInterval >= convergeTick && tickInterval < converAndFollowTick)
+    {
+      stage = SECOND_STAGE; // 1阶段，[收敛时间，收敛+跟随时间 )，做跟随运动
+    }
+    else if (tickInterval >= converAndFollowTick && tickInterval < converAndFollowTick + rotationTick_3Stage)
+    {
+      stage = (tickInterval - converAndFollowTick) / maintainTick; // 计算旋转次数
+      stage = stage - 1;
+    }
+    else
+    {
+      stage = LAND_STAGE;
+    }
+    // DEBUG_PRINT("%d\n",stage)
+    leaderStateInfo.stage = stage; // 这里设置leader的stage
+
+    // DEBUG_PRINT("--send--%d\n",rangingMessage->header.stage);
+  }
+  rangingMessage->header.stage = leaderStateInfo.stage; // 这里传输stage，因为在设置setNeighborStateInfo()函数中只会用leader无人机的stage的值
+  /*--9添加--*/
+#endif
   /* Keeps ranging table in order to perform binary search */
   rangingTableSetRearrange(&rangingTableSet, COMPARE_BY_ADDRESS);
 
@@ -1930,9 +2154,9 @@ void rangingInit()
   listener.txCb = rangingTxCallback;
   uwbRegisterListener(&listener);
 
-//  idVelocityX = logGetVarId("stateEstimate", "vx");注释掉
-//  idVelocityY = logGetVarId("stateEstimate", "vy");注释掉
-//  idVelocityZ = logGetVarId("stateEstimate", "vz");注释掉
+  idVelocityX = logGetVarId("stateEstimate", "vx");
+  idVelocityY = logGetVarId("stateEstimate", "vy");
+  idVelocityZ = logGetVarId("stateEstimate", "vz");
 
   statisticInit();
 

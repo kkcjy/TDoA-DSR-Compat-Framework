@@ -124,6 +124,10 @@ void adhocuwbInit() {
 #ifdef UWB_RANGING_ENABLE
   rangingInit();
 #endif
+#ifdef CONFIG_UWB_LOCALIZATION_ENABLE
+  relativeLocoInit();
+  relativeControlInit();
+#endif
 #ifdef UWB_ROUTING_ENABLE
   routingInit();
 #endif
