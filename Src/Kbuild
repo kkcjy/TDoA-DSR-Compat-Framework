@@ -1,7 +1,7 @@
-obj-y += dwm3000_init.o
-obj-y += dwm3000_transceive.o
-obj-y += adhocuwb_init.o
-obj-y += adhocuwb_swarm_ranging.o
-obj-y += adhocuwb_sniffer.o
-obj-y += adhocuwb_control.o
-obj-y += adhocuwb_localization.o
+obj-y									+= dwm3000_init.o
+obj-y									+= dwm3000_transceive.o
+obj-y									+= adhocuwb_init.o
+obj-y									+= adhocuwb_swarm_ranging.o
+obj-y 									+= adhocuwb_sniffer.o
+obj-$(CONFIG_UWB_LOCALIZATION_ENABLE)	+= adhocuwb_control.o
+obj-$(CONFIG_UWB_LOCALIZATION_ENABLE)	+= adhocuwb_localization.o

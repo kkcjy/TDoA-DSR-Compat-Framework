@@ -1476,7 +1476,9 @@ static void S3_RX_NO_Rf(Ranging_Table_t *rangingTable)
     statistic[rangingTable->neighborAddress].compute2num++;
     rangingTable->distance = distance;
     setDistance(rangingTable->neighborAddress, distance, 2);
+    #ifdef CONFIG_UWB_LOCALIZATION_ENABLE
     setNeighborDistance(rangingTable->neighborAddress, distance);
+    #endif
   }
   else
   {
@@ -1555,7 +1557,9 @@ static void S4_RX_NO_Rf(Ranging_Table_t *rangingTable)
     statistic[rangingTable->neighborAddress].compute2num++;
     rangingTable->distance = distance;
     setDistance(rangingTable->neighborAddress, distance, 2);
-     setNeighborDistance(rangingTable->neighborAddress, distance);
+    #ifdef CONFIG_UWB_LOCALIZATION_ENABLE
+    setNeighborDistance(rangingTable->neighborAddress, distance);
+    #endif
   }
   else
   {
@@ -1598,7 +1602,9 @@ static void S4_RX_Rf(Ranging_Table_t *rangingTable)
     statistic[rangingTable->neighborAddress].compute1num++;
     rangingTable->distance = distance;
     setDistance(rangingTable->neighborAddress, distance, 1);
-     setNeighborDistance(rangingTable->neighborAddress, distance);
+    #ifdef CONFIG_UWB_LOCALIZATION_ENABLE
+    setNeighborDistance(rangingTable->neighborAddress, distance);
+    #endif
     /* update history tx,rx
      * only success distance,update history
      */
@@ -1934,6 +1940,7 @@ static Time_t generateRangingMessage(Ranging_Message_t *rangingMessage)
   }
   // xSemaphoreGive(TfBufferMutex);
 
+  #ifdef CONFIG_UWB_LOCALIZATION_ENABLE
   float velocityX = logGetFloat(idVelocityX);
   float velocityY = logGetFloat(idVelocityY);
   float velocityZ = logGetFloat(idVelocityZ);
@@ -1948,13 +1955,12 @@ static Time_t generateRangingMessage(Ranging_Message_t *rangingMessage)
 
   velocity = sqrt(pow(velocityX, 2) + pow(velocityY, 2) + pow(velocityZ, 2));
   /* velocity in cm/s */
-   rangingMessage->header.velocity = (short)(velocity * 100);
+  rangingMessage->header.velocity = (short)(velocity * 100);
   //  DEBUG_PRINT("generateRangingMessage: ranging message size = %u with %u body units.\n",
   //              rangingMessage->header.msgLength,
   //              bodyUnitNumber
   //  );
 
-#ifdef CONFIG_UWB_LOCALIZATION_ENABLE
 estimatorKalmanGetSwarmInfo(&rangingMessage->header.velocityXInWorld,
                               &rangingMessage->header.velocityYInWorld,
                               &rangingMessage->header.gyroZ,
@@ -2154,9 +2160,11 @@ void rangingInit()
   listener.txCb = rangingTxCallback;
   uwbRegisterListener(&listener);
 
+  #ifdef CONFIG_UWB_LOCALIZATION_ENABLE
   idVelocityX = logGetVarId("stateEstimate", "vx");
   idVelocityY = logGetVarId("stateEstimate", "vy");
   idVelocityZ = logGetVarId("stateEstimate", "vz");
+  #endif
 
   statisticInit();
 
