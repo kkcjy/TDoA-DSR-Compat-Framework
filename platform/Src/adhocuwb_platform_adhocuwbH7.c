@@ -1,4 +1,4 @@
-#include "adhocuwb_impl.h"
+#include "adhocuwb_platform_adhocuwbH7.h"
 
 #define CS_PIN DECK_GPIO_IO1
 

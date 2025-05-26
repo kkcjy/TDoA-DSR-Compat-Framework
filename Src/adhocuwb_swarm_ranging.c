@@ -17,7 +17,7 @@
 
 #include "adhocuwb_swarm_ranging.h"
 #include "adhocuwb_init.h"
-#ifdef CONFIG_ADHOCUWB_PLATFORM_ADHOCUWB
+#ifdef CONFIG_ADHOCUWB_PLATFORM_ADHOCUWBH7
   #include "uwb_send_print.h"
 #endif
 

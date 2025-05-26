@@ -1,6 +1,10 @@
 #include <string.h>
 
-#include "stm32fxxx.h"
+#ifdef CONFIG_ADHOCUWB_PLATFORM_ADHOCUWBH7
+  #include "stm32h7xx.h"
+#elif defined(CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE)
+  #include "stm32fxxx.h"
+#endif
 
 #include "FreeRTOS.h"
 #include "queue.h"
@@ -15,9 +19,10 @@
 #include "adhocuwb_platform.h"
 #include "adhocuwb_init.h"
 
-#ifdef CONFIG_ADHOCUWB_PLATFORM_ADHOCUWB
+#ifdef CONFIG_ADHOCUWB_PLATFORM_ADHOCUWBH7
   #include "main.h"
 #endif
+
 #ifdef CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE
   #include "deck.h"
   #include "param.h"
@@ -57,7 +62,7 @@ static dwt_txconfig_t uwbTxConfigOptions = {
     .power = 0xfdfdfdfd
 };
 
-#ifdef CONFIG_ADHOCUWB_PLATFORM_ADHOCUWB
+#ifdef CONFIG_ADHOCUWB_PLATFORM_ADHOCUWBH7
   #define DW3000Deck_Enable()          LL_GPIO_ResetOutputPin(DW3000Deck_CS_GPIO_Port, DW3000Deck_CS_Pin)
   #define DW3000Deck_Disable()         LL_GPIO_SetOutputPin(DW3000Deck_CS_GPIO_Port, DW3000Deck_CS_Pin)
 #endif
@@ -107,7 +112,7 @@ static void spiDeckWrite(const void* cmd,
 			const void *data,
 			size_t dataLength)
 {
-  #ifdef CONFIG_ADHOCUWB_PLATFORM_ADHOCUWB
+  #ifdef CONFIG_ADHOCUWB_PLATFORM_ADHOCUWBH7
 	  spiDeckBeginTransaction();
 	  DW3000Deck_Enable();
   #endif
@@ -118,7 +123,7 @@ static void spiDeckWrite(const void* cmd,
   memcpy(spiDeckTxBuffer, cmd, cmdLength);
   memcpy(spiDeckTxBuffer + cmdLength, data, dataLength);
   spiDeckExchange(cmdLength + dataLength, spiDeckTxBuffer, spiDeckRxBuffer);
-  #ifdef CONFIG_ADHOCUWB_PLATFORM_ADHOCUWB
+  #ifdef CONFIG_ADHOCUWB_PLATFORM_ADHOCUWBH7
     DW3000Deck_Disable();
   #endif
   #ifdef CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE
@@ -132,7 +137,7 @@ static void spiDeckRead(const void* cmd,
 			void *data,
 			size_t dataLength)
 {
-  #ifdef CONFIG_ADHOCUWB_PLATFORM_ADHOCUWB
+  #ifdef CONFIG_ADHOCUWB_PLATFORM_ADHOCUWBH7
 	  spiDeckBeginTransaction();
 	  DW3000Deck_Enable();
   #endif
@@ -144,7 +149,7 @@ static void spiDeckRead(const void* cmd,
 	memset(spiDeckTxBuffer + cmdLength, DUMMY_BYTE, dataLength);
 	spiDeckExchange(cmdLength + dataLength, spiDeckTxBuffer, spiDeckRxBuffer);
 	memcpy(data, spiDeckRxBuffer + cmdLength, dataLength);
-  #ifdef CONFIG_ADHOCUWB_PLATFORM_ADHOCUWB
+  #ifdef CONFIG_ADHOCUWB_PLATFORM_ADHOCUWBH7
     DW3000Deck_Disable();
   #endif
   #ifdef CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE
@@ -178,7 +183,7 @@ static void delayms(unsigned int delay) { vTaskDelay(delay); }
 
 static void reset(void)
 {
-  #ifdef CONFIG_ADHOCUWB_PLATFORM_ADHOCUWB
+  #ifdef CONFIG_ADHOCUWB_PLATFORM_ADHOCUWBH7
 	  LL_GPIO_ResetOutputPin(GPIOC, LL_GPIO_PIN_13);
     vTaskDelay(M2T(10));
 	  LL_GPIO_SetOutputPin(GPIOC, LL_GPIO_PIN_13);
@@ -314,7 +319,7 @@ void uwbISRTask(void *parameters) {
         dwt_isr();
         xSemaphoreGive(uwbIrqSemaphore);
       } 
-      #ifdef CONFIG_ADHOCUWB_PLATFORM_ADHOCUWB
+      #ifdef CONFIG_ADHOCUWB_PLATFORM_ADHOCUWBH7
         while (LL_EXTI_IsActiveFlag_0_31(LL_EXTI_LINE_15) != RESET);
       #endif
       #ifdef CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE

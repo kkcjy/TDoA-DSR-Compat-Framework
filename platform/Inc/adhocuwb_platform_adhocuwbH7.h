@@ -1,5 +1,5 @@
-#ifndef __ADHOCUWB_PLATFORM_ADHOCUWB_H__
-#define __ADHOCUWB_PLATFORM_ADHOCUWB_H__
+#ifndef __ADHOCUWB_PLATFORM_ADHOCUWBH7_H__
+#define __ADHOCUWB_PLATFORM_ADHOCUWBH7_H__
 
 #include <assert.h>
 #include <cmsis_os.h>

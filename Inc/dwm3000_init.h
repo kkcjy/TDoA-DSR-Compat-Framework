@@ -1,7 +1,7 @@
 #ifndef __DWM3000_INIT_H__
 #define __DWM3000_INIT_H__
 
-#ifdef CONFIG_ADHOCUWB_PLATFORM_ADHOCUWB
+#ifdef CONFIG_ADHOCUWB_PLATFORM_ADHOCUWBH7
   #include "stm32h7xx_ll_gpio.h"
   #include "spi_drv.h"
 #endif
@@ -27,14 +27,14 @@
   #define UWB_FRAME_LEN_MAX UWB_FRAME_LEN_STD
 #endif
 
-#ifdef CONFIG_ADHOCUWB_PLATFORM_ADHOCUWB
+#ifdef CONFIG_ADHOCUWB_PLATFORM_ADHOCUWBH7
   #define DW3000Deck_CS_GPIO_Port GPIOE
   #define DW3000Deck_CS_Pin LL_GPIO_PIN_2
 #endif
 
 #define DUMMY_BYTE 0x00
 
-#ifdef CONFIG_ADHOCUWB_PLATFORM_ADHOCUWB
+#ifdef CONFIG_ADHOCUWB_PLATFORM_ADHOCUWBH7
   extern SemaphoreHandle_t spiDeckTxComplete;
   extern SemaphoreHandle_t spiDeckRxComplete;
   extern SemaphoreHandle_t spiDeckMutex;
