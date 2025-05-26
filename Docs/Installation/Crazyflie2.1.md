@@ -235,14 +235,18 @@ config UWB_LOCALIZATION_ENABLE
 In file 'src/modules/src/estimator/estimator_kalman.c', add some code:
 
 Add some definition:
-```
+```config
+#ifdef CONFIG_UWB_LOCALIZATION_ENABLE
 static float swarmVelocityXInWorld;
 static float swarmVelocityYInWorld;
 static float swarmGyroZ;
 static float swarmPositionZ;
+#endif
 ```
+
 Add a function :
 ```
+#ifdef CONFIG_UWB_LOCALIZATION_ENABLE
 void estimatorKalmanGetSwarmInfo(short *vx, short *vy, float *gyroZ, uint16_t *height)
 {
   *vx = (short)(swarmVelocityXInWorld * 100);
@@ -250,22 +254,26 @@ void estimatorKalmanGetSwarmInfo(short *vx, short *vy, float *gyroZ, uint16_t *h
   *gyroZ = swarmGyroZ;
   *height = (uint16_t)(swarmPositionZ * 100);
 }
+#endif
 ```
 
 In kalmanTask() find kalmanCoreFinalize(&coreData), add these code:
 ```
   if (kalmanCoreFinalize(&coreData))
     {
-     
+      #ifdef CONFIG_UWB_LOCALIZATION_ENABLE
       swarmVelocityXInWorld = coreData.R[0][0] * coreData.S[KC_STATE_PX] + coreData.R[0][1] * coreData.S[KC_STATE_PY] + coreData.R[0][2] * coreData.S[KC_STATE_PZ];
       swarmVelocityYInWorld = coreData.R[1][0] * coreData.S[KC_STATE_PX] + coreData.R[1][1] * coreData.S[KC_STATE_PY] + coreData.R[1][2] * coreData.S[KC_STATE_PZ];
       swarmGyroZ = gyroLatest.z * DEG_TO_RAD;
       swarmPositionZ = coreData.S[KC_STATE_Z];
+      #endif
       STATS_CNT_RATE_EVENT(&finalizeCounter);
     }
 ```
 
 In file 'src/modules/interface/estimator/estimator_kalman.h', add function declaration：
 ```
+#ifdef CONFIG_UWB_LOCALIZATION_ENABLE
 void estimatorKalmanGetSwarmInfo(short *vx, short *vy, float *gyroZ, uint16_t *height);
+#endif
 ```

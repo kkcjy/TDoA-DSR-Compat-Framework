@@ -92,6 +92,7 @@ typedef struct
 } currentNeighborAddressInfo_t; /*当前正在和本无人机进行通信的邻居地址信息*/
 
 #endif
+
 /* Timestamp Tuple */
 typedef struct {
   dwTime_t timestamp; // 8 byte
