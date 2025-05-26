@@ -139,5 +139,6 @@ void adhocuwbInit() {
 #endif
 #ifdef ENABLE_SNIFFER
   snifferInit(); 
+
 #endif
 }

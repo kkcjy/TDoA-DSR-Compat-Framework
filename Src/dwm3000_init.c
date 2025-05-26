@@ -21,6 +21,7 @@
 
 #ifdef CONFIG_ADHOCUWB_PLATFORM_ADHOCUWBH7
   #include "main.h"
+  static uint16_t MY_UWB_ADDRESS;
 #endif
 
 #ifdef CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE
@@ -346,7 +347,7 @@ void adhocuwb_set_hdw_cbs(adhocuwb_hdw_cb_t txCb, adhocuwb_hdw_cb_t rxCb) {
 	_txCallback = txCb;
 }
 
-
+#ifdef CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE
 static void pinInit() {
   EXTI_InitTypeDef EXTI_InitStructure;
 
@@ -380,7 +381,11 @@ static void pinInit() {
   //Reset the DW3000 chip
   dwt_ops.reset();
 }
+#endif
 
+#ifdef CONFIG_ADHOCUWB_PLATFORM_ADHOCUWBH7
+
+#endif
 /*********** Deck driver initialization ***************/
 static void dwm3000_adhocuwb_Init(DeckInfo *info) {
 
@@ -404,7 +409,7 @@ static bool dwm3000_adhocuwb_Test() {
 
   return isInit;
 }
-
+#ifdef CONFIG_ADHOCUWB_PLATFORM_CRAZTFLIE
 static const DeckDriver dwm3000_adhocuwb_deck = {
     .vid = 0xBC,
     .pid = 0x06,
@@ -429,6 +434,7 @@ static const DeckDriver dwm3000_adhocuwb_deck = {
 };
 
 DECK_DRIVER(dwm3000_adhocuwb_deck);
+#endif
 
 PARAM_GROUP_START(deck)
         PARAM_ADD_CORE(PARAM_UINT8 | PARAM_RONLY, DWM3000, &isInit)

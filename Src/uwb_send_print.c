@@ -4,7 +4,7 @@
 #include "FreeRTOS.h"
 #include "queue.h"
 #include "task.h"
-#include "adhocuwb.h"
+#include "adhocuwb_init.h"
 #include "debug.h"
 #include "timers.h"
 #include "uwb_send_print.h"
