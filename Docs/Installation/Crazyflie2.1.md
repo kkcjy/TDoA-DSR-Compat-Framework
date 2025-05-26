@@ -223,8 +223,7 @@ to
 
 In file `src/deck/Kconfig`, and a new config
 ```config
-
- config UWB_LOCALIZATION_ENABLE
+config UWB_LOCALIZATION_ENABLE
     bool "Enable UWB-based localization"
     default y
     depends on DECK_ADHOC
