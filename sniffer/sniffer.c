@@ -44,16 +44,16 @@ typedef union {
     uint8_t bytes[8]; // 8 bytes total
 } Timestamp_Tuple_t_2;
 
+/* Ranging Message Header*/
 typedef struct {
-    uint16_t srcAddress;
-    uint16_t msgSequence;
-    Timestamp_Tuple_t_2 lastTxTimestamps[RANGING_MAX_Tr_UNIT]; 
-    uint16_t msgLength;
-    uint16_t filter;
-    float posiX;
-    float posiY;
-    float posiZ;
-} __attribute__((packed)) Ranging_Message_Header_t;
+  uint16_t srcAddress; // 2 byte
+  uint16_t msgSequence; // 2 byte
+  Timestamp_Tuple_t_2 lastTxTimestamps[RANGING_MAX_Tr_UNIT]; // 10 byte * MAX_Tr_UNIT
+   short velocity; // 2 byte cm/s
+  uint16_t msgLength; // 2 byte
+  uint16_t filter; // 16 bits bloom filter
+} __attribute__((packed)) Ranging_Message_Header_t; // 10 byte + 10 byte * MAX_Tr_UNIT
+
 
 typedef union {
   uint8_t raw[18];
@@ -98,12 +98,10 @@ void fprintRangingMessageCSV(FILE* fp, uint8_t* bin_buffer, size_t length) {
     }
 
     // 写入消息长度、过滤器、位置坐标
-    fprintf(fp, "%u,%u,%.3f,%.3f,%.3f",
+    fprintf(fp, "%u,%u,",
             header.msgLength,
-            header.filter,
-            header.posiX,
-            header.posiY,
-            header.posiZ);
+            header.filter
+            );
 }
 
 void generate_output_filename(char *buffer, size_t buffer_size) {
