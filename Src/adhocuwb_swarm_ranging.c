@@ -2049,6 +2049,7 @@ static void uwbRangingTxTask(void *parameters)
     // xSemaphoreTake(neighborSet.mu, portMAX_DELAY);
     Time_t taskDelay = RANGING_PERIOD;
     generateRangingMessage(rangingMessage);
+    txPacketCache.header.seqNumber++;
     txPacketCache.header.length = sizeof(UWB_Packet_Header_t) + rangingMessage->header.msgLength;
     uwbSendPacketBlock(&txPacketCache);
 //    UWB_DEBUG_PRINTF("abc 123\n");

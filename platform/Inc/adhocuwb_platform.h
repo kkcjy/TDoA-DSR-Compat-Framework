@@ -1,7 +1,7 @@
 #ifndef __ADHOCUWB_PLATFORM_H__
 #define __ADHOCUWB_PLATFORM_H__
 
-#define CONFIG_ADHOCUWB_PLATFORM_ADHOCUWBH7 y
+#define CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE y
 
 #if defined(CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE)
     #include "adhocuwb_platform_crazyflie.h"
