@@ -409,7 +409,7 @@ static bool dwm3000_adhocuwb_Test() {
 
   return isInit;
 }
-#ifdef CONFIG_ADHOCUWB_PLATFORM_CRAZTFLIE
+#ifdef CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE
 static const DeckDriver dwm3000_adhocuwb_deck = {
     .vid = 0xBC,
     .pid = 0x06,
