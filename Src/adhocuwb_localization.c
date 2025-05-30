@@ -216,7 +216,7 @@ void relativeLocoTask(void *arg)
                     relaVar[neighborAddress].height = hj;
                     relativeEKF(neighborAddress, vxi, vyi, ri, hi, vxj, vyj, rj, hj, dij, dtEKF);
                 }
-                // DEBUG_PRINT("addr:%d,X:%f,Y:%f",neighborAddress,relaVar[neighborAddress].S[STATE_rlX],relaVar[neighborAddress].S[STATE_rlY]);
+                DEBUG_PRINT("addr:%d,X:%f,Y:%f",neighborAddress,relaVar[neighborAddress].S[STATE_rlX],relaVar[neighborAddress].S[STATE_rlY]);
             }
         }
         // connectCount++;
