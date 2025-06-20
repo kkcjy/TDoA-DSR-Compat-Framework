@@ -144,7 +144,7 @@ static void spiDeckRead(const void* cmd,
   #endif
   #ifdef CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE
     spiBeginTransaction(spiSpeed);
-	  digitalWrite(CS_PIN, LOW);
+	digitalWrite(CS_PIN, LOW);
   #endif 
 	memcpy(spiDeckTxBuffer, cmd, cmdLength);
 	memset(spiDeckTxBuffer + cmdLength, DUMMY_BYTE, dataLength);
@@ -381,11 +381,7 @@ static void pinInit() {
   //Reset the DW3000 chip
   dwt_ops.reset();
 }
-#endif
 
-#ifdef CONFIG_ADHOCUWB_PLATFORM_ADHOCUWBH7
-
-#endif
 /*********** Deck driver initialization ***************/
 static void dwm3000_adhocuwb_Init(DeckInfo *info) {
 
@@ -409,7 +405,7 @@ static bool dwm3000_adhocuwb_Test() {
 
   return isInit;
 }
-#ifdef CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE
+
 static const DeckDriver dwm3000_adhocuwb_deck = {
     .vid = 0xBC,
     .pid = 0x06,
@@ -434,7 +430,6 @@ static const DeckDriver dwm3000_adhocuwb_deck = {
 };
 
 DECK_DRIVER(dwm3000_adhocuwb_deck);
-#endif
 
 PARAM_GROUP_START(deck)
         PARAM_ADD_CORE(PARAM_UINT8 | PARAM_RONLY, DWM3000, &isInit)
@@ -443,3 +438,4 @@ PARAM_GROUP_STOP(deck)
 PARAM_GROUP_START(ADHOC)
         PARAM_ADD_CORE(PARAM_UINT16 | PARAM_PERSISTENT, MY_UWB_ADDRESS, &MY_UWB_ADDRESS)
 PARAM_GROUP_STOP(ADHOC)
+#endif
