@@ -36,7 +36,7 @@ typedef portTickType Time_t;
 /* UWB packet definition */
 typedef enum {
   UWB_REVERSED_MESSAGE = 0,
-  UWB_TRANSCEIVE = 1,
+  UWB_TRANSCEIVE_MESSAGE = 1,
   UWB_RANGING_MESSAGE = 2,
   UWB_FLOODING_MESSAGE = 3,
   UWB_DATA_MESSAGE = 4,
