@@ -35,13 +35,14 @@ typedef portTickType Time_t;
 
 /* UWB packet definition */
 typedef enum {
-  UWB_RANGING_MESSAGE = 0,
-  UWB_FLOODING_MESSAGE = 1,
-  UWB_DATA_MESSAGE = 2,
-  UWB_AODV_MESSAGE = 3,
-  UWB_OLSR_MESSAGE = 4,
-  PRINT = 5,
-  SNIFFER =6,
+  UWB_TRANSCEIVE = 0,
+  UWB_RANGING_MESSAGE = 1,
+  UWB_FLOODING_MESSAGE = 2,
+  UWB_DATA_MESSAGE = 3,
+  UWB_AODV_MESSAGE = 4,
+  UWB_OLSR_MESSAGE = 5,
+  PRINT = 6,
+  SNIFFER = 7,
   UWB_MESSAGE_TYPE_COUNT, /* only used for counting message types. */
 } UWB_MESSAGE_TYPE;
 
