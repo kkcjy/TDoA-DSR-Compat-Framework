@@ -186,6 +186,10 @@ static void reset(void)
 {
   #ifdef CONFIG_ADHOCUWB_PLATFORM_ADHOCUWBH7
 	#ifdef CONFIG_ADHOCDECK_USE_UART1_PINS
+	  LL_GPIO_ResetOutputPin(GPIOG, LL_GPIO_PIN_10);
+	  vTaskDelay(M2T(10));
+	  LL_GPIO_SetOutputPin(GPIOG, LL_GPIO_PIN_10);
+	  vTaskDelay(M2T(10));
 	#elif defined(CONFIG_ADHOCDECK_USE_UART2_PINS)
 	#elif defined(CONFIG_ADHOCDECK_USE_ALT_PINS)
 	  LL_GPIO_ResetOutputPin(GPIOC, LL_GPIO_PIN_13);
