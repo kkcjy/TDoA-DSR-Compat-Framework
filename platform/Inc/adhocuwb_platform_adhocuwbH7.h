@@ -28,6 +28,15 @@
 #define ADHOC_UWB_RANGING_RX_TASK_NAME "uwbRangingRxTask"
 #define ADHOC_UWB_TASK_PRI osPriorityNormal
 
+/* 涉及到DW3000模组选择模式，参考如下文档：
+ * 1. https://seunetsi.feishu.cn/docx/Nlu9d3ndgoFnPixKRMTcsR1Yn7b , Drive DW3000 for Atherna
+ * 2. https://seunetsi.feishu.cn/wiki/wikcnB0VX2BpLy8xW6eOoYOuDih , DWM3000 驱动实现
+ */
+//#define CONFIG_ADHOCDECK_USE_UART1_PINS
+//#define CONFIG_ADHOCDECK_USE_UART2_PINS
+#define CONFIG_ADHOCDECK_USE_ALT_PINS
+// TODO: rename ADHOCUWBH7 to ADW3KH7C for H7 and DW3000 in the same PCB
+
 void adhocuwb_get_velocity_init();
 void adhocuwb_get_velocity(float* velocityX, float* velocityY, float* velocityZ);
 
