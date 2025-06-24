@@ -193,6 +193,10 @@ static void reset(void)
 	  LL_GPIO_SetOutputPin(GPIOG, LL_GPIO_PIN_10);
 	  vTaskDelay(M2T(10));
 	#elif defined(CONFIG_ADHOCDECK_USE_UART2_PINS)
+	  LL_GPIO_ResetOutputPin(GPIOK, LL_GPIO_PIN_9);
+	  vTaskDelay(M2T(10));
+	  LL_GPIO_SetOutputPin(GPIOK, LL_GPIO_PIN_9);
+	  vTaskDelay(M2T(10));
 	#elif defined(CONFIG_ADHOCDECK_USE_ALT_PINS)
 	  LL_GPIO_ResetOutputPin(GPIOC, LL_GPIO_PIN_13);
 	  vTaskDelay(M2T(10));
@@ -333,7 +337,8 @@ void uwbISRTask(void *parameters) {
 		#ifdef CONFIG_ADHOCDECK_USE_UART1_PINS
       	  while (LL_EXTI_IsActiveFlag_0_31(LL_EXTI_LINE_5) != RESET);
 		#elif defined(CONFIG_ADHOCDECK_USE_UART2_PINS)
-		#elif defined(CONFIG_ADHOCDECK_USE_ALT_PINS)
+  	  	  while (LL_EXTI_IsActiveFlag_0_31(LL_EXTI_LINE_9) != RESET);
+  	  #elif defined(CONFIG_ADHOCDECK_USE_ALT_PINS)
 		  while (LL_EXTI_IsActiveFlag_0_31(LL_EXTI_LINE_15) != RESET);
 		#endif
       #endif
