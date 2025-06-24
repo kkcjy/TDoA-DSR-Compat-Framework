@@ -14,6 +14,7 @@
 #include "libdw3000.h"
 #include "dw3000_cbll.h"
 
+#define DEBUG_PRINT printf
 #define NO_DMA_CCM_SAFE_ZERO_INIT static
 #define adhocuwb_readtxtimestamp dwt_readtxtimestamp
 #define ASSERT assert

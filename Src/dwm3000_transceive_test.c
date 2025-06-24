@@ -3,6 +3,7 @@
 #include <stdbool.h>
 
 #include "adhocuwb_init.h"
+#include "adhocuwb_platform.h"
 #include "adhocuwb_swarm_ranging.h"
 
 #ifndef UWB_DEBUG_ENABLE
@@ -38,6 +39,8 @@ void uwbTransceiveTask()
 		DEBUG_PRINT("send: %lx,%lx\n", uwbdata_tx[0], uwbdata_tx[1]);
         vTaskDelay(500);
 	    uwbdata_tx[0]++;
+		NVIC_SetPendingIRQ(EXTI9_5_IRQn);
+//		NVIC_SetPendingIRQ(EXTI15_10_IRQn);
 	}
 }
 

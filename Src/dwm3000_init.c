@@ -159,6 +159,7 @@ static void spiDeckRead(const void* cmd,
 	spiDeckEndTransaction();
 }
 
+#ifdef CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE
 #ifdef CONFIG_DECK_ADHOCDECK_USE_ALT_PINS
 void __attribute__((used)) EXTI5_Callback(void)
 #elif defined(CONFIG_DECK_ADHOCDECK_USE_UART2_PINS)
@@ -177,6 +178,7 @@ void __attribute__((used)) EXTI11_Callback(void)
     portYIELD();
   }
 }
+#endif
 
 static void spiDeckSetSpeed(dwSpiSpeed_t speed) { return; }
 
@@ -254,7 +256,6 @@ static void rxErrorCallback()
   dwt_rxenable(DWT_START_RX_IMMEDIATE);
 }
 
-
 int dw3000_init()
 {
   /* Need to make sure DW IC is in IDLE_RC before proceeding */
@@ -329,7 +330,12 @@ void uwbISRTask(void *parameters) {
         xSemaphoreGive(uwbIrqSemaphore);
       } 
       #ifdef CONFIG_ADHOCUWB_PLATFORM_ADHOCUWBH7
-        while (LL_EXTI_IsActiveFlag_0_31(LL_EXTI_LINE_15) != RESET);
+		#ifdef CONFIG_ADHOCDECK_USE_UART1_PINS
+      	  while (LL_EXTI_IsActiveFlag_0_31(LL_EXTI_LINE_5) != RESET);
+		#elif defined(CONFIG_ADHOCDECK_USE_UART2_PINS)
+		#elif defined(CONFIG_ADHOCDECK_USE_ALT_PINS)
+		  while (LL_EXTI_IsActiveFlag_0_31(LL_EXTI_LINE_15) != RESET);
+		#endif
       #endif
       #ifdef CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE
         while (digitalRead(GPIO_PIN_IRQ) != 0);
