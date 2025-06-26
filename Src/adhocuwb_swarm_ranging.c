@@ -643,6 +643,7 @@ static int rangingTableSetClearExpire(Ranging_Table_Set_t *set)
     }
   }
   /* Keeps ranging table set in order. */
+  DEBUG_PRINT("rangingTableSet.size: %d\n", rangingTableSet.size);
   rangingTableSetRearrange(&rangingTableSet, COMPARE_BY_ADDRESS);
   rangingTableSet.size -= evictionCount;
 
