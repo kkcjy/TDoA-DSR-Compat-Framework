@@ -1242,7 +1242,7 @@ static int16_t computeDistance(Timestamp_Tuple_t Tp, Timestamp_Tuple_t Rp,
 	  if(abnormal_dist_count++>=3)
 		  abnormal_dist_count=abnormal_dist_count;
 
-  // DEBUG_PRINT("compute dist:\t%d\n", distance);
+  DEBUG_PRINT("compute dist:\t%d\n", distance);
   
   if (distance < 0)
   {
@@ -1716,7 +1716,7 @@ static void processRangingMessage(Ranging_Message_With_Timestamp_t *rangingMessa
       break;
     }
   }
-  printRangingMessage(rangingMessage);
+//  printRangingMessage(rangingMessage);
 
   /* Try to find corresponding Rf for MY_UWB_ADDRESS. */
   Timestamp_Tuple_t neighborRf = {.timestamp.full = 0, .seqNumber = 0};
