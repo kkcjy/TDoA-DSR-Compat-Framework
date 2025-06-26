@@ -1,4 +1,4 @@
-#define DEBUG_MODULE "SNIFFER"
+	#define DEBUG_MODULE "SNIFFER"
 
 #include <string.h>
 #include "FreeRTOS.h"
