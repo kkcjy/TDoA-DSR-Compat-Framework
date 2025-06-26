@@ -644,7 +644,6 @@ static int rangingTableSetClearExpire(Ranging_Table_Set_t *set)
     }
   }
   /* Keeps ranging table set in order. */
-  DEBUG_PRINT("rangingTableSet.size: %d\n", rangingTableSet.size);
   rangingTableSetRearrange(&rangingTableSet, COMPARE_BY_ADDRESS);
   rangingTableSet.size -= evictionCount;
 
@@ -2103,13 +2102,20 @@ void rangingInit()
   MY_UWB_ADDRESS = uwbGetAddress();
   srand(MY_UWB_ADDRESS);
   rxQueue = xQueueCreate(RANGING_RX_QUEUE_SIZE, RANGING_RX_QUEUE_ITEM_SIZE);
-  neighborSetInit(&neighborSet);
-  neighborSetEvictionTimer = xTimerCreate("neighborSetEvictionTimer",
-                                          M2T(NEIGHBOR_SET_HOLD_TIME / 2),
-                                          pdTRUE,
-                                          (void *)0,
-                                          neighborSetClearExpireTimerCallback);
-  xTimerStart(neighborSetEvictionTimer, M2T(0));
+  // neighborSetInit(&neighborSet);
+  // neighborSetEvictionTimer = xTimerCreate("neighborSetEvictionTimer",
+  //                                         M2T(NEIGHBOR_SET_HOLD_TIME / 2),
+  //                                         pdTRUE,
+  //                                         (void *)0,
+  //                                         neighborSetClearExpireTimerCallback);
+  // xTimerStart(neighborSetEvictionTimer, M2T(0));
+  rangingTableSetInit(&rangingTableSet);
+  rangingTableSetEvictionTimer = xTimerCreate("rangingTableSetEvictionTimer",
+                                              M2T(RANGING_TABLE_HOLD_TIME / 2),
+                                              pdTRUE,
+                                              (void *)0,
+                                              rangingTableSetClearExpireTimerCallback);
+  xTimerStart(rangingTableSetEvictionTimer, M2T(0));
   TfBufferMutex = xSemaphoreCreateMutex();
 
   listener.type = UWB_RANGING_MESSAGE;
