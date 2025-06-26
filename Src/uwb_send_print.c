@@ -1,5 +1,3 @@
-	#define DEBUG_MODULE "SNIFFER"
-
 #include <string.h>
 #include "FreeRTOS.h"
 #include "queue.h"

@@ -22,8 +22,10 @@
 #endif
 
 #ifndef RANGING_DEBUG_ENABLE
-#undef DEBUG_PRINT
-#define DEBUG_PRINT
+  #undef DEBUG_PRINT
+  #define DEBUG_PRINT
+#else defined(CONFIG_ADHOCUWB_PLATFORM_ADHOCUWBH7)
+  #define DEBUG_PRINT printf
 #endif
 
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
