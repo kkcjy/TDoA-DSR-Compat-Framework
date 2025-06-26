@@ -1555,7 +1555,7 @@ static void S4_RX_Rf(Ranging_Table_t *rangingTable)
   Ranging_Table_Tr_Rr_Candidate_t Tr_Rr_Candidate = rangingTableBufferGetCandidate(&rangingTable->TrRrBuffer,
                                                                                    rangingTable->Tf, rangingTable->Tp);
 
-  //  printRangingTable(rangingTable);
+    printRangingTable(rangingTable);
   // DEBUG_PRINT("Tp:%d,Rf:%d\n", rangingTable->Tp.seqNumber, rangingTable->Rf.seqNumber);
   /* try to compute distance */
   int16_t distance = computeDistance(rangingTable->Tp, rangingTable->Rp,
@@ -1716,7 +1716,7 @@ static void processRangingMessage(Ranging_Message_With_Timestamp_t *rangingMessa
       break;
     }
   }
-//  printRangingMessage(rangingMessage);
+  printRangingMessage(rangingMessage);
 
   /* Try to find corresponding Rf for MY_UWB_ADDRESS. */
   Timestamp_Tuple_t neighborRf = {.timestamp.full = 0, .seqNumber = 0};
