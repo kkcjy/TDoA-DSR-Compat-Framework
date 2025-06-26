@@ -97,14 +97,19 @@ static void adhocuwbTxTask(void *parameters) {
 
   UWB_Packet_t packetCache;
   while (true) {
+	DEBUG_PRINT("adhocuwbTxTask, while\n");
     if (xQueueReceive(txQueue, &packetCache, portMAX_DELAY)) {
       ASSERT(packetCache.header.type < UWB_MESSAGE_TYPE_COUNT);
       ASSERT(packetCache.header.length <= UWB_FRAME_LEN_MAX);
 
-      if (adhocuwb_hdw_send(&packetCache, packetCache.header.length)) {
+      DEBUG_PRINT("adhocuwb_hdw_send, before\n");
+      int ahs = adhocuwb_hdw_send(&packetCache, packetCache.header.length);
+      DEBUG_PRINT("adhocuwb_hdw_send, pass\n");
+      if (ahs) {
           if (ulTaskNotifyTake(pdTRUE, M2T(20)) == pdFALSE) {
             DEBUG_PRINT("uwbTxTask: Timeout when waiting for tx success signal from txCallback, os may extremely busy now.\n");
           } else {
+        	DEBUG_PRINT("Invoke txCallback\n");
             /* Invoke txCallback */
             if (listeners[packetCache.header.type].txCb) {
               listeners[packetCache.header.type].txCb(&packetCache);

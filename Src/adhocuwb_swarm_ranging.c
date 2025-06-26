@@ -1557,7 +1557,7 @@ static void S4_RX_Rf(Ranging_Table_t *rangingTable)
   Ranging_Table_Tr_Rr_Candidate_t Tr_Rr_Candidate = rangingTableBufferGetCandidate(&rangingTable->TrRrBuffer,
                                                                                    rangingTable->Tf, rangingTable->Tp);
 
-    printRangingTable(rangingTable);
+//    printRangingTable(rangingTable);
   // DEBUG_PRINT("Tp:%d,Rf:%d\n", rangingTable->Tp.seqNumber, rangingTable->Rf.seqNumber);
   /* try to compute distance */
   int16_t distance = computeDistance(rangingTable->Tp, rangingTable->Rp,
@@ -1718,7 +1718,7 @@ static void processRangingMessage(Ranging_Message_With_Timestamp_t *rangingMessa
       break;
     }
   }
-  printRangingMessage(rangingMessage);
+//  printRangingMessage(rangingMessage);
 
   /* Try to find corresponding Rf for MY_UWB_ADDRESS. */
   Timestamp_Tuple_t neighborRf = {.timestamp.full = 0, .seqNumber = 0};
@@ -2008,8 +2008,9 @@ static void uwbRangingTxTask(void *parameters)
 
   while (true)
   {
+	DEBUG_PRINT("uwbRangingTxTask, while, before xSemaphoreTake\n");
     xSemaphoreTake(rangingTableSet.mu, portMAX_DELAY);
-    // xSemaphoreTake(neighborSet.mu, portMAX_DELAY);
+	// xSemaphoreTake(neighborSet.mu, portMAX_DELAY);
     Time_t taskDelay = RANGING_PERIOD;
     generateRangingMessage(rangingMessage);
     txPacketCache.header.seqNumber++;
@@ -2102,20 +2103,13 @@ void rangingInit()
   MY_UWB_ADDRESS = uwbGetAddress();
   srand(MY_UWB_ADDRESS);
   rxQueue = xQueueCreate(RANGING_RX_QUEUE_SIZE, RANGING_RX_QUEUE_ITEM_SIZE);
-  // neighborSetInit(&neighborSet);
-  // neighborSetEvictionTimer = xTimerCreate("neighborSetEvictionTimer",
-  //                                         M2T(NEIGHBOR_SET_HOLD_TIME / 2),
-  //                                         pdTRUE,
-  //                                         (void *)0,
-  //                                         neighborSetClearExpireTimerCallback);
-  // xTimerStart(neighborSetEvictionTimer, M2T(0));
-  rangingTableSetInit(&rangingTableSet);
-  rangingTableSetEvictionTimer = xTimerCreate("rangingTableSetEvictionTimer",
-                                              M2T(RANGING_TABLE_HOLD_TIME / 2),
-                                              pdTRUE,
-                                              (void *)0,
-                                              rangingTableSetClearExpireTimerCallback);
-  xTimerStart(rangingTableSetEvictionTimer, M2T(0));
+  neighborSetInit(&neighborSet);
+  neighborSetEvictionTimer = xTimerCreate("neighborSetEvictionTimer",
+                                          M2T(NEIGHBOR_SET_HOLD_TIME / 2),
+                                          pdTRUE,
+                                          (void *)0,
+                                          neighborSetClearExpireTimerCallback);
+  xTimerStart(neighborSetEvictionTimer, M2T(0));
   TfBufferMutex = xSemaphoreCreateMutex();
 
   listener.type = UWB_RANGING_MESSAGE;

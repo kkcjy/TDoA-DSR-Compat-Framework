@@ -22,6 +22,7 @@
 #ifdef CONFIG_ADHOCUWB_PLATFORM_ADHOCUWBH7
   #include "main.h"
   static uint16_t MY_UWB_ADDRESS;
+  #define DEBUG_PRINT printf
 #endif
 
 #ifdef CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE
@@ -226,7 +227,7 @@ static uint8_t rxBuffer[UWB_FRAME_LEN_MAX];
 
 static void txCallback()
 {
-  // DEBUG_PRINT("txCallback \n");
+//   DEBUG_PRINT("txCallback \n");
 	if(_txCallback)	{
 		_txCallback(NULL);
 	}
@@ -240,7 +241,7 @@ static void rxCallback()
 
   dwt_readrxdata(rxBuffer, dataLength - FCS_LEN, 0); /* No need to read the FCS/CRC. */
 
-  //  DEBUG_PRINT("rxCallback: data length = %lu \n", dataLength);
+//  DEBUG_PRINT("rxCallback: data length = %lu \n", dataLength);
 	if(_rxCallback)	{
 		_rxCallback(rxBuffer); //TODO: make this function pass both buffer address and dataLength
 	}
@@ -250,12 +251,14 @@ static void rxCallback()
 
 static void rxTimeoutCallback()
 {
+//  DEBUG_PRINT("rxTimeoutCallback \n");
   dwt_forcetrxoff();
   dwt_rxenable(DWT_START_RX_IMMEDIATE);
 }
 
 static void rxErrorCallback()
 {
+//  DEBUG_PRINT("rxErrorCallback \n");
   dwt_forcetrxoff();
   dwt_rxenable(DWT_START_RX_IMMEDIATE);
 }
@@ -355,9 +358,13 @@ void adhocuwb_hdw_force_rx() {
 }
 
 int adhocuwb_hdw_send(void *data, uint32_t datalen) {
-	dwt_forcetrxoff();//关闭发射器与接收器
+	DEBUG_PRINT("dwt_forcetrxoff\n");
+	dwt_forcetrxoff();
+	DEBUG_PRINT("dwt_writetxdata\n");
 	dwt_writetxdata(datalen, (uint8_t *) data, 0);
+	DEBUG_PRINT("dwt_writetxfctrl\n");
 	dwt_writetxfctrl(datalen + FCS_LEN, 0, 1);
+	DEBUG_PRINT("dwt_starttx\n");
 	return (dwt_starttx(DWT_START_TX_IMMEDIATE | DWT_RESPONSE_EXPECTED) != DWT_ERROR);
 }
 
