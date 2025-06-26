@@ -73,7 +73,7 @@ void adhocuwb_txCallback(void *parameters) {
 void adhocuwb_rxCallback(void *parameters) {
   UWB_Packet_t *packet = (UWB_Packet_t *) parameters;
   UWB_MESSAGE_TYPE msgType = packet->header.type;
-
+  DEBUG_PRINT("adhocuwb_rxCallback\n");
   ASSERT(msgType < UWB_MESSAGE_TYPE_COUNT);
 
   if (!(packet->header.destAddress == MY_UWB_ADDRESS || packet->header.destAddress == UWB_DEST_ANY)) {
