@@ -506,6 +506,7 @@ void rangingTableSetInit(Ranging_Table_Set_t *set)
 
 static void rangingTableSetSwapTable(Ranging_Table_Set_t *set, int first, int second)
 {
+  if(first == second) return;
   Ranging_Table_t temp = set->tables[first];
   set->tables[first] = set->tables[second];
   set->tables[second] = temp;
@@ -618,7 +619,7 @@ static void rangingTableSetRearrange(Ranging_Table_Set_t *set, rangingTableCompa
   {
     rangingTableSetArrange(set, i, set->size, compare);
   }
-  for (int i = set->size - 1; i >= 0; i--)
+  for (int i = set->size - 1; i > 0; i--)
   {
     rangingTableSetSwapTable(set, 0, i);
     rangingTableSetArrange(set, 0, i, compare);
