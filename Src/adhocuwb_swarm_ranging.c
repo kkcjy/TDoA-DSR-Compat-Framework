@@ -1117,14 +1117,14 @@ void printRangingTableSet(Ranging_Table_Set_t *set)
 
 void printRangingMessage(Ranging_Message_t *rangingMessage)
 {
-  // for (int i = 0; i < RANGING_MAX_Tr_UNIT; i++)
-  // {
-  //   DEBUG_PRINT("lastTxTimestamp %d seq=%u, lastTxTimestamp=%2x%8lx\n",
-  //               i,
-  //               rangingMessage->header.lastTxTimestamps[i].seqNumber,
-  //               rangingMessage->header.lastTxTimestamps[i].timestamp.high8,
-  //               rangingMessage->header.lastTxTimestamps[i].timestamp.low32);
-  // }
+   for (int i = 0; i < RANGING_MAX_Tr_UNIT; i++)
+   {
+     DEBUG_PRINT("lastTxTimestamp %d seq=%u, lastTxTimestamp=%2x%8lx\n",
+                 i,
+                 rangingMessage->header.lastTxTimestamps[i].seqNumber,
+                 rangingMessage->header.lastTxTimestamps[i].timestamp.high8,
+                 rangingMessage->header.lastTxTimestamps[i].timestamp.low32);
+   }
   if (rangingMessage->header.msgLength - sizeof(Ranging_Message_Header_t) == 0)
   {
     return;
@@ -1716,7 +1716,7 @@ static void processRangingMessage(Ranging_Message_With_Timestamp_t *rangingMessa
       break;
     }
   }
-  //  printRangingMessage(rangingMessage);
+  printRangingMessage(rangingMessage);
 
   /* Try to find corresponding Rf for MY_UWB_ADDRESS. */
   Timestamp_Tuple_t neighborRf = {.timestamp.full = 0, .seqNumber = 0};
