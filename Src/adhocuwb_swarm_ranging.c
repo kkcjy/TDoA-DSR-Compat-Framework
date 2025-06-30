@@ -353,34 +353,49 @@ void Midpoint_Adjustment(int TfBufferIndex)  //Algorithm 3 : Midpoint Adjustment
 
   bool temp_control[2] = {0, 0};
 
-  for (int i = 0; i < Tf_BUFFER_POOL_SIZE; i++)
+  dwTime_t Min_last_rx=2^40-1;
+  dwTime_t Min_next_rx=2^40-1;
+  
+  for (int i = 0; i < NEIGHBOR_ADDRESS_MAX; i++)
   {
-    dwTime_t Min_last_rx=2^40-1;
-    dwTime_t Min_next_rx=2^40-1;
-    if (TfBuffer[i].timestamp.full && rx_buffer[rx_buffer_index].timestamp.full)
-    {
-      dwTime_t a=TfBuffer[i].timestamp.full% UWB_MAX_TIMESTAMP;
-      dwTime_t b=rx_buffer[rx_buffer_index].timestamp.full% UWB_MAX_TIMESTAMP;
-      dwTime_t c=(uint64_t)RANGING_PERIOD / (DWT_TIME_UNITS * 1000);
-      dwTime_t d=(uint64_t)(SAFETY_DISTANCE_MIN / (DWT_TIME_UNITS * 1000));
-      
-      if (((-a + b) % UWB_MAX_TIMESTAMP < c) && a < b )
-      {
-        /*上一次TX时间 到 本次RX时间 太近*/
-        if ((-a + b) % UWB_MAX_TIMESTAMP < d)
-        {
-          temp_delay = -1;
-          return;
-        }
 
-        /*本次RX时间 到 预测的下一次TX 太近*/
-        if ( (a + c - b) % UWB_MAX_TIMESTAMP < d)
+    if (TfBuffer[TfBufferIndex].timestamp.full && rx_buffer[i].timestamp.full)
+    {
+      /*
+      +-------+------+-------+-------+-------+------+
+      |  RX3  |  TX  |  RX1  |  RX2  |  RX3  |  TX  |
+      +-------+------+-------+-------+-------+------+
+                                                ^
+                                                now
+      */
+      dwTime_t a=TfBuffer[TfBufferIndex].timestamp.full% UWB_MAX_TIMESTAMP;
+      dwTime_t b=rx_buffer[i].timestamp.full% UWB_MAX_TIMESTAMP;
+      dwTime_t c=(uint64_t)RANGING_PERIOD / (DWT_TIME_UNITS * 1000);
+      dwTime_t d=(uint64_t)(RANGING_PERIOD / rangingTableSet.size / (DWT_TIME_UNITS * 1000));
+      if (((a - b) % UWB_MAX_TIMESTAMP < c) && a > b)
+      {
+        if ((a - b) % UWB_MAX_TIMESTAMP < Min_last_rx)
         {
-          temp_delay = +1;
-          return;
+          Min_last_rx = (a - b) % UWB_MAX_TIMESTAMP;
         }
       }
-    }
+
+      if (((a - b) % UWB_MAX_TIMESTAMP < c) && a > b)
+      {
+        if ( (c - a + b) % UWB_MAX_TIMESTAMP < Min_next_rx)
+        {
+          Min_next_rx = (c - a + b) % UWB_MAX_TIMESTAMP;
+        }
+      }
+    } 
+  }
+  if (Min_last_rx < Min_next_rx)
+  {
+    temp_delay = +1;
+  }
+  else if (Min_last_rx > Min_next_rx)
+  {
+    temp_delay = -1;
   }
 
 }
