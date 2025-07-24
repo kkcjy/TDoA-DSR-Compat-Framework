@@ -1191,8 +1191,8 @@ Time_t generateDsrMessage(Ranging_Message_t *rangingMessage) {
 void processDsrMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWithAdditionalInfo) {
     Ranging_Message_t *rangingMessage = &rangingMessageWithAdditionalInfo->rangingMessage;
 
-    printRangingMessage(rangingMessage);
-    DEBUG_PRINT("[printRangingMessage]: timestamp = %llu", rangingMessageWithAdditionalInfo->timestamp.full % UWB_MAX_TIMESTAMP);
+    // printRangingMessage(rangingMessage);
+    //DEBUG_PRINT("[printRangingMessage]: timestamp = %llu\n", rangingMessageWithAdditionalInfo->timestamp.full % UWB_MAX_TIMESTAMP);
 
     uint16_t neighborAddress = rangingMessage->header.srcAddress;
     index_t neighborIndex = findRangingTable(rangingTableSet, neighborAddress);
@@ -1289,7 +1289,7 @@ void processDsrMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
 
     rangingTableSet->rangingTable[neighborIndex].expirationSign = false;
 
-    printRangingTableSet(rangingTableSet);
+    // printRangingTableSet(rangingTableSet);
 }
 
 
