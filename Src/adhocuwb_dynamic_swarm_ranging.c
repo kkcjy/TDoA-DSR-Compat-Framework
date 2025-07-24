@@ -6,7 +6,7 @@
 #include "timers.h"
 #include "adhocuwb_init.h"
 #include "adhocuwb_platform.h"
-#include "adhocuwb_swarm_ranging.h"
+#include "adhocuwb_dynamic_swarm_ranging.h"
 
 #ifdef CONFIG_ADHOCUWB_PLATFORM_ADHOCUWBH7
   #include "uwb_send_print.h"
@@ -38,7 +38,7 @@ bool COMPARE_TIME(uint64_t time_a, uint64_t time_b) {
 
 float getDistanceReal(uint16_t neighborAddress) {
     ASSERT(neighborAddress <= NEIGHBOR_ADDRESS_MAX);
-    return distanceReal[neighborAddress]
+    return distanceReal[neighborAddress];
 }
 
 void setDistanceReal(uint16_t neighborAddress, float distance) {
@@ -183,7 +183,7 @@ table_index_t registerRangingTable(Ranging_Table_Set_t *rangingTableSet, uint16_
         }
     }
 
-    assert(0 && "Warning: Should not be called\n");
+    ASSERT(0 && "Warning: Should not be called\n");
     return NULL_INDEX;
 }
 
@@ -203,7 +203,7 @@ void deregisterRangingTable(Ranging_Table_Set_t *rangingTableSet, uint16_t addre
     }
 
     if(tableIdx == NULL_INDEX) {
-        assert(0 && "Warning: Should not be called\n");
+        ASSERT(0 && "Warning: Should not be called\n");
         return;
     }
 
@@ -218,7 +218,7 @@ void deregisterRangingTable(Ranging_Table_Set_t *rangingTableSet, uint16_t addre
     }
 
     if(queueIdx == NULL_INDEX) {
-        assert(0 && "Warning: Should not be called\n");
+        ASSERT(0 && "Warning: Should not be called\n");
         return;
     }
 
@@ -336,7 +336,7 @@ void updatePriorityQueue(Ranging_Table_Set_t *rangingTableSet, int8_t shiftCount
     index_t *tmpQueue = malloc(sizeof(index_t) * shiftCount);
 
     if(!tmpQueue) {
-        assert(0 && "Warning: Should not be called\n");
+        ASSERT(0 && "Warning: Should not be called\n");
     }
 
     for(int i = 0; i < shiftCount; i++) {
@@ -591,7 +591,9 @@ void printRangingMessage(Ranging_Message_t *rangingMessage) {
 void printSendList(SendList_t *sendList) {
     DEBUG_PRINT("\n[sendList]\n");
     index_t index = sendList->topIndex;
+    #ifdef COORDINATE_SEND_ENABLE
     DEBUG_PRINT("location: x = %u, y = %u, z = %u\n", sendList->TxCoordinate.x,  sendList->TxCoordinate.y,  sendList->TxCoordinate.z);
+    #endif
     for(int i = 0; i < SEND_LIST_SIZE; i++) {
         DEBUG_PRINT("seqNumber: %u, timestamp: %llu\n", sendList->Txtimestamps[index].seqNumber, sendList->Txtimestamps[index].timestamp.full);
         index = (index - 1 + SEND_LIST_SIZE) % SEND_LIST_SIZE;
@@ -633,7 +635,7 @@ void printPriorityQueue(Ranging_Table_Set_t *rangingTableSet) {
 void printRangingTableSet(Ranging_Table_Set_t *rangingTableSet) {
     DEBUG_PRINT("\n{rangingTableSet}\n");
     DEBUG_PRINT("size: %u\n", rangingTableSet->size);
-    DEBUG_PRINT("localSeqNumber: %u\n", rangingTableSet->localSeqNumber);
+    DEBUG_PRINT("localSeqNumber: %lu\n", rangingTableSet->localSeqNumber);
 
     printPriorityQueue(rangingTableSet);
 
@@ -674,7 +676,7 @@ void printCalculateTuple(Timestamp_Tuple_t Tb, Timestamp_Tuple_t Rb, Timestamp_T
 /* -------------------- State Machine Operation -------------------- */
 #ifdef STATE_MACHINE_ENABLE
 static void RESERVED_STUB(Ranging_Table_t *rangingTable) {
-    assert(0 && "[RESERVED_STUB]: Should not be called\n");
+    ASSERT(0 && "[RESERVED_STUB]: Should not be called\n");
 }
 
 static void S1_TX(Ranging_Table_t *rangingTable) {
@@ -784,15 +786,15 @@ static void S2_RX_NO(Ranging_Table_t *rangingTable) {
 }
 
 static void S3_TX(Ranging_Table_t *rangingTable) {
-    assert(0 && "[S3_TX]: Should not be called\n");
+    ASSERT(0 && "[S3_TX]: Should not be called\n");
 }
 
 static void S3_RX(Ranging_Table_t *rangingTable) {
-    assert(0 && "[S3_RX]: Should not be called\n");
+    ASSERT(0 && "[S3_RX]: Should not be called\n");
 }
 
 static void S3_RX_NO(Ranging_Table_t *rangingTable) {
-    assert(0 && "[S3_RX_NO]: Should not be called\n");
+    ASSERT(0 && "[S3_RX_NO]: Should not be called\n");
 }
 
 static void S4_TX(Ranging_Table_t *rangingTable) {
@@ -890,7 +892,7 @@ static void S4_RX_NO(Ranging_Table_t *rangingTable) {
     else if(rangingTable->EPTof == NULL_TOF) {
         Ranging_Table_Tr_Rr_Candidate_t candidate = rangingTableTr_Rr_BufferGetCandidate(&rangingTable->TrRrBuffer, rangingTable->Rp, nullTimestampTuple);
         float curPTof = classicCalculatePTof(rangingTable->Tb, rangingTable->Rb, rangingTable->Tp, rangingTable->Rp, candidate.Tr, candidate.Rr);
-        distanceCalculate = (curPTof == NULL_TOF) ? (rangingTable->PTof * VELOCITY) / 2 : (curPTof * VELOCITY) / 2;
+        distanceCalculate[rangingTable->neighborAddress] = (curPTof == NULL_TOF) ? ((rangingTable->PTof * VELOCITY) / 2) : ((curPTof * VELOCITY) / 2);
 
         updateRangingTableRr_Buffer(&rangingTable->TrRrBuffer, rangingTable->Re);
     }
@@ -907,7 +909,7 @@ static void S4_RX_NO(Ranging_Table_t *rangingTable) {
     else {
         Ranging_Table_Tr_Rr_Candidate_t candidate = rangingTableTr_Rr_BufferGetCandidate(&rangingTable->TrRrBuffer, rangingTable->Rp, nullTimestampTuple);
         float curPTof = calculatePTof(rangingTable, candidate);
-        distanceCalculate = (curPTof == NULL_TOF) ? (rangingTable->PTof * VELOCITY) / 2 : (curPTof * VELOCITY) / 2;
+        distanceCalculate[rangingTable->neighborAddress] = (curPTof == NULL_TOF) ? (rangingTable->PTof * VELOCITY) / 2 : (curPTof * VELOCITY) / 2;
 
         updateRangingTableRr_Buffer(&rangingTable->TrRrBuffer, rangingTable->Re);
     }
@@ -968,7 +970,7 @@ static void S5_RX(Ranging_Table_t *rangingTable) {
         Ranging_Table_Tr_Rr_Candidate_t candidate = rangingTableTr_Rr_BufferGetCandidate(&rangingTable->TrRrBuffer, rangingTable->Rp, rangingTable->Tf);
         float curPTof = classicCalculatePTof(rangingTable->Tp, rangingTable->Rp, candidate.Tr, candidate.Rr, rangingTable->Tf, rangingTable->Rf);
         if(curPTof != NULL_TOF) {
-            distanceCalculate = (curPTof * VELOCITY) / 2;
+            distanceCalculate[rangingTable->neighborAddress] = (curPTof * VELOCITY) / 2;
         }
 
         updateRangingTableRr_Buffer(&rangingTable->TrRrBuffer, rangingTable->Re);
@@ -990,7 +992,7 @@ static void S5_RX(Ranging_Table_t *rangingTable) {
     else if(rangingTable->EPTof == NULL_TOF) {
         Ranging_Table_Tr_Rr_Candidate_t candidate = rangingTableTr_Rr_BufferGetCandidate(&rangingTable->TrRrBuffer, rangingTable->Rp, rangingTable->Tf);
         float curPTof = classicCalculatePTof(rangingTable->Tp, rangingTable->Rp, candidate.Tr, candidate.Rr, rangingTable->Tf, rangingTable->Rf);
-        distanceCalculate = (curPTof == NULL_TOF) ? (rangingTable->PTof * VELOCITY) / 2 : (curPTof * VELOCITY) / 2;
+        distanceCalculate[rangingTable->neighborAddress] = (curPTof == NULL_TOF) ? (rangingTable->PTof * VELOCITY) / 2 : (curPTof * VELOCITY) / 2;
 
         updateRangingTableRr_Buffer(&rangingTable->TrRrBuffer, rangingTable->Re);
 
@@ -1011,7 +1013,7 @@ static void S5_RX(Ranging_Table_t *rangingTable) {
     else {
         Ranging_Table_Tr_Rr_Candidate_t candidate = rangingTableTr_Rr_BufferGetCandidate(&rangingTable->TrRrBuffer, rangingTable->Rp, rangingTable->Tf);
         float curPTof = calculatePTof(rangingTable, candidate);
-        distanceCalculate = (curPTof == NULL_TOF) ? (rangingTable->PTof * VELOCITY) / 2 : (curPTof * VELOCITY) / 2;
+        distanceCalculate[rangingTable->neighborAddress] = (curPTof == NULL_TOF) ? (rangingTable->PTof * VELOCITY) / 2 : (curPTof * VELOCITY) / 2;
 
         updateRangingTableRr_Buffer(&rangingTable->TrRrBuffer, rangingTable->Re);
 
@@ -1055,7 +1057,7 @@ static void S5_RX_NO(Ranging_Table_t *rangingTable) {
     else if(rangingTable->EPTof == NULL_TOF) {
         Ranging_Table_Tr_Rr_Candidate_t candidate = rangingTableTr_Rr_BufferGetCandidate(&rangingTable->TrRrBuffer, rangingTable->Rp, nullTimestampTuple);
         float curPTof = classicCalculatePTof(rangingTable->Tb, rangingTable->Rb, rangingTable->Tp, rangingTable->Rp, candidate.Tr, candidate.Rr);
-        distanceCalculate = (curPTof == NULL_TOF) ? (rangingTable->PTof * VELOCITY) / 2 : (curPTof * VELOCITY) / 2;
+        distanceCalculate[rangingTable->neighborAddress] = (curPTof == NULL_TOF) ? (rangingTable->PTof * VELOCITY) / 2 : (curPTof * VELOCITY) / 2;
 
         updateRangingTableRr_Buffer(&rangingTable->TrRrBuffer, rangingTable->Re);
     }
@@ -1072,7 +1074,7 @@ static void S5_RX_NO(Ranging_Table_t *rangingTable) {
     else {
         Ranging_Table_Tr_Rr_Candidate_t candidate = rangingTableTr_Rr_BufferGetCandidate(&rangingTable->TrRrBuffer, rangingTable->Rp, nullTimestampTuple);
         float curPTof = calculatePTof(rangingTable, candidate);
-        distanceCalculate = (curPTof == NULL_TOF) ? (rangingTable->PTof * VELOCITY) / 2 : (curPTof * VELOCITY) / 2;
+        distanceCalculate[rangingTable->neighborAddress] = (curPTof == NULL_TOF) ? (rangingTable->PTof * VELOCITY) / 2 : (curPTof * VELOCITY) / 2;
 
         updateRangingTableRr_Buffer(&rangingTable->TrRrBuffer, rangingTable->Re);
     }
@@ -1084,15 +1086,15 @@ static void S5_RX_NO(Ranging_Table_t *rangingTable) {
 }
 
 static void S6_TX(Ranging_Table_t *rangingTable) {
-    assert(0 && "[S6_TX]: Should not be called\n");
+    ASSERT(0 && "[S6_TX]: Should not be called\n");
 }
 
 static void S6_RX(Ranging_Table_t *rangingTable) {
-    assert(0 && "[S6_RX]: Should not be called\n");
+    ASSERT(0 && "[S6_RX]: Should not be called\n");
 }
 
 static void S6_RX_NO(Ranging_Table_t *rangingTable) {
-    assert(0 && "[S6_RX_NO]: Should not be called\n");
+    ASSERT(0 && "[S6_RX_NO]: Should not be called\n");
 }
 
 static EventHandlerTable EVENT_HANDLER[RANGING_TABLE_STATE_COUNT][RANGING_TABLE_EVENT_COUNT] = {
@@ -1106,15 +1108,15 @@ static EventHandlerTable EVENT_HANDLER[RANGING_TABLE_STATE_COUNT][RANGING_TABLE_
 };
 
 void RangingTableEventHandler(Ranging_Table_t *rangingTable, RANGING_TABLE_EVENT event) {
-    assert((rangingTable->rangingState < RANGING_TABLE_STATE_COUNT) && "Warning: Should not be called\n");
-    assert((event < RANGING_TABLE_EVENT_COUNT) && "Warning: Should not be called\n");
+    ASSERT((rangingTable->rangingState < RANGING_TABLE_STATE_COUNT) && "Warning: Should not be called\n");
+    ASSERT((event < RANGING_TABLE_EVENT_COUNT) && "Warning: Should not be called\n");
     EVENT_HANDLER[rangingTable->rangingState][event](rangingTable);
 }
 #endif
 
 
 /* -------------------- Generate and Process -------------------- */
-Time_t generateMessage(Ranging_Message_t *rangingMessage) {
+Time_t generateDsrMessage(Ranging_Message_t *rangingMessage) {
     Time_t taskDelay = M2T(RANGING_PERIOD);
 
     int8_t bodyUnitCount = 0;     
@@ -1147,9 +1149,9 @@ Time_t generateMessage(Ranging_Message_t *rangingMessage) {
     rangingMessage->header.msgSequence = rangingTableSet->localSeqNumber;
     index_t index_Tx = rangingTableSet->sendList.topIndex;
     for(int i = 0; i < MESSAGE_TX_POOL_SIZE; i++) {
-        if(rangingMessage->bodyUnits[i].address == (uint8_t)uwbGetAddress()) {
-            Rf.timestamp = rangingMessage->bodyUnits[i].timestamp;
-            Rf.seqNumber = rangingMessage->bodyUnits[i].seqNumber;
+        if(rangingTableSet->sendList.Txtimestamps[index_Tx].seqNumber != NULL_SEQ) {
+            rangingMessage->header.Txtimestamps[i] = rangingTableSet->sendList.Txtimestamps[index_Tx];
+            index_Tx = (index_Tx - 1 + SEND_LIST_SIZE) % SEND_LIST_SIZE;
         }
         else {
             rangingMessage->header.Txtimestamps[i] = nullTimestampTuple;
@@ -1183,11 +1185,8 @@ Time_t generateMessage(Ranging_Message_t *rangingMessage) {
     return taskDelay;
 }
 
-void processMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWithAdditionalInfo) {
+void processDsrMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWithAdditionalInfo) {
     Ranging_Message_t *rangingMessage = &rangingMessageWithAdditionalInfo->rangingMessage;
-
-    distanceReal = NULL_DIS;
-    distanceCalculate = NULL_DIS;
 
     uint16_t neighborAddress = rangingMessage->header.srcAddress;
     index_t neighborIndex = findRangingTable(rangingTableSet, neighborAddress);
@@ -1222,8 +1221,9 @@ void processMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWithAd
     if (rangingMessage->header.filter & (1 << (uwbGetAddress() % 16))) {
         uint8_t bodyUnitCount = (rangingMessage->header.msgLength - sizeof(Message_Header_t)) / sizeof(Message_Body_Unit_t);
         for(int i = 0; i < bodyUnitCount; i++) {
-            if(rangingMessage->bodyUnits[i].address == uwbGetAddress()) {
-                Rf = rangingMessage->bodyUnits[i].Rxtimestamp;
+            if(rangingMessage->bodyUnits[i].address == (uint8_t)uwbGetAddress()) {
+                Rf.timestamp = rangingMessage->bodyUnits[i].timestamp;
+                Rf.seqNumber = rangingMessage->bodyUnits[i].seqNumber;
                 break;
             }
         }
@@ -1261,30 +1261,25 @@ void processMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWithAd
     }
 
     // print result
-    if(distanceCalculate != NULL_DIS) {
-        #ifdef COMPENSATE_ENABLE
-            if(lastD == 0) {
-                // initialize lastD
-                lastD = distanceCalculate;
-                DEBUG_PRINT("[current_%u]: ModifiedD = %f", MY_UWB_ADDRESS, distanceCalculate);
-            }
-            else {
-                float CompensateD = (distanceCalculate - lastD) * COMPENSATE_RATE;
-                lastD = distanceCalculate;
-                DEBUG_PRINT("[current_%u]: ModifiedD = %f", MY_UWB_ADDRESS, distanceCalculate + CompensateD);
-            }
-        #else
+    #ifdef COMPENSATE_ENABLE
+        if(lastD == 0) {
+            // initialize lastD
+            lastD = distanceCalculate;
             DEBUG_PRINT("[current_%u]: ModifiedD = %f", MY_UWB_ADDRESS, distanceCalculate);
-        #endif
+        }
+        else {
+            float CompensateD = (distanceCalculate - lastD) * COMPENSATE_RATE;
+            lastD = distanceCalculate;
+            DEBUG_PRINT("[current_%u]: ModifiedD = %f", MY_UWB_ADDRESS, distanceCalculate + CompensateD);
+        }
+    #else
+        DEBUG_PRINT("[current_%u]: ModifiedD = %f", MY_UWB_ADDRESS, distanceCalculate[rangingTable->neighborAddress]);
+    #endif
 
-        #ifdef COORDINATE_SEND_ENABLE
-            DEBUG_PRINT(", TrueD = %f", distanceReal);
-        #endif
-        DEBUG_PRINT(", time = %llu\n", Re.timestamp.full);
-    }
-    else {
-        DEBUG_PRINT("[CalculatePTof]: CalculatePTof failed\n");
-    }
+    #ifdef COORDINATE_SEND_ENABLE
+        DEBUG_PRINT(", TrueD = %f", distanceReal);
+    #endif
+    DEBUG_PRINT(", time = %llu\n", Re.timestamp.full);
 
     rangingTableSet->rangingTable[neighborIndex].expirationSign = false;
 
@@ -1309,7 +1304,7 @@ static void uwbRangingTxTask(void *parameters) {
         DEBUG_PRINT("[uwbRangingTxTask]: Acquired mutex, generating ranging message\n");
         Time_t taskDelay = RANGING_PERIOD;
 
-        generateMessage(rangingMessage);
+        generateDsrMessage(rangingMessage);
         
         txPacketCache.header.seqNumber++;
         txPacketCache.header.length = sizeof(UWB_Packet_Header_t) + rangingMessage->header.msgLength;
@@ -1328,22 +1323,19 @@ static void uwbRangingRxTask(void *parameters) {
     Ranging_Message_With_Additional_Info_t rxPacketCache;
 
     while (true) {
+        vTaskDelay(M2T(1));
         if (xQueueReceive(rxQueue, &rxPacketCache, portMAX_DELAY)) {
             #ifdef PACKET_LOSS_ENABLE
                 int randnum = rand() % 100;
                 if(randnum < (int)(PACKET_LOSS_RATE * 100)) {
-                    goto LOSS;
+                    continue;
                 }
             #endif
 
             xSemaphoreTake(rangingTableSet->mutex, portMAX_DELAY);
-
-            processRangingMessage(&rxPacketCache);
-
+            processDsrMessage(&rxPacketCache);
             xSemaphoreGive(rangingTableSet->mutex);
-        LOSS:
         }
-        vTaskDelay(M2T(1));
     }
 }
 

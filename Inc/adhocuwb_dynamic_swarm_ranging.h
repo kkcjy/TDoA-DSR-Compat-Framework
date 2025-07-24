@@ -41,15 +41,20 @@
 #define         UPPER_BOUND_DISTANCE        1000
 #define         LOWER_BOUND_DISTANCE        0
 
+/* Ranging Constants */
 #define         RANGING_PERIOD              200
 #define         RANGING_PERIOD_MIN          50   
 #define         RANGING_PERIOD_MAX          500  
 
+/* Queue Constants */
+#define         RANGING_RX_QUEUE_SIZE       10
+#define         RANGING_RX_QUEUE_ITEM_SIZE  sizeof(Ranging_Message_With_Additional_Info_t)
+
 #define         CHECK_PERIOD                15
 #define         UWB_MAX_TIMESTAMP           1099511627776
-#define         VELOCITY                    0.4691763978616
-#define         CONVERGENCE_THRESHOLD       0.989
-
+#define         VELOCITY                    0.4691763978616f
+#define         CONVERGENCE_THRESHOLD       0.989f
+#define         NEIGHBOR_ADDRESS_MAX        32
 
 /* -------------------- Base Struct -------------------- */
 typedef struct {
@@ -198,7 +203,9 @@ typedef struct {
 
 /* -------------------- Null Struct -------------------- */
 static const Timestamp_Tuple_t nullTimestampTuple = {.timestamp.full = NULL_TIMESTAMP, .seqNumber = NULL_SEQ};
+#ifdef COORDINATE_SEND_ENABLE
 static const Coordinate_Tuple_t nullCoordinateTuple = {.x = -1, .y = -1, .z = -1};
+#endif
 static const Ranging_Table_Tr_Rr_Candidate_t nullCandidate = {.Tr.timestamp.full = NULL_TIMESTAMP, .Tr.seqNumber = NULL_SEQ, .Rr.timestamp.full = NULL_TIMESTAMP, .Rr.seqNumber = NULL_SEQ,};
 
 
