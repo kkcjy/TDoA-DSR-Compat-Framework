@@ -423,12 +423,12 @@ float rangingAlgorithm(Timestamp_Tuple_t T1, Timestamp_Tuple_t R1, Timestamp_Tup
         // abnormal result
         float D = (Tof23 * VELOCITY) / 2;
         if(D < LOWER_BOUND_DISTANCE || D > UPPER_BOUND_DISTANCE) {
-            DEBUG_PRINT("[rangingAlgorithm]: result is out of range.\n")
+            DEBUG_PRINT("[rangingAlgorithm]: result is out of range.\n");
             return NULL_TOF;
         }
     }
     else {
-        DEBUG_PRINT("[rangingAlgorithm]: not meet the convergence condition.\n")
+        DEBUG_PRINT("[rangingAlgorithm]: not meet the convergence condition.\n");
     }
 
     return Tof23;
@@ -1256,7 +1256,7 @@ void processDsrMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
            }
     }
 
-    DEBUG_PRINT("[before RangingTableEventHandler]\n")
+    DEBUG_PRINT("[before RangingTableEventHandler]\n");
     printRangingTable(rangingTable);
 
     if(Tf.timestamp.full != NULL_TIMESTAMP && Rf.timestamp.full != NULL_TIMESTAMP && Rf.seqNumber != rangingTable->Rp.seqNumber) {
