@@ -586,7 +586,7 @@ void printRangingMessage(Ranging_Message_t *rangingMessage) {
 
     DEBUG_PRINT("[Rx]:\n");
     for(int i = 0; i < MESSAGE_BODY_UNIT_SIZE; i++){
-        DEBUG_PRINT("address: %u, seqNumber: %u, timestamp: %llu\n", rangingMessage->bodyUnits[i].address, rangingMessage->bodyUnits[i].seqNumber, rangingMessage->bodyUnits[i].timestamp.full % UWB_MAX_TIMESTAMP;
+        DEBUG_PRINT("address: %u, seqNumber: %u, timestamp: %llu\n", rangingMessage->bodyUnits[i].address, rangingMessage->bodyUnits[i].seqNumber, rangingMessage->bodyUnits[i].timestamp.full % UWB_MAX_TIMESTAMP);
     }
     DEBUG_PRINT("\n");
 }
