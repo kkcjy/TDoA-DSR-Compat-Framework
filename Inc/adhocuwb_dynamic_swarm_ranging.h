@@ -16,7 +16,7 @@
 // #define         COORDINATE_SEND_ENABLE
 // #define         COMPENSATE_ENABLE
 #define         STATE_MACHINE_ENABLE
-// #define         PACKET_LOSS_ENABLE
+#define         PACKET_LOSS_ENABLE
 
 #define         COMPENSATE_RATE             0.5
 #define         PACKET_LOSS_RATE            0.1

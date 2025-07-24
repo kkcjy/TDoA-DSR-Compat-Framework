@@ -530,7 +530,6 @@ float calculatePTof(Ranging_Table_t *rangingTable, Ranging_Table_Tr_Rr_Candidate
                 return NULL_TOF;
             }
         }
-        replaceRangingTable
         /* type3
             +------+------+------+------+      
             |  Tb  |  Rp  |      |      |          
