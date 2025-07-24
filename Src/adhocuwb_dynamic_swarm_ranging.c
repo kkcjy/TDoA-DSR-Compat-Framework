@@ -581,12 +581,12 @@ void printRangingMessage(Ranging_Message_t *rangingMessage) {
 
     DEBUG_PRINT("[Tx]\n");
     for(int i = 0; i < MESSAGE_TX_POOL_SIZE; i++) {
-        DEBUG_PRINT("seqNumber: %u, timestamp: %llu\n", rangingMessage->header.Txtimestamps[i].seqNumber, rangingMessage->header.Txtimestamps[i].timestamp.full);
+        DEBUG_PRINT("seqNumber: %u, timestamp: %llu\n", rangingMessage->header.Txtimestamps[i].seqNumber, rangingMessage->header.Txtimestamps[i].timestamp.full % UWB_MAX_TIMESTAMP);
     }
 
     DEBUG_PRINT("[Rx]:\n");
     for(int i = 0; i < MESSAGE_BODY_UNIT_SIZE; i++){
-        DEBUG_PRINT("address: %u, seqNumber: %u, timestamp: %llu\n", rangingMessage->bodyUnits[i].address, rangingMessage->bodyUnits[i].seqNumber, rangingMessage->bodyUnits[i].timestamp.full);
+        DEBUG_PRINT("address: %u, seqNumber: %u, timestamp: %llu\n", rangingMessage->bodyUnits[i].address, rangingMessage->bodyUnits[i].seqNumber, rangingMessage->bodyUnits[i].timestamp.full % UWB_MAX_TIMESTAMP;
     }
     DEBUG_PRINT("\n");
 }
@@ -598,32 +598,32 @@ void printSendList(SendList_t *sendList) {
     DEBUG_PRINT("location: x = %u, y = %u, z = %u\n", sendList->TxCoordinate.x,  sendList->TxCoordinate.y,  sendList->TxCoordinate.z);
     #endif
     for(int i = 0; i < SEND_LIST_SIZE; i++) {
-        DEBUG_PRINT("seqNumber: %u, timestamp: %llu\n", sendList->Txtimestamps[index].seqNumber, sendList->Txtimestamps[index].timestamp.full);
+        DEBUG_PRINT("seqNumber: %u, timestamp: %llu\n", sendList->Txtimestamps[index].seqNumber, sendList->Txtimestamps[index].timestamp.full % UWB_MAX_TIMESTAMP);
         index = (index - 1 + SEND_LIST_SIZE) % SEND_LIST_SIZE;
     }
 }
 
 void printRangingTable(Ranging_Table_t *rangingTable) {
     DEBUG_PRINT("neighborAddress: %u\n", rangingTable->neighborAddress);
-    DEBUG_PRINT("(ETb) seqNumber: %u, timestamp: %llu\n", rangingTable->ETb.seqNumber, rangingTable->ETb.timestamp.full);
-    DEBUG_PRINT("(ERb) seqNumber: %u, timestamp: %llu\n", rangingTable->ERb.seqNumber, rangingTable->ERb.timestamp.full);
-    DEBUG_PRINT("(ETp) seqNumber: %u, timestamp: %llu\n", rangingTable->ETp.seqNumber, rangingTable->ETp.timestamp.full);
-    DEBUG_PRINT("(ERp) seqNumber: %u, timestamp: %llu\n", rangingTable->ERp.seqNumber, rangingTable->ERp.timestamp.full);
-    DEBUG_PRINT("(Tb) seqNumber: %u, timestamp: %llu\n", rangingTable->Tb.seqNumber, rangingTable->Tb.timestamp.full);
-    DEBUG_PRINT("(Rb) seqNumber: %u, timestamp: %llu\n", rangingTable->Rb.seqNumber, rangingTable->Rb.timestamp.full);
-    DEBUG_PRINT("(Tp) seqNumber: %u, timestamp: %llu\n", rangingTable->Tp.seqNumber, rangingTable->Tp.timestamp.full);
-    DEBUG_PRINT("(Rp) seqNumber: %u, timestamp: %llu\n", rangingTable->Rp.seqNumber, rangingTable->Rp.timestamp.full);
+    DEBUG_PRINT("(ETb) seqNumber: %u, timestamp: %llu\n", rangingTable->ETb.seqNumber, rangingTable->ETb.timestamp.full % UWB_MAX_TIMESTAMP);
+    DEBUG_PRINT("(ERb) seqNumber: %u, timestamp: %llu\n", rangingTable->ERb.seqNumber, rangingTable->ERb.timestamp.full % UWB_MAX_TIMESTAMP);
+    DEBUG_PRINT("(ETp) seqNumber: %u, timestamp: %llu\n", rangingTable->ETp.seqNumber, rangingTable->ETp.timestamp.full % UWB_MAX_TIMESTAMP);
+    DEBUG_PRINT("(ERp) seqNumber: %u, timestamp: %llu\n", rangingTable->ERp.seqNumber, rangingTable->ERp.timestamp.full % UWB_MAX_TIMESTAMP);
+    DEBUG_PRINT("(Tb) seqNumber: %u, timestamp: %llu\n", rangingTable->Tb.seqNumber, rangingTable->Tb.timestamp.full % UWB_MAX_TIMESTAMP);
+    DEBUG_PRINT("(Rb) seqNumber: %u, timestamp: %llu\n", rangingTable->Rb.seqNumber, rangingTable->Rb.timestamp.full % UWB_MAX_TIMESTAMP);
+    DEBUG_PRINT("(Tp) seqNumber: %u, timestamp: %llu\n", rangingTable->Tp.seqNumber, rangingTable->Tp.timestamp.full % UWB_MAX_TIMESTAMP);
+    DEBUG_PRINT("(Rp) seqNumber: %u, timestamp: %llu\n", rangingTable->Rp.seqNumber, rangingTable->Rp.timestamp.full % UWB_MAX_TIMESTAMP);
     DEBUG_PRINT("(Tr_Rr_Buffer)\n");
     index_t index = rangingTable->TrRrBuffer.topIndex;
     for(int i = 0; i < Tr_Rr_BUFFER_POOL_SIZE; i++) {
         DEBUG_PRINT("\tseqNumber: %u, timestamp: %llu  -->  seqNumber: %u, timestamp: %llu\n", 
-            rangingTable->TrRrBuffer.candidates[index].Tr.seqNumber, rangingTable->TrRrBuffer.candidates[index].Tr.timestamp.full,
-            rangingTable->TrRrBuffer.candidates[index].Rr.seqNumber, rangingTable->TrRrBuffer.candidates[index].Rr.timestamp.full);
+            rangingTable->TrRrBuffer.candidates[index].Tr.seqNumber, rangingTable->TrRrBuffer.candidates[index].Tr.timestamp.full % UWB_MAX_TIMESTAMP,
+            rangingTable->TrRrBuffer.candidates[index].Rr.seqNumber, rangingTable->TrRrBuffer.candidates[index].Rr.timestamp.full % UWB_MAX_TIMESTAMP);
         index = (index - 1 + Tr_Rr_BUFFER_POOL_SIZE) % Tr_Rr_BUFFER_POOL_SIZE;
     }
-    DEBUG_PRINT("(Tf) seqNumber: %u, timestamp: %llu\n", rangingTable->Tf.seqNumber, rangingTable->Tf.timestamp.full);
-    DEBUG_PRINT("(Rf) seqNumber: %u, timestamp: %llu\n", rangingTable->Rf.seqNumber, rangingTable->Rf.timestamp.full);
-    DEBUG_PRINT("(Re) seqNumber: %u, timestamp: %llu\n", rangingTable->Re.seqNumber, rangingTable->Re.timestamp.full);
+    DEBUG_PRINT("(Tf) seqNumber: %u, timestamp: %llu\n", rangingTable->Tf.seqNumber, rangingTable->Tf.timestamp.full % UWB_MAX_TIMESTAMP);
+    DEBUG_PRINT("(Rf) seqNumber: %u, timestamp: %llu\n", rangingTable->Rf.seqNumber, rangingTable->Rf.timestamp.full % UWB_MAX_TIMESTAMP);
+    DEBUG_PRINT("(Re) seqNumber: %u, timestamp: %llu\n", rangingTable->Re.seqNumber, rangingTable->Re.timestamp.full % UWB_MAX_TIMESTAMP);
     
     DEBUG_PRINT("PTof = %f, EPTof = %f, continuitySign = %s\n", rangingTable->PTof, rangingTable->EPTof, rangingTable->continuitySign == true ? "true" : "false");
 }
@@ -646,7 +646,7 @@ void printRangingTableSet(Ranging_Table_Set_t *rangingTableSet) {
 
     DEBUG_PRINT("\n[lastRxtimestamp]\n");
     for(int i = 0; i < rangingTableSet->size; i++) {
-        DEBUG_PRINT("neighborAddress: %u, seqNumber: %u, timestamp: %llu\n", rangingTableSet->rangingTable[i].neighborAddress, rangingTableSet->lastRxtimestamp[i].seqNumber, rangingTableSet->lastRxtimestamp[i].timestamp.full);
+        DEBUG_PRINT("neighborAddress: %u, seqNumber: %u, timestamp: %llu\n", rangingTableSet->rangingTable[i].neighborAddress, rangingTableSet->lastRxtimestamp[i].seqNumber, rangingTableSet->lastRxtimestamp[i].timestamp.full % UWB_MAX_TIMESTAMP);
     }
 
     DEBUG_PRINT("\n[rangingTable]\n");
@@ -657,22 +657,22 @@ void printRangingTableSet(Ranging_Table_Set_t *rangingTableSet) {
 
 void printclassicCalculateTuple(Timestamp_Tuple_t Tp, Timestamp_Tuple_t Rp, Timestamp_Tuple_t Tr, Timestamp_Tuple_t Rr, Timestamp_Tuple_t Tf, Timestamp_Tuple_t Rf) {
     DEBUG_PRINT("\nRp[seq=%u, ts=%llu] <--%llu--> Tr[seq=%u, ts=%llu] <--%llu--> Rf[seq=%u, ts=%llu]\n",
-        Rp.seqNumber, Rp.timestamp.full, Tr.timestamp.full - Rp.timestamp.full, Tr.seqNumber, Tr.timestamp.full, Rf.timestamp.full - Tr.timestamp.full, Rf.seqNumber, Rf.timestamp.full);
+        Rp.seqNumber, Rp.timestamp.full % UWB_MAX_TIMESTAMP, (Tr.timestamp.full - Rp.timestamp.full + UWB_MAX_TIMESTAMP) % UWB_MAX_TIMESTAMP, Tr.seqNumber, Tr.timestamp.full % UWB_MAX_TIMESTAMP, (Rf.timestamp.full - Tr.timestamp.full + UWB_MAX_TIMESTAMP ) % UWB_MAX_TIMESTAMP, Rf.seqNumber, Rf.timestamp.full % UWB_MAX_TIMESTAMP);
     DEBUG_PRINT("\nTp[seq=%u, ts=%llu] <--%llu--> Rr[seq=%u, ts=%llu] <--%llu--> Tf[seq=%u, ts=%llu]\n",
-        Tp.seqNumber, Tp.timestamp.full, Rr.timestamp.full - Tp.timestamp.full, Rr.seqNumber, Rr.timestamp.full, Tf.timestamp.full - Rr.timestamp.full, Tf.seqNumber, Tf.timestamp.full);
+        Tp.seqNumber, Tp.timestamp.full % UWB_MAX_TIMESTAMP, (Rr.timestamp.full - Tp.timestamp.full + UWB_MAX_TIMESTAMP ) % UWB_MAX_TIMESTAMP, Rr.seqNumber, Rr.timestamp.full % UWB_MAX_TIMESTAMP, (Tf.timestamp.full - Rr.timestamp.full + UWB_MAX_TIMESTAMP ) % UWB_MAX_TIMESTAMP, Tf.seqNumber, Tf.timestamp.full % UWB_MAX_TIMESTAMP);
 }
 
 void printCalculateTuple(Timestamp_Tuple_t Tb, Timestamp_Tuple_t Rb, Timestamp_Tuple_t Tp, Timestamp_Tuple_t Rp, Timestamp_Tuple_t Tr, Timestamp_Tuple_t Rr, Timestamp_Tuple_t Tf, Timestamp_Tuple_t Rf) {
     DEBUG_PRINT("\nTb[seq=%u, ts=%llu] <--%llu--> Rp[seq=%u, ts=%llu] <--%llu--> Tr[seq=%u, ts=%llu] <--%llu--> Rf[seq=%u, ts=%llu]\n",
-                Tb.seqNumber,Tb.timestamp.full,
-                Rp.timestamp.full -Tb.timestamp.full, Rp.seqNumber, Rp.timestamp.full,
-                Tr.timestamp.full - Rp.timestamp.full, Tr.seqNumber, Tr.timestamp.full,
-                Rf.timestamp.full - Tr.timestamp.full, Rf.seqNumber, Rf.timestamp.full);
+                Tb.seqNumber,Tb.timestamp.full % UWB_MAX_TIMESTAMP,
+                (Rp.timestamp.full -Tb.timestamp.full + UWB_MAX_TIMESTAMP ) % UWB_MAX_TIMESTAMP, Rp.seqNumber, Rp.timestamp.full % UWB_MAX_TIMESTAMP,
+                (Tr.timestamp.full - Rp.timestamp.full + UWB_MAX_TIMESTAMP ) % UWB_MAX_TIMESTAMP, Tr.seqNumber, Tr.timestamp.full % UWB_MAX_TIMESTAMP,
+                (Rf.timestamp.full - Tr.timestamp.full + UWB_MAX_TIMESTAMP ) % UWB_MAX_TIMESTAMP, Rf.seqNumber, Rf.timestamp.full % UWB_MAX_TIMESTAMP);
     DEBUG_PRINT("\nRb[seq=%u, ts=%llu] <--%llu--> Tp[seq=%u, ts=%llu] <--%llu--> Rr[seq=%u, ts=%llu] <--%llu--> Tf[seq=%u, ts=%llu]\n",
-                Rb.seqNumber,Rb.timestamp.full,
-                Tp.timestamp.full -Rb.timestamp.full,Tp.seqNumber,Tp.timestamp.full,
-                Rr.timestamp.full -Tp.timestamp.full, Rr.seqNumber, Rr.timestamp.full,
-                Tf.timestamp.full - Rr.timestamp.full, Tf.seqNumber, Tf.timestamp.full);
+                Rb.seqNumber,Rb.timestamp.full % UWB_MAX_TIMESTAMP,
+                (Tp.timestamp.full -Rb.timestamp.full + UWB_MAX_TIMESTAMP ) % UWB_MAX_TIMESTAMP,Tp.seqNumber,Tp.timestamp.full % UWB_MAX_TIMESTAMP,
+                (Rr.timestamp.full -Tp.timestamp.full + UWB_MAX_TIMESTAMP ) % UWB_MAX_TIMESTAMP, Rr.seqNumber, Rr.timestamp.full % UWB_MAX_TIMESTAMP,
+                (Tf.timestamp.full - Rr.timestamp.full + UWB_MAX_TIMESTAMP ) % UWB_MAX_TIMESTAMP, Tf.seqNumber, Tf.timestamp.full % UWB_MAX_TIMESTAMP);
 }
 
 
@@ -1192,7 +1192,7 @@ void processDsrMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
     Ranging_Message_t *rangingMessage = &rangingMessageWithAdditionalInfo->rangingMessage;
 
     printRangingMessage(rangingMessage);
-    DEBUG_PRINT("[printRangingMessage]: timestamp = %lu", rangingMessageWithAdditionalInfo->timestamp.full);
+    DEBUG_PRINT("[printRangingMessage]: timestamp = %llu", rangingMessageWithAdditionalInfo->timestamp.full % UWB_MAX_TIMESTAMP);
 
     uint16_t neighborAddress = rangingMessage->header.srcAddress;
     index_t neighborIndex = findRangingTable(rangingTableSet, neighborAddress);
@@ -1285,7 +1285,7 @@ void processDsrMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
     #ifdef COORDINATE_SEND_ENABLE
         DEBUG_PRINT(", TrueD = %f", distanceReal);
     #endif
-    DEBUG_PRINT(", time = %llu\n", Re.timestamp.full);
+    DEBUG_PRINT(", time = %llu\n", Re.timestamp.full % UWB_MAX_TIMESTAMP);
 
     rangingTableSet->rangingTable[neighborIndex].expirationSign = false;
 
