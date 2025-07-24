@@ -1301,7 +1301,7 @@ static void uwbRangingTxTask(void *parameters) {
     while (true) {
         xSemaphoreTake(rangingTableSet->mutex, portMAX_DELAY);
 
-        DEBUG_PRINT("[uwbRangingTxTask]: Acquired mutex, generating ranging message\n");
+        // DEBUG_PRINT("[uwbRangingTxTask]: Acquired mutex, generating ranging message\n");
         Time_t taskDelay = RANGING_PERIOD;
 
         generateDsrMessage(rangingMessage);
