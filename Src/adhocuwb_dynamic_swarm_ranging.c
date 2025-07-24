@@ -423,8 +423,12 @@ float rangingAlgorithm(Timestamp_Tuple_t T1, Timestamp_Tuple_t R1, Timestamp_Tup
         // abnormal result
         float D = (Tof23 * VELOCITY) / 2;
         if(D < LOWER_BOUND_DISTANCE || D > UPPER_BOUND_DISTANCE) {
+            DEBUG_PRINT("[rangingAlgorithm]: result is out of range.\n")
             return NULL_TOF;
         }
+    }
+    else {
+        DEBUG_PRINT("[rangingAlgorithm]: not meet the convergence condition.\n")
     }
 
     return Tof23;
@@ -478,8 +482,6 @@ float calculatePTof(Ranging_Table_t *rangingTable, Ranging_Table_Tr_Rr_Candidate
     
     // check completeness
     if(Tr.seqNumber == NULL_SEQ || Rr.seqNumber == NULL_SEQ || Tf.seqNumber == NULL_SEQ || Rf.seqNumber == NULL_SEQ) {
-        DEBUG_PRINT("Warning: Data calculation is not complete\n");
-
         /* type1
             +------+------+------+------+           +------+------+------+------+
             |  Tb  |  Rp  |  Tr  |      |           | ERp  |  Tb  |  Rp  |  Tr  |
@@ -488,6 +490,7 @@ float calculatePTof(Ranging_Table_t *rangingTable, Ranging_Table_Tr_Rr_Candidate
             +------+------+------+------+           +------+------+------+------+
         */ 
         if(Tr.seqNumber != NULL_SEQ && Rr.seqNumber != NULL_SEQ) {
+            DEBUG_PRINT("[calculatePTof]: Data calculation is not complete, pair of Tf-Rf is losed\n");
             tmpPTof = rangingAlgorithm(rangingTable->ETp, rangingTable->ERp, 
                                              rangingTable->Tb, rangingTable->Rb, 
                                              rangingTable->Tp, rangingTable->Rp, (rangingTable->EPTof + rangingTable->PTof) / 2);
@@ -512,6 +515,7 @@ float calculatePTof(Ranging_Table_t *rangingTable, Ranging_Table_Tr_Rr_Candidate
             +------+------+------+------+           +------+------+------+------+
         */
         else if(Tf.seqNumber != NULL_SEQ && Rf.seqNumber != NULL_SEQ) {
+            DEBUG_PRINT("[calculatePTof]: Data calculation is not complete, pair of Tr-Rr is losed\n");
             tmpPTof = rangingAlgorithm(rangingTable->ETb, rangingTable->ERb, 
                                              rangingTable->ETp, rangingTable->ERp, 
                                              rangingTable->Tb, rangingTable->Rb, (rangingTable->EPTof + rangingTable->PTof) / 2);
@@ -524,6 +528,7 @@ float calculatePTof(Ranging_Table_t *rangingTable, Ranging_Table_Tr_Rr_Candidate
                 curPTof = (curPTof == NULL_TOF) ? tmpPTof : curPTof;
             }
             else {
+                DEBUG_PRINT("[calculatePTof]: Data calculation is not complete, pair of Tf-Rf and Tr-Rr are losed\n");
                 return NULL_TOF;
             }
         }
@@ -1250,6 +1255,9 @@ void processDsrMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
             break;
            }
     }
+
+    DEBUG_PRINT("[before RangingTableEventHandler]\n")
+    printRangingTable(rangingTable);
 
     if(Tf.timestamp.full != NULL_TIMESTAMP && Rf.timestamp.full != NULL_TIMESTAMP && Rf.seqNumber != rangingTable->Rp.seqNumber) {
         // RX

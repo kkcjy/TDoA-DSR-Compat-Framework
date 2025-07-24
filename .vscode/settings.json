@@ -35,6 +35,9 @@
         "optional": "c",
         "dwm3000_init.h": "c",
         "stdbool.h": "c",
-        "adhocuwb_platform.h": "c"
+        "adhocuwb_platform.h": "c",
+        "system_error": "c",
+        "functional": "c",
+        "utility": "c"
     }
 }
