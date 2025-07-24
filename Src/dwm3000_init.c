@@ -358,13 +358,9 @@ void adhocuwb_hdw_force_rx() {
 }
 
 int adhocuwb_hdw_send(void *data, uint32_t datalen) {
-	DEBUG_PRINT("dwt_forcetrxoff\n");
 	dwt_forcetrxoff();
-	DEBUG_PRINT("dwt_writetxdata\n");
 	dwt_writetxdata(datalen, (uint8_t *) data, 0);
-	DEBUG_PRINT("dwt_writetxfctrl\n");
 	dwt_writetxfctrl(datalen + FCS_LEN, 0, 1);
-	DEBUG_PRINT("dwt_starttx\n");
 	return (dwt_starttx(DWT_START_TX_IMMEDIATE | DWT_RESPONSE_EXPECTED) != DWT_ERROR);
 }
 
