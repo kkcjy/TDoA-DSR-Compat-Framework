@@ -320,10 +320,6 @@ void replaceRangingTable(Ranging_Table_t *rangingTable, Timestamp_Tuple_t Tb, Ti
     rangingTable->Rp = Rp;
     rangingTable->PTof = PTof;
 
-    rangingTable->Tf = nullTimestampTuple;
-    rangingTable->Rf = nullTimestampTuple;
-    rangingTable->Re = nullTimestampTuple;
-
     rangingTable->continuitySign = false;
 }
 
@@ -509,9 +505,9 @@ float calculatePTof(Ranging_Table_t *rangingTable, Ranging_Table_Tr_Rr_Candidate
         
         /* type2
             +------+------+------+------+           +------+------+------+------+
-            |  Tb  |  Rp  |      |  Rf  |           | ETb  | ERp  |  Tb  |  Rp  |
+            |  Tb  |  Rp  |      |  Rf  |           | ETb  | ERp  |  Tb  |  Rf  |
             +------+------+------+------+   ===>    +------+------+------+------+
-            |  Rb  |  Tp  |      |  Tf  |           | ERb  | ETp  |  Rb  |  Tp  |
+            |  Rb  |  Tp  |      |  Tf  |           | ERb  | ETp  |  Rb  |  Tf  |
             +------+------+------+------+           +------+------+------+------+
         */
         else if(Tf.seqNumber != NULL_SEQ && Rf.seqNumber != NULL_SEQ) {
@@ -523,16 +519,18 @@ float calculatePTof(Ranging_Table_t *rangingTable, Ranging_Table_Tr_Rr_Candidate
             if(tmpPTof != NULL_TOF) {
                 curPTof = rangingAlgorithm(rangingTable->ETp, rangingTable->ERp, 
                                            rangingTable->Tb, rangingTable->Rb,
-                                           rangingTable->Tp, rangingTable->Rp, tmpPTof);
+                                           rangingTable->Tf, rangingTable->Rf, tmpPTof);
                 // use tmpPTof as the estimated value
                 curPTof = (curPTof == NULL_TOF) ? tmpPTof : curPTof;
+
+                // replace pair of Tp-Rp with pair of Tf-Rf
+                replaceRangingTable(rangingTable, rangingTable->Tb, rangingTable->Rb, rangingTable->Tf, rangingTable->Rf, curPTof);
             }
             else {
-                DEBUG_PRINT("[calculatePTof]: Data calculation is not complete, pair of Tf-Rf and Tr-Rr are losed\n");
                 return NULL_TOF;
             }
         }
-        
+        replaceRangingTable
         /* type3
             +------+------+------+------+      
             |  Tb  |  Rp  |      |      |          
@@ -541,6 +539,7 @@ float calculatePTof(Ranging_Table_t *rangingTable, Ranging_Table_Tr_Rr_Candidate
             +------+------+------+------+  
         */
         else {
+            DEBUG_PRINT("[calculatePTof]: Data calculation is not complete, pair of Tf-Rf and Tr-Rr are losed\n");
             return NULL_TOF;
         }
     }
@@ -1255,9 +1254,6 @@ void processDsrMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
             break;
            }
     }
-
-    DEBUG_PRINT("[before RangingTableEventHandler]\n");
-    printRangingTable(rangingTable);
 
     if(Tf.timestamp.full != NULL_TIMESTAMP && Rf.timestamp.full != NULL_TIMESTAMP && Rf.seqNumber != rangingTable->Rp.seqNumber) {
         // RX
