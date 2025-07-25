@@ -14,12 +14,13 @@
 /* -------------------- Define -------------------- */
 #define         CLASSIC_SUPPORT_ENABLE
 // #define         COORDINATE_SEND_ENABLE
-// #define         COMPENSATE_ENABLE
+#define         COMPENSATE_ENABLE
 #define         STATE_MACHINE_ENABLE
 // #define         PACKET_LOSS_ENABLE
 
-#define         COMPENSATE_RATE             0.5
-#define         PACKET_LOSS_RATE            0.1
+#define         COMPENSATE_RATE             0.5f
+#define         PACKET_LOSS_BOUND           3
+#define         PACKET_LOSS_RATE            0.1f
 
 #define         NULL_ADDR                   0xFFFF
 #define         NULL_SEQ                    0x0

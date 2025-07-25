@@ -21,11 +21,12 @@ static UWB_Message_Listener_t listener;
 static TaskHandle_t uwbRangingTxTaskHandle = 0;
 static TaskHandle_t uwbRangingRxTaskHandle = 0;
 
-float distanceReal[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = -1};
-float distanceCalculate[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = -1};
+float distanceReal[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = NULL_DIS};
+float distanceCalculate[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = NULL_DIS};
 
 #ifdef COMPENSATE_ENABLE
-static float lastD = 0;
+static float lastDistanceCalculate[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = NULL_DIS};
+static float lastSeqNumber[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = NULL_SEQ};
 #endif
 
 
@@ -1256,25 +1257,45 @@ void processDsrMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
     }
 
     // print result
-    #ifdef COMPENSATE_ENABLE
-        if(lastD == 0) {
-            // initialize lastD
-            lastD = distanceCalculate;
-            DEBUG_PRINT("[current_%u]: ModifiedD = %f", MY_UWB_ADDRESS, distanceCalculate);
-        }
-        else {
-            float CompensateD = (distanceCalculate - lastD) * COMPENSATE_RATE;
-            lastD = distanceCalculate;
-            DEBUG_PRINT("[current_%u]: ModifiedD = %f", MY_UWB_ADDRESS, distanceCalculate + CompensateD);
-        }
-    #else
-        DEBUG_PRINT("[current_%u]: ModifiedD = %f", MY_UWB_ADDRESS, (double)distanceCalculate[rangingTable->neighborAddress]);
-    #endif
+    if(distanceCalculate[rangingTable->neighborAddress] != NULL_DIS) {
+        #ifdef COMPENSATE_ENABLE
+            if(lastSeqNumber[rangingTable->neighborAddress] == NULL_SEQ || lastDistanceCalculate[rangingTable->neighborAddress] == NULL_DIS) {
+                // initialize lastDistanceCalculate and lastSeqNumber
+                lastDistanceCalculate[rangingTable->neighborAddress] = distanceCalculate[rangingTable->neighborAddress];
+                lastSeqNumber[rangingTable->neighborAddress] = rangingMessage->header.msgSequence;
+                DEBUG_PRINT("[current_%u]: ModifiedD = %f", MY_UWB_ADDRESS, (double)distanceCalculate[rangingTable->neighborAddress]);
+            }
+            else {
+                /*
+                    distanceCompensate = (distanceCalculate - lastDistanceCalculate) * (msgSequence - lastSeqNumber)
+                    distance = distanceCalculate + distanceCompensate * COMPENSATE_RATE
+                */
+                uint16_t seqGap = rangingMessage->header.msgSequence - lastSeqNumber[rangingTable->neighborAddress];
+                if(seqGap < PACKET_LOSS_BOUND) {
+                    float distanceCompensate = (distanceCalculate[rangingTable->neighborAddress] - lastDistanceCalculate[rangingTable->neighborAddress]) * seqGap;
+                    float distance = distanceCalculate[rangingTable->neighborAddress] + distanceCompensate * COMPENSATE_RATE;                    
+                    DEBUG_PRINT("[current_%u]: ModifiedD = %f", MY_UWB_ADDRESS, (double)distance);
+                } 
+                // continuous packet loss ---> disable the compensation mechanism
+                else {
+                    DEBUG_PRINT("[current_%u]: ModifiedD = %f", MY_UWB_ADDRESS, (double)distanceCalculate[rangingTable->neighborAddress]);
+                }
+                lastDistanceCalculate[rangingTable->neighborAddress] = distanceCalculate[rangingTable->neighborAddress];
+                lastSeqNumber[rangingTable->neighborAddress] = rangingMessage->header.msgSequence;
+            }
+        #else
+            DEBUG_PRINT("[current_%u]: ModifiedD = %f", MY_UWB_ADDRESS, (double)distanceCalculate[rangingTable->neighborAddress]);
+        #endif
 
-    #ifdef COORDINATE_SEND_ENABLE
-        DEBUG_PRINT(", TrueD = %f", distanceReal);
-    #endif
-    DEBUG_PRINT(", time = %llu\n", Re.timestamp.full % UWB_MAX_TIMESTAMP);
+        #ifdef COORDINATE_SEND_ENABLE
+            DEBUG_PRINT(", TrueD = %f", distanceReal);
+        #endif
+        DEBUG_PRINT(", time = %llu\n", Re.timestamp.full % UWB_MAX_TIMESTAMP);
+    }
+    else {
+        DEBUG_PRINT("[current_%u]: calculation failed\n", MY_UWB_ADDRESS);
+    }
+
 
     rangingTableSet->rangingTable[neighborIndex].expirationSign = false;
 
