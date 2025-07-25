@@ -9,7 +9,7 @@
 #include "adhocuwb_dynamic_swarm_ranging.h"
 
 #ifdef CONFIG_ADHOCUWB_PLATFORM_ADHOCUWBH7
-  #include "uwb_send_print.h"
+    #include "uwb_send_print.h"
 #endif
 
 
@@ -265,7 +265,7 @@ void fillRangingTable(Ranging_Table_t *rangingTable, Timestamp_Tuple_t Tf, Times
 
 /* shift Ranging Table
     +------+------+------+------+------+------+                   +------+------+------+------+------+------+
-    | ETb  | ERp  |  Tb  |  Rp  |  Tr  |  Rf  |                   |[ETb] |[ERp] | [Tb] | [Rp] |  Tr  |      |
+    | ETb  | ERp  |  Tb  |  Rp  |  Tr  |  Rf  |                   |[ETb] |[ERp] | [Tb] | [Rp] |      |      |
     +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+   
     | ERb  | ETp  |  Rb  |  Tp  |  Rr  |  Tf  |  Re  |    ===>    |[ERb] |[ETp] | [Rb] | [Tp] |  Rr  |      |      |
     +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+   
@@ -296,7 +296,7 @@ void shiftRangingTable(Ranging_Table_t *rangingTable, Timestamp_Tuple_t Tr, Time
             // correcting PTof
             float correctPTof = classicCalculatePTof(rangingTable->ETp, rangingTable->ERp, rangingTable->Tb, rangingTable->Rb, rangingTable->Tp, rangingTable->Rp);
             rangingTable->PTof = correctPTof;
-            DEBUG_PRINT("[correct PTof]: correct PTof = %f\n", correctPTof);
+            DEBUG_PRINT("[correct PTof]: correct PTof = %f\n", (double)correctPTof);
         }
     }
     else {
@@ -389,9 +389,9 @@ void checkExpiration(Ranging_Table_Set_t *rangingTableSet) {
 
 /* -------------------- Calculation Function -------------------- */
 /* ranging algorithm
-    T1      <--Ra-->      R2    <--Da-->    T3
-
        R1   <--Db-->    T2      <--Rb-->       R3
+
+    T1      <--Ra-->      R2    <--Da-->    T3
 */
 float rangingAlgorithm(Timestamp_Tuple_t T1, Timestamp_Tuple_t R1, Timestamp_Tuple_t T2, Timestamp_Tuple_t R2, Timestamp_Tuple_t T3, Timestamp_Tuple_t R3, float Tof12) {
     uint64_t Ra = (R2.timestamp.full - T1.timestamp.full + UWB_MAX_TIMESTAMP) % UWB_MAX_TIMESTAMP;
@@ -424,7 +424,12 @@ float rangingAlgorithm(Timestamp_Tuple_t T1, Timestamp_Tuple_t R1, Timestamp_Tup
         }
     }
     else {
-        DEBUG_PRINT("[rangingAlgorithm]: not meet the convergence condition.\n");
+        #ifdef CLASSIC_SUPPORT_ENABLE
+            DEBUG_PRINT("[rangingAlgorithm]: not meet the convergence condition, use classic algorithm.\n");
+            Tof23 = classicCalculatePTof(T1, R1, T2, R2, T3, R3);
+        #else
+            DEBUG_PRINT("[rangingAlgorithm]: not meet the convergence condition.\n");
+        #endif
     }
 
     return Tof23;
@@ -595,7 +600,7 @@ void printSendList(SendList_t *sendList) {
     DEBUG_PRINT("\n[sendList]\n");
     index_t index = sendList->topIndex;
     #ifdef COORDINATE_SEND_ENABLE
-    DEBUG_PRINT("location: x = %u, y = %u, z = %u\n", sendList->TxCoordinate.x,  sendList->TxCoordinate.y,  sendList->TxCoordinate.z);
+        DEBUG_PRINT("location: x = %u, y = %u, z = %u\n", sendList->TxCoordinate.x,  sendList->TxCoordinate.y,  sendList->TxCoordinate.z);
     #endif
     for(int i = 0; i < SEND_LIST_SIZE; i++) {
         DEBUG_PRINT("seqNumber: %u, timestamp: %llu\n", sendList->Txtimestamps[index].seqNumber, sendList->Txtimestamps[index].timestamp.full % UWB_MAX_TIMESTAMP);
@@ -625,7 +630,7 @@ void printRangingTable(Ranging_Table_t *rangingTable) {
     DEBUG_PRINT("(Rf) seqNumber: %u, timestamp: %llu\n", rangingTable->Rf.seqNumber, rangingTable->Rf.timestamp.full % UWB_MAX_TIMESTAMP);
     DEBUG_PRINT("(Re) seqNumber: %u, timestamp: %llu\n", rangingTable->Re.seqNumber, rangingTable->Re.timestamp.full % UWB_MAX_TIMESTAMP);
     
-    DEBUG_PRINT("PTof = %f, EPTof = %f, continuitySign = %s\n", rangingTable->PTof, rangingTable->EPTof, rangingTable->continuitySign == true ? "true" : "false");
+    DEBUG_PRINT("PTof = %f, EPTof = %f, continuitySign = %s\n", (double)rangingTable->PTof, (double)rangingTable->EPTof, rangingTable->continuitySign == true ? "true" : "false");
 }
 
 void printPriorityQueue(Ranging_Table_Set_t *rangingTableSet) {
@@ -1165,19 +1170,6 @@ Time_t generateDsrMessage(Ranging_Message_t *rangingMessage) {
     #endif
     rangingMessage->header.msgLength = sizeof(Message_Header_t) + sizeof(Message_Body_Unit_t) * bodyUnitCount;
 
-    // should be called in rangingTxCallback(for test here)
-    Timestamp_Tuple_t curTimestamp;
-    curTimestamp.seqNumber = rangingTableSet->localSeqNumber;
-    curTimestamp.timestamp.full = xTaskGetTickCount();
-
-    // #ifdef COORDINATE_SEND_ENABLE
-    //     modifyLocation();
-    //     Coordinate_Tuple_t curCoordinate = getCurrentLocation();
-    //     updateSendList(&rangingTableSet->sendList, curTimestamp, curCoordinate);
-    // #else
-    //     updateSendList(&rangingTableSet->sendList, curTimestamp);
-    // #endif
-
     // clear expired rangingTable
     if(rangingTableSet->localSeqNumber % CHECK_PERIOD == 0) {
         checkExpiration(rangingTableSet);
@@ -1190,9 +1182,6 @@ Time_t generateDsrMessage(Ranging_Message_t *rangingMessage) {
 
 void processDsrMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWithAdditionalInfo) {
     Ranging_Message_t *rangingMessage = &rangingMessageWithAdditionalInfo->rangingMessage;
-
-    // printRangingMessage(rangingMessage);
-    //DEBUG_PRINT("[printRangingMessage]: timestamp = %llu\n", rangingMessageWithAdditionalInfo->timestamp.full % UWB_MAX_TIMESTAMP);
 
     uint16_t neighborAddress = rangingMessage->header.srcAddress;
     index_t neighborIndex = findRangingTable(rangingTableSet, neighborAddress);
@@ -1279,7 +1268,7 @@ void processDsrMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
             DEBUG_PRINT("[current_%u]: ModifiedD = %f", MY_UWB_ADDRESS, distanceCalculate + CompensateD);
         }
     #else
-        DEBUG_PRINT("[current_%u]: ModifiedD = %f", MY_UWB_ADDRESS, distanceCalculate[rangingTable->neighborAddress]);
+        DEBUG_PRINT("[current_%u]: ModifiedD = %f", MY_UWB_ADDRESS, (double)distanceCalculate[rangingTable->neighborAddress]);
     #endif
 
     #ifdef COORDINATE_SEND_ENABLE

@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 #include "adhocuwb_init.h"
 #include "adhocuwb_swarm_ranging.h"
@@ -13,7 +14,7 @@
 #ifndef UWB_DEBUG_ENABLE
   #undef DEBUG_PRINT
   #define DEBUG_PRINT 
-#else defined(CONFIG_ADHOCUWB_PLATFORM_ADHOCUWBH7)
+#elif defined(CONFIG_ADHOCUWB_PLATFORM_ADHOCUWBH7)
   #define DEBUG_PRINT printf
 #endif
 

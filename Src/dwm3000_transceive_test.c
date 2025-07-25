@@ -9,7 +9,7 @@
 #ifndef UWB_DEBUG_ENABLE
   #undef DEBUG_PRINT
   #define DEBUG_PRINT
-#else defined(CONFIG_ADHOCUWB_PLATFORM_ADHOCUWBH7)
+#elif defined(CONFIG_ADHOCUWB_PLATFORM_ADHOCUWBH7)
   #define DEBUG_PRINT printf
 #endif
 

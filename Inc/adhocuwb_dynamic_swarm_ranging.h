@@ -12,11 +12,11 @@
 
 
 /* -------------------- Define -------------------- */
-// #define         CLASSIC_TOF_ENABLE
+#define         CLASSIC_SUPPORT_ENABLE
 // #define         COORDINATE_SEND_ENABLE
 // #define         COMPENSATE_ENABLE
 #define         STATE_MACHINE_ENABLE
-#define         PACKET_LOSS_ENABLE
+// #define         PACKET_LOSS_ENABLE
 
 #define         COMPENSATE_RATE             0.5
 #define         PACKET_LOSS_RATE            0.1
@@ -103,11 +103,6 @@ typedef struct {
     uint16_t filter;                    // bloom filter
     uint16_t msgLength;                 // size of message
 } __attribute__((packed)) Message_Header_t;             // 8 + 10 * MESSAGE_TX_POOL_SIZE byte = 38 byte
-
-// typedef struct {
-//     uint16_t address;                   // address of neighbor
-//     Timestamp_Tuple_t Rxtimestamp;      // last local Rxtimestamp when message is received
-// } __attribute__((packed)) Message_Body_Unit_t;          // 2 + 10 byte = 12 byte
 
 typedef union{
     struct {
