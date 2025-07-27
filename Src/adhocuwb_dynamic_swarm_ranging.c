@@ -27,6 +27,7 @@ float distanceCalculate[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX
 #ifdef COMPENSATE_ENABLE
 static float lastDistanceCalculate[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = NULL_DIS};
 static float lastSeqNumber[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = NULL_SEQ};
+static float deltaDistanceUnit[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = NULL_SEQ};
 #endif
 
 
@@ -151,8 +152,8 @@ void rangingTableInit(Ranging_Table_t *rangingTable) {
     rangingTable->Rf = nullTimestampTuple;
     rangingTable->Re = nullTimestampTuple;
 
-    rangingTable->PTof = NULL_TOF;
-    rangingTable->EPTof = NULL_TOF;
+    rangingTable->PToF = NULL_TOF;
+    rangingTable->EPToF = NULL_TOF;
     rangingTable->continuitySign = false;
     rangingTable->expirationSign = true;
     rangingTable->tableState = UNUSED;
@@ -255,7 +256,7 @@ table_index_t findRangingTable(Ranging_Table_Set_t *rangingTableSet, uint16_t ad
     +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+   
     | ERb  | ETp  |  Rb  |  Tp  |  Rr  |      |      |    ===>    | ERb  | ETp  |  Rb  |  Tp  |  Rr  | [Tf] | [Re] |
     +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+   
-    |    EPTof    |    PTof     |                                 |    EPTof    |    PTof     |
+    |    EPToF    |    PToF     |                                 |    EPToF    |    PToF     |
     +------+------+------+------+                                 +------+------+------+------+
 */
 void fillRangingTable(Ranging_Table_t *rangingTable, Timestamp_Tuple_t Tf, Timestamp_Tuple_t Rf, Timestamp_Tuple_t Re) {
@@ -270,21 +271,21 @@ void fillRangingTable(Ranging_Table_t *rangingTable, Timestamp_Tuple_t Tf, Times
     +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+   
     | ERb  | ETp  |  Rb  |  Tp  |  Rr  |  Tf  |  Re  |    ===>    |[ERb] |[ETp] | [Rb] | [Tp] |  Rr  |      |      |
     +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+   
-    |    EPTof    |    PTof     |                                 |   [EPTof]   |   [PTof]    |
+    |    EPToF    |    PToF     |                                 |   [EPToF]   |   [PToF]    |
     +------+------+------+------+                                 +------+------+------+------+
 */
-void shiftRangingTable(Ranging_Table_t *rangingTable, Timestamp_Tuple_t Tr, Timestamp_Tuple_t Rr, float PTof) {
+void shiftRangingTable(Ranging_Table_t *rangingTable, Timestamp_Tuple_t Tr, Timestamp_Tuple_t Rr, float PToF) {
     rangingTable->ETb = rangingTable->Tb;
     rangingTable->ERb = rangingTable->Rb;
     rangingTable->ETp = rangingTable->Tp;
     rangingTable->ERp = rangingTable->Rp;
-    rangingTable->EPTof = rangingTable->PTof;
+    rangingTable->EPToF = rangingTable->PToF;
 
     rangingTable->Tb = Tr;
     rangingTable->Rb = Rr;
     rangingTable->Tp = rangingTable->Tf;
     rangingTable->Rp = rangingTable->Rf;
-    rangingTable->PTof = PTof;
+    rangingTable->PToF = PToF;
 
     rangingTable->Tf = nullTimestampTuple;
     rangingTable->Rf = nullTimestampTuple;
@@ -294,10 +295,10 @@ void shiftRangingTable(Ranging_Table_t *rangingTable, Timestamp_Tuple_t Tr, Time
     if(rangingTable->ERb.seqNumber + 1 == rangingTable->Rb.seqNumber && rangingTable->ERp.seqNumber + 1 == rangingTable->Rp.seqNumber) {
         if(rangingTable->continuitySign == false) {
             rangingTable->continuitySign = true;
-            // correcting PTof
-            float correctPTof = classicCalculatePTof(rangingTable->ETp, rangingTable->ERp, rangingTable->Tb, rangingTable->Rb, rangingTable->Tp, rangingTable->Rp);
-            rangingTable->PTof = correctPTof;
-            DEBUG_PRINT("[correct PTof]: correct PTof = %f\n", (double)correctPTof);
+            // correcting PToF
+            float correctPToF = classicCalculatePToF(rangingTable->ETp, rangingTable->ERp, rangingTable->Tb, rangingTable->Rb, rangingTable->Tp, rangingTable->Rp);
+            rangingTable->PToF = correctPToF;
+            DEBUG_PRINT("[correct PToF]: correct PToF = %f\n", (double)correctPToF);
         }
     }
     else {
@@ -311,15 +312,15 @@ void shiftRangingTable(Ranging_Table_t *rangingTable, Timestamp_Tuple_t Tr, Time
     +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+   
     | ERb  | ETp  |  Rb  |  Tp  |  Rr  |  Tf  |  Re  |    ===>    | ERb  | ETp  | [Rb] | [Tp] |  Rr  |      |      |
     +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+   
-    |    EPTof    |    PTof     |                                 |    EPTof    |   [PTof]    |
+    |    EPToF    |    PToF     |                                 |    EPToF    |   [PToF]    |
     +------+------+------+------+                                 +------+------+------+------+
 */
-void replaceRangingTable(Ranging_Table_t *rangingTable, Timestamp_Tuple_t Tb, Timestamp_Tuple_t Rb, Timestamp_Tuple_t Tp, Timestamp_Tuple_t Rp, float PTof) {
+void replaceRangingTable(Ranging_Table_t *rangingTable, Timestamp_Tuple_t Tb, Timestamp_Tuple_t Rb, Timestamp_Tuple_t Tp, Timestamp_Tuple_t Rp, float PToF) {
     rangingTable->Tb = Tb;
     rangingTable->Rb = Rb;
     rangingTable->Tp = Tp;
     rangingTable->Rp = Rp;
-    rangingTable->PTof = PTof;
+    rangingTable->PToF = PToF;
 
     rangingTable->continuitySign = false;
 }
@@ -394,7 +395,7 @@ void checkExpiration(Ranging_Table_Set_t *rangingTableSet) {
 
     T1      <--Ra-->      R2    <--Da-->    T3
 */
-float rangingAlgorithm(Timestamp_Tuple_t T1, Timestamp_Tuple_t R1, Timestamp_Tuple_t T2, Timestamp_Tuple_t R2, Timestamp_Tuple_t T3, Timestamp_Tuple_t R3, float Tof12) {
+float rangingAlgorithm(Timestamp_Tuple_t T1, Timestamp_Tuple_t R1, Timestamp_Tuple_t T2, Timestamp_Tuple_t R2, Timestamp_Tuple_t T3, Timestamp_Tuple_t R3, float ToF12) {
     uint64_t Ra = (R2.timestamp.full - T1.timestamp.full + UWB_MAX_TIMESTAMP) % UWB_MAX_TIMESTAMP;
     uint64_t Db = (T2.timestamp.full - R1.timestamp.full + UWB_MAX_TIMESTAMP) % UWB_MAX_TIMESTAMP;
     uint64_t Da = (T3.timestamp.full - R2.timestamp.full + UWB_MAX_TIMESTAMP) % UWB_MAX_TIMESTAMP;
@@ -406,19 +407,19 @@ float rangingAlgorithm(Timestamp_Tuple_t T1, Timestamp_Tuple_t R1, Timestamp_Tup
     float Ra_Da = Ra / (float)Da;
     float Rb_Db = Rb / (float)Db;
 
-    float Tof23 = NULL_TOF;
+    float ToF23 = NULL_TOF;
 
     // meet the convergence condition
     if(Ra_Da < CONVERGENCE_THRESHOLD || Rb_Db < CONVERGENCE_THRESHOLD) {
         if(Ra_Da < Rb_Db) {
-            Tof23 = (float)((diffA * Rb + diffA * Db + diffB * Ra + diffB * Da) / 2.0f - Ra * Tof12) / (float)Da;
+            ToF23 = (float)((diffA * Rb + diffA * Db + diffB * Ra + diffB * Da) / 2.0f - Ra * ToF12) / (float)Da;
         }
         else {
-            Tof23 = (float)((diffA * Rb + diffA * Db + diffB * Ra + diffB * Da) / 2.0f - Rb * Tof12) / (float)Db;
+            ToF23 = (float)((diffA * Rb + diffA * Db + diffB * Ra + diffB * Da) / 2.0f - Rb * ToF12) / (float)Db;
         }
 
         // abnormal result
-        float D = (Tof23 * VELOCITY) / 2;
+        float D = (ToF23 * VELOCITY) / 2;
         if(D < LOWER_BOUND_DISTANCE || D > UPPER_BOUND_DISTANCE) {
             DEBUG_PRINT("[rangingAlgorithm]: result is out of range.\n");
             return NULL_TOF;
@@ -427,22 +428,22 @@ float rangingAlgorithm(Timestamp_Tuple_t T1, Timestamp_Tuple_t R1, Timestamp_Tup
     else {
         #ifdef CLASSIC_SUPPORT_ENABLE
             DEBUG_PRINT("[rangingAlgorithm]: not meet the convergence condition, use classic algorithm.\n");
-            Tof23 = classicCalculatePTof(T1, R1, T2, R2, T3, R3);
+            ToF23 = classicCalculatePToF(T1, R1, T2, R2, T3, R3);
         #else
             DEBUG_PRINT("[rangingAlgorithm]: not meet the convergence condition.\n");
         #endif
     }
 
-    return Tof23;
+    return ToF23;
 }
 
-/* timestamps for classicCalculatePTof
-       Rp   <--Db-->    Tr      <--Rb-->       Rf
+/* timestamps for classicCalculatePToF
+       Rp   <--Db-->   Tr     <--Rb-->      Rf
 
-    Tp      <--Ra-->      Rr    <--Da-->    Tf
+    Tp      <--Ra-->     Rr   <--Da-->   Tf
 */ 
-float classicCalculatePTof(Timestamp_Tuple_t Tp, Timestamp_Tuple_t Rp, Timestamp_Tuple_t Tr, Timestamp_Tuple_t Rr, Timestamp_Tuple_t Tf, Timestamp_Tuple_t Rf) {
-    float curPTof = NULL_TOF;
+float classicCalculatePToF(Timestamp_Tuple_t Tp, Timestamp_Tuple_t Rp, Timestamp_Tuple_t Tr, Timestamp_Tuple_t Rr, Timestamp_Tuple_t Tf, Timestamp_Tuple_t Rf) {
+    float curPToF = NULL_TOF;
     
     // check completeness
     if(Tp.seqNumber == NULL_SEQ || Rp.seqNumber == NULL_SEQ || Tr.seqNumber == NULL_SEQ
@@ -459,28 +460,28 @@ float classicCalculatePTof(Timestamp_Tuple_t Tp, Timestamp_Tuple_t Rp, Timestamp
     int64_t diffA = Ra - Da;
     int64_t diffB = Rb - Db;
 
-    curPTof = (diffA * Rb + diffA * Db + diffB * Ra + diffB * Da) / (float)(Ra + Db + Rb + Da);
+    curPToF = (diffA * Rb + diffA * Db + diffB * Ra + diffB * Da) / (float)(Ra + Db + Rb + Da);
 
-    return curPTof;
+    return curPToF;
 }
 
-/* calculate the Time of Flight (Tof) based on the timestamps in the ranging table
+/* calculate the Time of Flight (ToF) based on the timestamps in the ranging table
     +------+------+------+------+------+------+
     | ETb  | ERp  |  Tb  |  Rp  |  Tr  |  Rf  |
     +------+------+------+------+------+------+------+
     | ERb  | ETp  |  Rb  |  Tp  |  Rr  |  Tf  |  Re  |
     +------+------+------+------+------+------+------+
-    |    EPTof    |    PTof     |
+    |    EPToF    |    PToF     |
     +------+------+------+------+
 */
-float calculatePTof(Ranging_Table_t *rangingTable, Ranging_Table_Tr_Rr_Candidate_t candidate) {
+float calculatePToF(Ranging_Table_t *rangingTable, Ranging_Table_Tr_Rr_Candidate_t candidate) {
     Timestamp_Tuple_t Tr = candidate.Tr;
     Timestamp_Tuple_t Rr = candidate.Rr;
     Timestamp_Tuple_t Tf = rangingTable->Tf;
     Timestamp_Tuple_t Rf = rangingTable->Rf;
 
-    float tmpPTof = NULL_TOF;
-    float curPTof = NULL_TOF;
+    float tmpPToF = NULL_TOF;
+    float curPToF = NULL_TOF;
     
     // check completeness
     if(Tr.seqNumber == NULL_SEQ || Rr.seqNumber == NULL_SEQ || Tf.seqNumber == NULL_SEQ || Rf.seqNumber == NULL_SEQ) {
@@ -492,23 +493,22 @@ float calculatePTof(Ranging_Table_t *rangingTable, Ranging_Table_Tr_Rr_Candidate
             +------+------+------+------+           +------+------+------+------+
         */ 
         if(Tr.seqNumber != NULL_SEQ && Rr.seqNumber != NULL_SEQ) {
-            DEBUG_PRINT("[calculatePTof]: Data calculation is not complete, pair of Tf-Rf is losed\n");
-            tmpPTof = rangingAlgorithm(rangingTable->ETp, rangingTable->ERp, 
+            DEBUG_PRINT("[calculatePToF]: Data calculation is not complete, pair of Tf-Rf is losed\n");
+            tmpPToF = rangingAlgorithm(rangingTable->ETp, rangingTable->ERp, 
                                              rangingTable->Tb, rangingTable->Rb, 
-                                             rangingTable->Tp, rangingTable->Rp, (rangingTable->EPTof + rangingTable->PTof) / 2);
+                                             rangingTable->Tp, rangingTable->Rp, (rangingTable->EPToF + rangingTable->PToF) / 2);
 
-            if(tmpPTof != NULL_TOF) {
-                curPTof = rangingAlgorithm(rangingTable->Tb, rangingTable->Rb, 
+            if(tmpPToF != NULL_TOF) {
+                curPToF = rangingAlgorithm(rangingTable->Tb, rangingTable->Rb, 
                                            rangingTable->Tp, rangingTable->Rp,
-                                           Tr, Rr, tmpPTof);
-                // use tmpPTof as the estimated value
-                curPTof = (curPTof == NULL_TOF) ? tmpPTof : curPTof;
+                                           Tr, Rr, tmpPToF);
+                // use tmpPToF as the estimated value
+                curPToF = (curPToF == NULL_TOF) ? tmpPToF : curPToF;
             }
             else {
                 return NULL_TOF;
             }
         }
-        
         /* type2
             +------+------+------+------+           +------+------+------+------+
             |  Tb  |  Rp  |      |  Rf  |           | ETb  | ERp  |  Tb  |  Rf  |
@@ -517,20 +517,20 @@ float calculatePTof(Ranging_Table_t *rangingTable, Ranging_Table_Tr_Rr_Candidate
             +------+------+------+------+           +------+------+------+------+
         */
         else if(Tf.seqNumber != NULL_SEQ && Rf.seqNumber != NULL_SEQ) {
-            DEBUG_PRINT("[calculatePTof]: Data calculation is not complete, pair of Tr-Rr is losed\n");
-            tmpPTof = rangingAlgorithm(rangingTable->ETb, rangingTable->ERb, 
+            DEBUG_PRINT("[calculatePToF]: Data calculation is not complete, pair of Tr-Rr is losed\n");
+            tmpPToF = rangingAlgorithm(rangingTable->ETb, rangingTable->ERb, 
                                              rangingTable->ETp, rangingTable->ERp, 
-                                             rangingTable->Tb, rangingTable->Rb, (rangingTable->EPTof + rangingTable->PTof) / 2);
+                                             rangingTable->Tb, rangingTable->Rb, (rangingTable->EPToF + rangingTable->PToF) / 2);
 
-            if(tmpPTof != NULL_TOF) {
-                curPTof = rangingAlgorithm(rangingTable->ETp, rangingTable->ERp, 
+            if(tmpPToF != NULL_TOF) {
+                curPToF = rangingAlgorithm(rangingTable->ETp, rangingTable->ERp, 
                                            rangingTable->Tb, rangingTable->Rb,
-                                           rangingTable->Tf, rangingTable->Rf, tmpPTof);
-                // use tmpPTof as the estimated value
-                curPTof = (curPTof == NULL_TOF) ? tmpPTof : curPTof;
+                                           rangingTable->Tf, rangingTable->Rf, tmpPToF);
+                // use tmpPToF as the estimated value
+                curPToF = (curPToF == NULL_TOF) ? tmpPToF : curPToF;
 
                 // replace pair of Tp-Rp with pair of Tf-Rf
-                replaceRangingTable(rangingTable, rangingTable->Tb, rangingTable->Rb, rangingTable->Tf, rangingTable->Rf, curPTof);
+                replaceRangingTable(rangingTable, rangingTable->Tb, rangingTable->Rb, rangingTable->Tf, rangingTable->Rf, curPToF);
             }
             else {
                 return NULL_TOF;
@@ -539,12 +539,12 @@ float calculatePTof(Ranging_Table_t *rangingTable, Ranging_Table_Tr_Rr_Candidate
         /* type3
             +------+------+------+------+      
             |  Tb  |  Rp  |      |      |          
-            +------+------+------+------+   ===>    PTof
+            +------+------+------+------+   ===>    PToF
             |  Rb  |  Tp  |      |      |           
             +------+------+------+------+  
         */
         else {
-            DEBUG_PRINT("[calculatePTof]: Data calculation is not complete, pair of Tf-Rf and Tr-Rr are losed\n");
+            DEBUG_PRINT("[calculatePToF]: Data calculation is not complete, pair of Tf-Rf and Tr-Rr are losed\n");
             return NULL_TOF;
         }
     }
@@ -558,23 +558,23 @@ float calculatePTof(Ranging_Table_t *rangingTable, Ranging_Table_Tr_Rr_Candidate
             |  Rb  |  Tp  |  Rr  |  Tf  | 
             +------+------+------+------+    
         */ 
-        tmpPTof = rangingAlgorithm(rangingTable->Tb, rangingTable->Rb, 
+        tmpPToF = rangingAlgorithm(rangingTable->Tb, rangingTable->Rb, 
                                          rangingTable->Tp, rangingTable->Rp, 
-                                         Tr, Rr, rangingTable->PTof);
+                                         Tr, Rr, rangingTable->PToF);
 
-        if(tmpPTof != NULL_TOF) {
-            curPTof = rangingAlgorithm(rangingTable->Tp, rangingTable->Rp, 
+        if(tmpPToF != NULL_TOF) {
+            curPToF = rangingAlgorithm(rangingTable->Tp, rangingTable->Rp, 
                                        Tr, Rr,
-                                       rangingTable->Tf, rangingTable->Rf, tmpPTof);
-            // use tmpPTof as the estimated value
-            curPTof = (curPTof == NULL_TOF) ? tmpPTof : curPTof;
+                                       rangingTable->Tf, rangingTable->Rf, tmpPToF);
+            // use tmpPToF as the estimated value
+            curPToF = (curPToF == NULL_TOF) ? tmpPToF : curPToF;
         }
         else {
             return NULL_TOF;
         }
     }
 
-    return curPTof;
+    return curPToF;
 }
 
 
@@ -631,7 +631,7 @@ void printRangingTable(Ranging_Table_t *rangingTable) {
     DEBUG_PRINT("(Rf) seqNumber: %u, timestamp: %llu\n", rangingTable->Rf.seqNumber, rangingTable->Rf.timestamp.full % UWB_MAX_TIMESTAMP);
     DEBUG_PRINT("(Re) seqNumber: %u, timestamp: %llu\n", rangingTable->Re.seqNumber, rangingTable->Re.timestamp.full % UWB_MAX_TIMESTAMP);
     
-    DEBUG_PRINT("PTof = %f, EPTof = %f, continuitySign = %s\n", (double)rangingTable->PTof, (double)rangingTable->EPTof, rangingTable->continuitySign == true ? "true" : "false");
+    DEBUG_PRINT("PToF = %f, EPToF = %f, continuitySign = %s\n", (double)rangingTable->PToF, (double)rangingTable->EPToF, rangingTable->continuitySign == true ? "true" : "false");
 }
 
 void printPriorityQueue(Ranging_Table_Set_t *rangingTableSet) {
@@ -821,7 +821,7 @@ static void S4_TX(Ranging_Table_t *rangingTable) {
         +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+           
         |      | ETp  |  Rb  |  Tp  |  Rr  |      |      |    ===>    |      | ETp  |  Rb  |  Tp  |  Rr  | [Tf] |      |   
         +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+           
-        |             |    PTof     |                                 |             |    PTof     |                                
+        |             |    PToF     |                                 |             |    PToF     |                                
         +------+------+------+------+                                 +------+------+------+------+ 
 
         +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+      
@@ -829,7 +829,7 @@ static void S4_TX(Ranging_Table_t *rangingTable) {
         +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+           
         | ERb  | ETp  |  Rb  |  Tp  |  Rr  |      |      |    ===>    | ERb  | ETp  |  Rb  |  Tp  |  Rr  | [Tf] |      |   
         +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+           
-        |    EPTof    |    PTof     |                                 |    EPTof    |    PTof     |                                
+        |    EPToF    |    PToF     |                                 |    EPToF    |    PToF     |                                
         +------+------+------+------+                                 +------+------+------+------+ 
     */
     RANGING_TABLE_STATE prevState = rangingTable->rangingState;
@@ -854,7 +854,7 @@ static void S4_RX(Ranging_Table_t *rangingTable) {
         +------+------+------+------+------+------+------+    ===>    +------+------+------+------+------+------+------+
         |      | ETp  |  Rb  |  Tp  |  Rr  |      |      |            |      | ETp  |  Rb  |  Tp  |  Rr  |      | [Re] |   
         +------+------+------+------+------+------+------+    <===    +------+------+------+------+------+------+------+
-        |             |    PTof     |                                 |             |    PTof     |                                
+        |             |    PToF     |                                 |             |    PToF     |                                
         +------+------+------+------+                                 +------+------+------+------+ 
 
         +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+      
@@ -862,7 +862,7 @@ static void S4_RX(Ranging_Table_t *rangingTable) {
         +------+------+------+------+------+------+------+    ===>    +------+------+------+------+------+------+------+         
         | ERb  | ETp  |  Rb  |  Tp  |  Rr  |      |      |            | ERb  | ETp  |  Rb  |  Tp  |  Rr  |      | [Re] |   
         +------+------+------+------+------+------+------+    <===    +------+------+------+------+------+------+------+          
-        |    EPTof    |    PTof     |                                 |    EPTof    |    PTof     |                                
+        |    EPToF    |    PToF     |                                 |    EPToF    |    PToF     |                                
         +------+------+------+------+                                 +------+------+------+------+ 
     */
     RANGING_TABLE_STATE prevState = rangingTable->rangingState;
@@ -873,7 +873,7 @@ static void S4_RX(Ranging_Table_t *rangingTable) {
 }
 
 static void S4_RX_NO(Ranging_Table_t *rangingTable) {
-    // Calculate Tof, but not shift rangingTable
+    // Calculate ToF, but not shift rangingTable
     RANGING_TABLE_STATE prevState = rangingTable->rangingState;
 
     /* initialize               ===>    update
@@ -885,7 +885,7 @@ static void S4_RX_NO(Ranging_Table_t *rangingTable) {
         |             |             |                                 |             |             |                                
         +------+------+------+------+                                 +------+------+------+------+
     */
-    if(rangingTable->PTof == NULL_TOF && rangingTable->EPTof == NULL_TOF) {
+    if(rangingTable->PToF == NULL_TOF && rangingTable->EPToF == NULL_TOF) {
         updateRangingTableRr_Buffer(&rangingTable->TrRrBuffer, rangingTable->Re);
     }
 
@@ -895,13 +895,13 @@ static void S4_RX_NO(Ranging_Table_t *rangingTable) {
         +------+------+------+------+------+------+------+    ===>    +------+------+------+------+------+------+------+
         |      | ETp  |  Rb  |  Tp  |  Rr  |      |      |            |      | ETp  |  Rb  |  Tp  |  Rr  |      | [Re] |   
         +------+------+------+------+------+------+------+    <===    +------+------+------+------+------+------+------+
-        |             |    PTof     |                                 |             |    PTof     |                                
+        |             |    PToF     |                                 |             |    PToF     |                                
         +------+------+------+------+                                 +------+------+------+------+ 
     */
-    else if(rangingTable->EPTof == NULL_TOF) {
+    else if(rangingTable->EPToF == NULL_TOF) {
         Ranging_Table_Tr_Rr_Candidate_t candidate = rangingTableTr_Rr_BufferGetCandidate(&rangingTable->TrRrBuffer, rangingTable->Rp, nullTimestampTuple);
-        float curPTof = classicCalculatePTof(rangingTable->Tb, rangingTable->Rb, rangingTable->Tp, rangingTable->Rp, candidate.Tr, candidate.Rr);
-        distanceCalculate[rangingTable->neighborAddress] = (curPTof == NULL_TOF) ? ((rangingTable->PTof * VELOCITY) / 2) : ((curPTof * VELOCITY) / 2);
+        float curPToF = classicCalculatePToF(rangingTable->Tb, rangingTable->Rb, rangingTable->Tp, rangingTable->Rp, candidate.Tr, candidate.Rr);
+        distanceCalculate[rangingTable->neighborAddress] = (curPToF == NULL_TOF) ? ((rangingTable->PToF * VELOCITY) / 2) : ((curPToF * VELOCITY) / 2);
 
         updateRangingTableRr_Buffer(&rangingTable->TrRrBuffer, rangingTable->Re);
     }
@@ -912,13 +912,13 @@ static void S4_RX_NO(Ranging_Table_t *rangingTable) {
         +------+------+------+------+------+------+------+    ===>    +------+------+------+------+------+------+------+         
         | ERb  | ETp  |  Rb  |  Tp  |  Rr  |      |      |            | ERb  | ETp  |  Rb  |  Tp  |  Rr  |      | [Re] |   
         +------+------+------+------+------+------+------+    <===    +------+------+------+------+------+------+------+          
-        |    EPTof    |    PTof     |                                 |    EPTof    |    PTof     |                                
+        |    EPToF    |    PToF     |                                 |    EPToF    |    PToF     |                                
         +------+------+------+------+                                 +------+------+------+------+ 
     */
     else {
         Ranging_Table_Tr_Rr_Candidate_t candidate = rangingTableTr_Rr_BufferGetCandidate(&rangingTable->TrRrBuffer, rangingTable->Rp, nullTimestampTuple);
-        float curPTof = calculatePTof(rangingTable, candidate);
-        distanceCalculate[rangingTable->neighborAddress] = (curPTof == NULL_TOF) ? (rangingTable->PTof * VELOCITY) / 2 : (curPTof * VELOCITY) / 2;
+        float curPToF = calculatePToF(rangingTable, candidate);
+        distanceCalculate[rangingTable->neighborAddress] = (curPToF == NULL_TOF) ? (rangingTable->PToF * VELOCITY) / 2 : (curPToF * VELOCITY) / 2;
 
         updateRangingTableRr_Buffer(&rangingTable->TrRrBuffer, rangingTable->Re);
     }
@@ -944,7 +944,7 @@ static void S5_TX(Ranging_Table_t *rangingTable) {
         +------+------+------+------+------+------+------+    ===>    +------+------+------+------+------+------+------+           
         |      | ETp  |  Rb  |  Tp  |  Rr  |  Tf  |      |            |      | ETp  |  Rb  |  Tp  |  Rr  | [Tf] |      |   
         +------+------+------+------+------+------+------+    <===    +------+------+------+------+------+------+------+           
-        |             |    PTof     |                                 |             |    PTof     |                                
+        |             |    PToF     |                                 |             |    PToF     |                                
         +------+------+------+------+                                 +------+------+------+------+ 
 
         +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+      
@@ -952,7 +952,7 @@ static void S5_TX(Ranging_Table_t *rangingTable) {
         +------+------+------+------+------+------+------+    ===>    +------+------+------+------+------+------+------+           
         | ERb  | ETp  |  Rb  |  Tp  |  Rr  |  Tf  |      |            | ERb  | ETp  |  Rb  |  Tp  |  Rr  | [Tf] |      |   
         +------+------+------+------+------+------+------+    <===    +------+------+------+------+------+------+------+           
-        |    EPTof    |    PTof     |                                 |    EPTof    |    PTof     |                                
+        |    EPToF    |    PToF     |                                 |    EPToF    |    PToF     |                                
         +------+------+------+------+                                 +------+------+------+------+ 
     */
     RANGING_TABLE_STATE prevState = rangingTable->rangingState;
@@ -963,7 +963,7 @@ static void S5_TX(Ranging_Table_t *rangingTable) {
 }
 
 static void S5_RX(Ranging_Table_t *rangingTable) {
-    // Calculate Tof, shift the rangingTable, calculation is quick, directly skipping S6 and entering S4
+    // Calculate ToF, shift the rangingTable, calculation is quick, directly skipping S6 and entering S4
     RANGING_TABLE_STATE prevState = rangingTable->rangingState;
 
     /* initialize               ===>    calculate, update and shift
@@ -972,20 +972,20 @@ static void S5_RX(Ranging_Table_t *rangingTable) {
         +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+
         |      |      |      |  Tp  |  Rr  |  Tf  |      |    ===>    |      |      |      |  Tp  |  Rr  |  Tf  | [Re] |    ===>    |      | ETp  |  Rb  |  Tp  |  Rr  |      |      |
         +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+
-        |             |             |                                 |             |             |                                 |             |    PTof     |
+        |             |             |                                 |             |             |                                 |             |    PToF     |
         +------+------+------+------+                                 +------+------+------+------+                                 +------+------+------+------+
     */
-    if(rangingTable->PTof == NULL_TOF && rangingTable->EPTof == NULL_TOF) {
+    if(rangingTable->PToF == NULL_TOF && rangingTable->EPToF == NULL_TOF) {
         Ranging_Table_Tr_Rr_Candidate_t candidate = rangingTableTr_Rr_BufferGetCandidate(&rangingTable->TrRrBuffer, rangingTable->Rp, rangingTable->Tf);
-        float curPTof = classicCalculatePTof(rangingTable->Tp, rangingTable->Rp, candidate.Tr, candidate.Rr, rangingTable->Tf, rangingTable->Rf);
-        if(curPTof != NULL_TOF) {
-            distanceCalculate[rangingTable->neighborAddress] = (curPTof * VELOCITY) / 2;
+        float curPToF = classicCalculatePToF(rangingTable->Tp, rangingTable->Rp, candidate.Tr, candidate.Rr, rangingTable->Tf, rangingTable->Rf);
+        if(curPToF != NULL_TOF) {
+            distanceCalculate[rangingTable->neighborAddress] = (curPToF * VELOCITY) / 2;
         }
 
         updateRangingTableRr_Buffer(&rangingTable->TrRrBuffer, rangingTable->Re);
 
-        if(curPTof != NULL_TOF) {
-            shiftRangingTable(rangingTable, candidate.Tr, candidate.Rr, curPTof);
+        if(curPToF != NULL_TOF) {
+            shiftRangingTable(rangingTable, candidate.Tr, candidate.Rr, curPToF);
         }
     }
 
@@ -995,18 +995,18 @@ static void S5_RX(Ranging_Table_t *rangingTable) {
         +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+
         |      | ETp  |  Rb  |  Tp  |  Rr  |  Tf  |      |    ===>    |      | ETp  |  Rb  |  Tp  |  Rr  |  Tf  | [Re] |    ===>    | ERb  | ETp  |  Rb  |  Tp  |  Rr  |      |      |
         +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+
-        |             |    PTof     |                                 |             |    PTof     |                                 |   EPTof     |    PTof     |
+        |             |    PToF     |                                 |             |    PToF     |                                 |   EPToF     |    PToF     |
         +------+------+------+------+                                 +------+------+------+------+                                 +------+------+------+------+
     */
-    else if(rangingTable->EPTof == NULL_TOF) {
+    else if(rangingTable->EPToF == NULL_TOF) {
         Ranging_Table_Tr_Rr_Candidate_t candidate = rangingTableTr_Rr_BufferGetCandidate(&rangingTable->TrRrBuffer, rangingTable->Rp, rangingTable->Tf);
-        float curPTof = classicCalculatePTof(rangingTable->Tp, rangingTable->Rp, candidate.Tr, candidate.Rr, rangingTable->Tf, rangingTable->Rf);
-        distanceCalculate[rangingTable->neighborAddress] = (curPTof == NULL_TOF) ? (rangingTable->PTof * VELOCITY) / 2 : (curPTof * VELOCITY) / 2;
+        float curPToF = classicCalculatePToF(rangingTable->Tp, rangingTable->Rp, candidate.Tr, candidate.Rr, rangingTable->Tf, rangingTable->Rf);
+        distanceCalculate[rangingTable->neighborAddress] = (curPToF == NULL_TOF) ? (rangingTable->PToF * VELOCITY) / 2 : (curPToF * VELOCITY) / 2;
 
         updateRangingTableRr_Buffer(&rangingTable->TrRrBuffer, rangingTable->Re);
 
-        if(curPTof != NULL_TOF) {
-            shiftRangingTable(rangingTable, candidate.Tr, candidate.Rr, curPTof);
+        if(curPToF != NULL_TOF) {
+            shiftRangingTable(rangingTable, candidate.Tr, candidate.Rr, curPToF);
         }
     }
 
@@ -1016,18 +1016,18 @@ static void S5_RX(Ranging_Table_t *rangingTable) {
         +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+
         | ERb  | ETp  |  Rb  |  Tp  |  Rr  |  Tf  |      |    ===>    | ERb  | ETp  |  Rb  |  Tp  |  Rr  |  Tf  | [Re] |    ===>    | ERb  | ETp  |  Rb  |  Tp  |  Rr  |      |      |
         +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+
-        |    EPTof    |    PTof     |                                 |    EPTof    |    PTof     |                                 |   EPTof     |    PTof     |
+        |    EPToF    |    PToF     |                                 |    EPToF    |    PToF     |                                 |   EPToF     |    PToF     |
         +------+------+------+------+                                 +------+------+------+------+                                 +------+------+------+------+
     */
     else {
         Ranging_Table_Tr_Rr_Candidate_t candidate = rangingTableTr_Rr_BufferGetCandidate(&rangingTable->TrRrBuffer, rangingTable->Rp, rangingTable->Tf);
-        float curPTof = calculatePTof(rangingTable, candidate);
-        distanceCalculate[rangingTable->neighborAddress] = (curPTof == NULL_TOF) ? (rangingTable->PTof * VELOCITY) / 2 : (curPTof * VELOCITY) / 2;
+        float curPToF = calculatePToF(rangingTable, candidate);
+        distanceCalculate[rangingTable->neighborAddress] = (curPToF == NULL_TOF) ? (rangingTable->PToF * VELOCITY) / 2 : (curPToF * VELOCITY) / 2;
 
         updateRangingTableRr_Buffer(&rangingTable->TrRrBuffer, rangingTable->Re);
 
-        if(curPTof != NULL_TOF && candidate.Tr.seqNumber != NULL_SEQ && candidate.Rr.seqNumber != NULL_SEQ) {
-            shiftRangingTable(rangingTable, candidate.Tr, candidate.Rr, curPTof);
+        if(curPToF != NULL_TOF && candidate.Tr.seqNumber != NULL_SEQ && candidate.Rr.seqNumber != NULL_SEQ) {
+            shiftRangingTable(rangingTable, candidate.Tr, candidate.Rr, curPToF);
         }
     }
 
@@ -1038,7 +1038,7 @@ static void S5_RX(Ranging_Table_t *rangingTable) {
 }
 
 static void S5_RX_NO(Ranging_Table_t *rangingTable) {
-    // Calculate Tof, but not shift rangingTable
+    // Calculate ToF, but not shift rangingTable
     RANGING_TABLE_STATE prevState = rangingTable->rangingState;
 
     /* initialize               ===>    update
@@ -1050,7 +1050,7 @@ static void S5_RX_NO(Ranging_Table_t *rangingTable) {
         |             |             |                                 |             |             |                                
         +------+------+------+------+                                 +------+------+------+------+
     */
-    if(rangingTable->PTof == NULL_TOF && rangingTable->EPTof == NULL_TOF) {
+    if(rangingTable->PToF == NULL_TOF && rangingTable->EPToF == NULL_TOF) {
         updateRangingTableRr_Buffer(&rangingTable->TrRrBuffer, rangingTable->Re);
     }
 
@@ -1060,13 +1060,13 @@ static void S5_RX_NO(Ranging_Table_t *rangingTable) {
         +------+------+------+------+------+------+------+    ===>    +------+------+------+------+------+------+------+
         |      | ETp  |  Rb  |  Tp  |  Rr  |  Tf  |      |            |      | ETp  |  Rb  |  Tp  |  Rr  |  Tf  | [Re] |   
         +------+------+------+------+------+------+------+    <===    +------+------+------+------+------+------+------+
-        |             |    PTof     |                                 |             |    PTof     |                                
+        |             |    PToF     |                                 |             |    PToF     |                                
         +------+------+------+------+                                 +------+------+------+------+ 
     */
-    else if(rangingTable->EPTof == NULL_TOF) {
+    else if(rangingTable->EPToF == NULL_TOF) {
         Ranging_Table_Tr_Rr_Candidate_t candidate = rangingTableTr_Rr_BufferGetCandidate(&rangingTable->TrRrBuffer, rangingTable->Rp, nullTimestampTuple);
-        float curPTof = classicCalculatePTof(rangingTable->Tb, rangingTable->Rb, rangingTable->Tp, rangingTable->Rp, candidate.Tr, candidate.Rr);
-        distanceCalculate[rangingTable->neighborAddress] = (curPTof == NULL_TOF) ? (rangingTable->PTof * VELOCITY) / 2 : (curPTof * VELOCITY) / 2;
+        float curPToF = classicCalculatePToF(rangingTable->Tb, rangingTable->Rb, rangingTable->Tp, rangingTable->Rp, candidate.Tr, candidate.Rr);
+        distanceCalculate[rangingTable->neighborAddress] = (curPToF == NULL_TOF) ? (rangingTable->PToF * VELOCITY) / 2 : (curPToF * VELOCITY) / 2;
 
         updateRangingTableRr_Buffer(&rangingTable->TrRrBuffer, rangingTable->Re);
     }
@@ -1077,13 +1077,13 @@ static void S5_RX_NO(Ranging_Table_t *rangingTable) {
         +------+------+------+------+------+------+------+    ===>    +------+------+------+------+------+------+------+         
         | ERb  | ETp  |  Rb  |  Tp  |  Rr  |  Tf  |      |            | ERb  | ETp  |  Rb  |  Tp  |  Rr  |  Tf  | [Re] |   
         +------+------+------+------+------+------+------+    <===    +------+------+------+------+------+------+------+          
-        |    EPTof    |    PTof     |                                 |    EPTof    |    PTof     |                                
+        |    EPToF    |    PToF     |                                 |    EPToF    |    PToF     |                                
         +------+------+------+------+                                 +------+------+------+------+ 
     */
     else {
         Ranging_Table_Tr_Rr_Candidate_t candidate = rangingTableTr_Rr_BufferGetCandidate(&rangingTable->TrRrBuffer, rangingTable->Rp, nullTimestampTuple);
-        float curPTof = calculatePTof(rangingTable, candidate);
-        distanceCalculate[rangingTable->neighborAddress] = (curPTof == NULL_TOF) ? (rangingTable->PTof * VELOCITY) / 2 : (curPTof * VELOCITY) / 2;
+        float curPToF = calculatePToF(rangingTable, candidate);
+        distanceCalculate[rangingTable->neighborAddress] = (curPToF == NULL_TOF) ? (rangingTable->PToF * VELOCITY) / 2 : (curPToF * VELOCITY) / 2;
 
         updateRangingTableRr_Buffer(&rangingTable->TrRrBuffer, rangingTable->Re);
     }
@@ -1125,7 +1125,7 @@ void RangingTableEventHandler(Ranging_Table_t *rangingTable, RANGING_TABLE_EVENT
 
 
 /* -------------------- Generate and Process -------------------- */
-Time_t generateDsrMessage(Ranging_Message_t *rangingMessage) {
+Time_t generateDSRMessage(Ranging_Message_t *rangingMessage) {
     Time_t taskDelay = M2T(RANGING_PERIOD);
 
     int8_t bodyUnitCount = 0;     
@@ -1181,7 +1181,7 @@ Time_t generateDsrMessage(Ranging_Message_t *rangingMessage) {
     return taskDelay;
 }
 
-void processDsrMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWithAdditionalInfo) {
+void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWithAdditionalInfo) {
     Ranging_Message_t *rangingMessage = &rangingMessageWithAdditionalInfo->rangingMessage;
 
     uint16_t neighborAddress = rangingMessage->header.srcAddress;
@@ -1209,7 +1209,8 @@ void processDsrMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
         float Dx = (RxCoordinate.x - TxCoordinate.x);
         float Dy = (RxCoordinate.y - TxCoordinate.y);
         float Dz = (RxCoordinate.z - TxCoordinate.z);
-        distanceReal = sqrtf(Dx * Dx + Dy * Dy + Dz * Dz) / 1000;
+        float distance = sqrtf(Dx * Dx + Dy * Dy + Dz * Dz);
+        distanceReal[rangingTable->neighborAddress] = distance;
     #endif
 
     /* process bodyUnit */
@@ -1259,36 +1260,120 @@ void processDsrMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
     // print result
     if(distanceCalculate[rangingTable->neighborAddress] != NULL_DIS) {
         #ifdef COMPENSATE_ENABLE
+        /* For swarm ranging, the calculated distance value has a certain lag.
+                ···Tb      <--Pb-->      Rp   <--Db-->   Tr      <--Rb-->      Rf
+
+                ···   Rb   <--Pa-->   Tp      <--Ra-->      Rr   <--Da-->   Tf                    Re
+            Continuous scenes:
+                ToF_p = ToF_r - ΔT1, ToF_f = ToF_r + ΔT2
+                The ranging process from p to r to f to e can be regarded as uniform motion.
+                ∵ ΔT1 and ΔT2 are close to zero, the ToF at different stages can be approximated as:
+                    ToF_p = ToF_r - ΔT
+                    ToF_f = ToF_r + ΔT
+
+                        Ra * Rb - Da * Db
+                ToF = —————————————————————
+                        Ra + Rb + Da + Db
+                        (ToF_p + ToF_r + Db) * (ToF_r + ToF_f + Da) - Da * Db
+                    = —————————————————————————————————————————————————————————
+                                        2(Da + Db) + 4 * ToF_r
+                        (2 * ToF_r - ΔT + Db) * (2 * ToF_r + ΔT + Da) - Da * Db
+                    = ———————————————————————————————————————————————————————————
+                                        2(Da + Db) + 4 * ToF_r
+                        2 * (Da + Db) * ToF_r + 4 * ToF_r^2 + (Db - Da) * ΔT - ΔT^2
+                    = ———————————————————————————————————————————————————————————————
+                                            2(Da + Db) + 4 * ToF_r
+                                    (Db - Da) - ΔT
+                    = ToF_r + —————————————————————————— * ΔT
+                                2(Da + Db) + 4 * ToF_r
+                As ΔT approaches zero, Tof ≈ Tof_r.
+
+                To make the ranging results closer to the true values, a compensation mechanism is adopted:
+                If Rr.seqNumber + 1 == Re.seqNumber (continuous), then:
+                    De = Dr + ΔD = ToF_r * velocity + ΔD ≈ ToF * velocity + (distanceCalculate - lastDistanceCalculate)
+            
+            Discontinuous scenes:
+                If packet loss occurs, use linear extrapolation:
+                    seqGap = Re.seqNumber - Rr.seqNumber
+                    ΔD = deltaDistanceUnit * seqGap
+                    De = Dr + ΔD = ToF_r * velocity + ΔD ≈ ToF * velocity + deltaDistanceUnit * seqGap
+
+            therefore: 
+            seqGap = Re.seqNumber - Rr.seqNumber
+            distanceCompensate = deltaDistanceUnit * seqGap
+            deltaDistanceUnit = (distanceCalculate - lastDistanceCalculate) / seqGap
+            distance = distanceCalculate + distanceCompensate
+
+            In scenarios with high uncertainty, it is recommended to select a coefficient COMPENSATE_RATE <1 for partial compensation
+            instead of full compensation. Additionally, when seqGap exceeds a preset threshold(SEQGAP_THRESHOLD), linear extrapolation 
+            may introduce significant errors in non-uniform motion scenarios. In such cases, the compensation mechanism should be disabled,
+            and the system should revert to raw measurements.
+
+            Compensation Algorithm:
+            1. Initialization:
+                if(lastSeqNumber == NULL_SEQ || lastDistanceCalculate == NULL_DIS) {
+                    lastDistanceCalculate = distanceCalculate;
+                    lastSeqNumber = rangingMessage->header.msgSequence;
+                    distance = distanceCalculate;
+                }
+            2. First compensation:
+                else if(deltaDistanceUnit == NULL_DIS) {
+                    seqGap = rangingMessage->header.msgSequence - lastSeqNumber;
+                    deltaDistanceUnit = (distanceCalculate - lastDistanceCalculate) / seqGap;
+                    lastDistanceCalculate = distanceCalculate;
+                    lastSeqNumber = rangingMessage->header.msgSequence;
+                    distance = distanceCalculate;
+                }
+            3. Normal compensation:
+                else {
+                    seqGap = rangingMessage->header.msgSequence - lastSeqNumber;
+                    distanceCompensate = deltaDistanceUnit * seqGap;
+                    deltaDistanceUnit = (distanceCalculate - lastDistanceCalculate) / seqGap;
+                    lastDistanceCalculate = distanceCalculate;
+                    lastSeqNumber = rangingMessage->header.msgSequence;
+                    if(seqGap < SEQGAP_THRESHOLD) {
+                        distance = distanceCalculate + distanceCompensate * COMPENSATE_RATE;
+                    }
+                    else {
+                        // If packet loss is severe, disable compensation
+                        distance = distanceCalculate;
+                    }
+                }
+            return distance;
+        */
             if(lastSeqNumber[rangingTable->neighborAddress] == NULL_SEQ || lastDistanceCalculate[rangingTable->neighborAddress] == NULL_DIS) {
-                // initialize lastDistanceCalculate and lastSeqNumber
+                lastDistanceCalculate[rangingTable->neighborAddress] = distanceCalculate[rangingTable->neighborAddress];
+                lastSeqNumber[rangingTable->neighborAddress] = rangingMessage->header.msgSequence;
+                DEBUG_PRINT("[current_%u]: ModifiedD = %f", MY_UWB_ADDRESS, (double)distanceCalculate[rangingTable->neighborAddress]);
+            }
+            else if(deltaDistanceUnit[rangingTable->neighborAddress] == NULL_DIS) {
+                uint16_t seqGap = rangingMessage->header.msgSequence - lastSeqNumber[rangingTable->neighborAddress];
+                deltaDistanceUnit[rangingTable->neighborAddress] = (distanceCalculate[rangingTable->neighborAddress] - lastDistanceCalculate[rangingTable->neighborAddress]) / seqGap;
                 lastDistanceCalculate[rangingTable->neighborAddress] = distanceCalculate[rangingTable->neighborAddress];
                 lastSeqNumber[rangingTable->neighborAddress] = rangingMessage->header.msgSequence;
                 DEBUG_PRINT("[current_%u]: ModifiedD = %f", MY_UWB_ADDRESS, (double)distanceCalculate[rangingTable->neighborAddress]);
             }
             else {
-                /*
-                    distanceCompensate = (distanceCalculate - lastDistanceCalculate) * (msgSequence - lastSeqNumber)
-                    distance = distanceCalculate + distanceCompensate * COMPENSATE_RATE
-                */
                 uint16_t seqGap = rangingMessage->header.msgSequence - lastSeqNumber[rangingTable->neighborAddress];
-                if(seqGap < PACKET_LOSS_BOUND) {
-                    float distanceCompensate = (distanceCalculate[rangingTable->neighborAddress] - lastDistanceCalculate[rangingTable->neighborAddress]) * seqGap;
+                float distanceCompensate = deltaDistanceUnit[rangingTable->neighborAddress] * seqGap;
+                deltaDistanceUnit[rangingTable->neighborAddress] = (distanceCalculate[rangingTable->neighborAddress] - lastDistanceCalculate[rangingTable->neighborAddress]) / seqGap;
+                lastDistanceCalculate[rangingTable->neighborAddress] = distanceCalculate[rangingTable->neighborAddress];
+                lastSeqNumber[rangingTable->neighborAddress] = rangingMessage->header.msgSequence;
+                if(seqGap < SEQGAP_THRESHOLD) {
                     float distance = distanceCalculate[rangingTable->neighborAddress] + distanceCompensate * COMPENSATE_RATE;                    
                     DEBUG_PRINT("[current_%u]: ModifiedD = %f", MY_UWB_ADDRESS, (double)distance);
                 } 
-                // continuous packet loss ---> disable the compensation mechanism
                 else {
+                    // If packet loss is severe, disable compensation
                     DEBUG_PRINT("[current_%u]: ModifiedD = %f", MY_UWB_ADDRESS, (double)distanceCalculate[rangingTable->neighborAddress]);
                 }
-                lastDistanceCalculate[rangingTable->neighborAddress] = distanceCalculate[rangingTable->neighborAddress];
-                lastSeqNumber[rangingTable->neighborAddress] = rangingMessage->header.msgSequence;
             }
         #else
             DEBUG_PRINT("[current_%u]: ModifiedD = %f", MY_UWB_ADDRESS, (double)distanceCalculate[rangingTable->neighborAddress]);
         #endif
 
         #ifdef COORDINATE_SEND_ENABLE
-            DEBUG_PRINT(", TrueD = %f", distanceReal);
+            DEBUG_PRINT(", TrueD = %f", distanceReal[rangingTable->neighborAddress]);
         #endif
         DEBUG_PRINT(", time = %llu\n", Re.timestamp.full % UWB_MAX_TIMESTAMP);
     }
@@ -1320,7 +1405,7 @@ static void uwbRangingTxTask(void *parameters) {
         // DEBUG_PRINT("[uwbRangingTxTask]: Acquired mutex, generating ranging message\n");
         Time_t taskDelay = RANGING_PERIOD;
 
-        generateDsrMessage(rangingMessage);
+        generateDSRMessage(rangingMessage);
         
         txPacketCache.header.seqNumber++;
         txPacketCache.header.length = sizeof(UWB_Packet_Header_t) + rangingMessage->header.msgLength;
@@ -1341,15 +1426,10 @@ static void uwbRangingRxTask(void *parameters) {
     while (true) {
         vTaskDelay(M2T(1));
         if (xQueueReceive(rxQueue, &rxPacketCache, portMAX_DELAY)) {
-            #ifdef PACKET_LOSS_ENABLE
-                int randnum = rand() % 100;
-                if(randnum < (int)(PACKET_LOSS_RATE * 100)) {
-                    continue;
-                }
-            #endif
-
             xSemaphoreTake(rangingTableSet->mutex, portMAX_DELAY);
-            processDsrMessage(&rxPacketCache);
+
+            processDSRMessage(&rxPacketCache);
+            
             xSemaphoreGive(rangingTableSet->mutex);
         }
     }
@@ -1367,6 +1447,13 @@ void rangingTxCallback(void *parameters) {
 }
 
 void rangingRxCallback(void *parameters) {
+    #ifdef PACKET_LOSS_ENABLE
+        int randnum = rand() % 100;
+        if(randnum < (int)(PACKET_LOSS_RATE * 100)) {
+            goto PACKET_LOSS;
+        }
+    #endif
+
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
     UWB_Packet_t *packet = (UWB_Packet_t*)parameters;
@@ -1380,17 +1467,17 @@ void rangingRxCallback(void *parameters) {
     rxMessageWithTimestamp.rangingMessage = *rangingMessage;
 
     xQueueSendFromISR(rxQueue, &rxMessageWithTimestamp, &xHigherPriorityTaskWoken);
+
+PACKET_LOSS:
 }
 
 void rangingInit() {
     MY_UWB_ADDRESS = uwbGetAddress();
 
-    // srand(MY_UWB_ADDRESS);
+    srand(MY_UWB_ADDRESS);
 
     rangingTableSetInit(&rangingTableSet);
 
-    srand(MY_UWB_ADDRESS);
-    
     rxQueue = xQueueCreate(RANGING_RX_QUEUE_SIZE, RANGING_RX_QUEUE_ITEM_SIZE);
     
     listener.type = UWB_RANGING_MESSAGE;

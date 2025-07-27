@@ -19,7 +19,7 @@
 // #define         PACKET_LOSS_ENABLE
 
 #define         COMPENSATE_RATE             0.5f
-#define         PACKET_LOSS_BOUND           3
+#define         SEQGAP_THRESHOLD            3
 #define         PACKET_LOSS_RATE            0.1f
 
 #define         NULL_ADDR                   0xFFFF
@@ -62,6 +62,12 @@ typedef struct {
     dwTime_t timestamp;                      
     uint16_t seqNumber;   
 } __attribute__((packed)) Timestamp_Tuple_t;            // 10 byte
+
+typedef struct {
+    uint16_t x;
+    uint16_t y;
+    uint16_t z;
+} __attribute__((packed)) Coordinate_Tuple_t;           // 48 byte
 
 typedef enum {
     UNUSED,
@@ -153,10 +159,10 @@ typedef struct {
     +------+------+------+------+------+------+------+
     | ERb  | ETp  |  Rb  |  Tp  |  Rr  |  Tf  |  Re  |
     +------+------+------+------+------+------+------+
-    |    EPTof    |    PTof     |
+    |    EPToF    |    PToF     |
     +------+------+------+------+
-    Note:   1. EPTof = Tof_eb + Tof_ep = Tof_ebep
-            2. PTof = Tof_b + Tofp = Tof_bp
+    Note:   1. EPToF = ToF_eb + ToF_ep = ToF_ebep
+            2. PToF = ToF_b + ToFp = ToF_bp
 */
 typedef struct {
     uint16_t neighborAddress;
@@ -174,8 +180,8 @@ typedef struct {
     Timestamp_Tuple_t Rf;
     Timestamp_Tuple_t Re;
 
-    float PTof;                         // pair of Tof
-    float EPTof;                        // early pair of Tof
+    float PToF;                         // pair of ToF
+    float EPToF;                        // early pair of ToF
 
     bool continuitySign;                // true: contiguous | false: non-contiguous
     bool expirationSign;                // true: no recent access --> expired | recent access --> not expired
@@ -207,10 +213,6 @@ static const Ranging_Table_Tr_Rr_Candidate_t nullCandidate = {.Tr.timestamp.full
 
 /* -------------------- Base Operation -------------------- */
 bool COMPARE_TIME(uint64_t time_a, uint64_t time_b);
-float getDistanceReal(uint16_t neighborAddress);
-void setDistanceReal(uint16_t neighborAddress, float distance);
-float getDistanceCalculate(uint16_t neighborAddress);
-void setDistanceCalculate(uint16_t neighborAddress, float distance);
 
 
 /* -------------------- Ranging Table Set Operation -------------------- */
@@ -231,8 +233,8 @@ table_index_t registerRangingTable(Ranging_Table_Set_t *rangingTableSet, uint16_
 void deregisterRangingTable(Ranging_Table_Set_t *rangingTableSet, uint16_t address);
 table_index_t findRangingTable(Ranging_Table_Set_t *rangingTableSet, uint16_t address);
 void fillRangingTable(Ranging_Table_t *rangingTable, Timestamp_Tuple_t Tf, Timestamp_Tuple_t Rf, Timestamp_Tuple_t Re);
-void shiftRangingTable(Ranging_Table_t *rangingTable, Timestamp_Tuple_t Tr, Timestamp_Tuple_t Rr, float PTof);
-void replaceRangingTable(Ranging_Table_t *rangingTable, Timestamp_Tuple_t Tb, Timestamp_Tuple_t Rb, Timestamp_Tuple_t Tp, Timestamp_Tuple_t Rp, float PTof);
+void shiftRangingTable(Ranging_Table_t *rangingTable, Timestamp_Tuple_t Tr, Timestamp_Tuple_t Rr, float PToF);
+void replaceRangingTable(Ranging_Table_t *rangingTable, Timestamp_Tuple_t Tb, Timestamp_Tuple_t Rb, Timestamp_Tuple_t Tp, Timestamp_Tuple_t Rp, float PToF);
 
 void updatePriorityQueue(Ranging_Table_Set_t *rangingTableSet, int8_t shiftCount);
 
@@ -242,9 +244,9 @@ void checkExpiration(Ranging_Table_Set_t *rangingTableSet);
 
 
 /* -------------------- Calculation Function -------------------- */
-float rangingAlgorithm(Timestamp_Tuple_t T1, Timestamp_Tuple_t R1, Timestamp_Tuple_t T2, Timestamp_Tuple_t R2, Timestamp_Tuple_t T3, Timestamp_Tuple_t R3, float Tof12);
-float classicCalculatePTof(Timestamp_Tuple_t Tp, Timestamp_Tuple_t Rp, Timestamp_Tuple_t Tr, Timestamp_Tuple_t Rr, Timestamp_Tuple_t Tf, Timestamp_Tuple_t Rf);
-float calculatePTof(Ranging_Table_t *rangingTable, Ranging_Table_Tr_Rr_Candidate_t candidate);
+float rangingAlgorithm(Timestamp_Tuple_t T1, Timestamp_Tuple_t R1, Timestamp_Tuple_t T2, Timestamp_Tuple_t R2, Timestamp_Tuple_t T3, Timestamp_Tuple_t R3, float ToF12);
+float classicCalculatePToF(Timestamp_Tuple_t Tp, Timestamp_Tuple_t Rp, Timestamp_Tuple_t Tr, Timestamp_Tuple_t Rr, Timestamp_Tuple_t Tf, Timestamp_Tuple_t Rf);
+float calculatePToF(Ranging_Table_t *rangingTable, Ranging_Table_Tr_Rr_Candidate_t candidate);
 
 
 /* -------------------- Print Function -------------------- */
@@ -262,7 +264,7 @@ typedef void (*EventHandlerTable)(Ranging_Table_t*);
 
 
 /* -------------------- Generate and Process -------------------- */
-Time_t generateMessage(Ranging_Message_t *rangingMessage);
-void processMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWithAdditionalInfo);
+Time_t generateDSRMessage(Ranging_Message_t *rangingMessage);
+void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWithAdditionalInfo);
 
 #endif
