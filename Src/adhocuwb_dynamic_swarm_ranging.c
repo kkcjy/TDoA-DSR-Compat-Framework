@@ -38,26 +38,6 @@ bool COMPARE_TIME(uint64_t time_a, uint64_t time_b) {
     return diff < (UWB_MAX_TIMESTAMP - diff);
 }
 
-float getDistanceReal(uint16_t neighborAddress) {
-    ASSERT(neighborAddress <= NEIGHBOR_ADDRESS_MAX);
-    return distanceReal[neighborAddress];
-}
-
-void setDistanceReal(uint16_t neighborAddress, float distance) {
-    ASSERT(neighborAddress <= NEIGHBOR_ADDRESS_MAX);
-    distanceReal[neighborAddress] = distance;
-}
-
-float getDistanceCalculate(uint16_t neighborAddress) {
-    ASSERT(neighborAddress <= NEIGHBOR_ADDRESS_MAX);
-    return distanceCalculate[neighborAddress];
-}
-
-void setDistanceCalculate(uint16_t neighborAddress, float distance) {
-    ASSERT(neighborAddress <= NEIGHBOR_ADDRESS_MAX);
-    distanceCalculate[neighborAddress] = distance;
-}
-
 
 /* -------------------- Ranging Table Set Operation -------------------- */
 // search for index of send list whose Tx seqNumber is same as seqNumber
@@ -94,7 +74,7 @@ void updateSendList(SendList_t *sendList, Timestamp_Tuple_t timestampTuple) {
 // init rangingTableTr_Rr_Buffer
 void rangingTableTr_Rr_BufferInit(Ranging_Table_Tr_Rr_Buffer_t *rangingTableBuffer) {
     rangingTableBuffer->topIndex = NULL_INDEX;
-    for (table_index_t i = 0; i < Tr_Rr_BUFFER_POOL_SIZE; i++) {
+    for (table_index_t i = 0; i < Tr_Rr_BUFFER_SIZE; i++) {
         rangingTableBuffer->candidates[i].Tr = nullTimestampTuple;
         rangingTableBuffer->candidates[i].Rr = nullTimestampTuple;
     }
@@ -107,7 +87,7 @@ void updateRangingTableTr_Buffer(Ranging_Table_Tr_Rr_Buffer_t *rangingTableBuffe
 
 // update Rr in rangingTableTr_Rr_Buffer
 void updateRangingTableRr_Buffer(Ranging_Table_Tr_Rr_Buffer_t *rangingTableBuffer, Timestamp_Tuple_t Rr) {
-    rangingTableBuffer->topIndex = (rangingTableBuffer->topIndex + 1) % Tr_Rr_BUFFER_POOL_SIZE;
+    rangingTableBuffer->topIndex = (rangingTableBuffer->topIndex + 1) % Tr_Rr_BUFFER_SIZE;
     rangingTableBuffer->candidates[rangingTableBuffer->topIndex].Tr = nullTimestampTuple;
     rangingTableBuffer->candidates[rangingTableBuffer->topIndex].Rr = Rr;
 }
@@ -121,7 +101,7 @@ Ranging_Table_Tr_Rr_Candidate_t rangingTableTr_Rr_BufferGetCandidate(Ranging_Tab
 
     Ranging_Table_Tr_Rr_Candidate_t candidate = nullCandidate;
 
-    for (int count = 0; count < Tr_Rr_BUFFER_POOL_SIZE; count++) {
+    for (int count = 0; count < Tr_Rr_BUFFER_SIZE; count++) {
         if (rangingTableBuffer->candidates[index].Tr.timestamp.full 
             && rangingTableBuffer->candidates[index].Rr.timestamp.full 
             && COMPARE_TIME(leftBound, rangingTableBuffer->candidates[index].Tr.timestamp.full)
@@ -130,7 +110,7 @@ Ranging_Table_Tr_Rr_Candidate_t rangingTableTr_Rr_BufferGetCandidate(Ranging_Tab
             candidate.Rr = rangingTableBuffer->candidates[index].Rr;
             break;
         }
-        index = (index - 1 + Tr_Rr_BUFFER_POOL_SIZE) % Tr_Rr_BUFFER_POOL_SIZE;
+        index = (index - 1 + Tr_Rr_BUFFER_SIZE) % Tr_Rr_BUFFER_SIZE;
     }
 
     return candidate;
@@ -388,6 +368,19 @@ void checkExpiration(Ranging_Table_Set_t *rangingTableSet) {
     }
 }
 
+// get substate of rangingTable
+int getCurrentSubstate(Ranging_Table_t *rangingTable) {
+    if (rangingTable->PToF == NULL_TOF && rangingTable->EPToF == NULL_TOF) {
+        return RANGING_SUBSTATE_S1;
+    } 
+    else if (rangingTable->EPToF == NULL_TOF) {
+        return RANGING_SUBSTATE_S2;
+    } 
+    else {
+        return RANGING_SUBSTATE_S3;
+    }
+}
+
 
 /* -------------------- Calculation Function -------------------- */
 /* ranging algorithm
@@ -577,6 +570,29 @@ float calculatePToF(Ranging_Table_t *rangingTable, Ranging_Table_Tr_Rr_Candidate
     return curPToF;
 }
 
+void continuousPacketLossHandler(Ranging_Table_t *rangingTable, Ranging_Table_Tr_Rr_Candidate_t candidate) {
+    DEBUG_PRINT("[continuousPacketLossHandler]: A long-term continuous packet loss event occurred.\n");
+    
+    float curPToF_avg = (classicCalculatePToF(rangingTable->Tb, rangingTable->Rb, rangingTable->Tp, rangingTable->Rp, candidate.Tr, candidate.Rr) 
+                       + classicCalculatePToF(rangingTable->Tp, rangingTable->Rp, candidate.Tr, candidate.Rr, rangingTable->Tf, rangingTable->Rf)) / 2;
+    distanceCalculate[rangingTable->neighborAddress] = (curPToF_avg * VELOCITY) / 2;
+    
+    updateRangingTableRr_Buffer(&rangingTable->TrRrBuffer, rangingTable->Re);
+
+    shiftRangingTable(rangingTable, candidate.Tr, candidate.Rr, curPToF_avg);
+
+    // goto S4.2
+    rangingTable->ETb = nullTimestampTuple;
+    rangingTable->ERb = nullTimestampTuple;
+    rangingTable->EPToF = NULL_TOF;
+
+    RANGING_TABLE_STATE prevState = rangingTable->rangingState;
+    rangingTable->rangingState = RANGING_STATE_S4;
+    RANGING_TABLE_STATE curState = rangingTable->rangingState;
+
+    DEBUG_PRINT("[S5_RX]: S%d.%d -> S%d.%d\n", prevState, RANGING_SUBSTATE_S3, curState, RANGING_SUBSTATE_S2);
+}
+
 
 /* -------------------- Print Function -------------------- */
 void printRangingMessage(Ranging_Message_t *rangingMessage) {
@@ -591,7 +607,7 @@ void printRangingMessage(Ranging_Message_t *rangingMessage) {
     }
 
     DEBUG_PRINT("[Rx]:\n");
-    for(int i = 0; i < MESSAGE_BODY_UNIT_SIZE; i++){
+    for(int i = 0; i < MESSAGE_BODYUNIT_SIZE; i++){
         DEBUG_PRINT("address: %u, seqNumber: %u, timestamp: %llu\n", rangingMessage->bodyUnits[i].address, rangingMessage->bodyUnits[i].seqNumber, rangingMessage->bodyUnits[i].timestamp.full % UWB_MAX_TIMESTAMP);
     }
     DEBUG_PRINT("\n");
@@ -621,11 +637,11 @@ void printRangingTable(Ranging_Table_t *rangingTable) {
     DEBUG_PRINT("(Rp) seqNumber: %u, timestamp: %llu\n", rangingTable->Rp.seqNumber, rangingTable->Rp.timestamp.full % UWB_MAX_TIMESTAMP);
     DEBUG_PRINT("(Tr_Rr_Buffer)\n");
     index_t index = rangingTable->TrRrBuffer.topIndex;
-    for(int i = 0; i < Tr_Rr_BUFFER_POOL_SIZE; i++) {
+    for(int i = 0; i < Tr_Rr_BUFFER_SIZE; i++) {
         DEBUG_PRINT("\tseqNumber: %u, timestamp: %llu  -->  seqNumber: %u, timestamp: %llu\n", 
             rangingTable->TrRrBuffer.candidates[index].Tr.seqNumber, rangingTable->TrRrBuffer.candidates[index].Tr.timestamp.full % UWB_MAX_TIMESTAMP,
             rangingTable->TrRrBuffer.candidates[index].Rr.seqNumber, rangingTable->TrRrBuffer.candidates[index].Rr.timestamp.full % UWB_MAX_TIMESTAMP);
-        index = (index - 1 + Tr_Rr_BUFFER_POOL_SIZE) % Tr_Rr_BUFFER_POOL_SIZE;
+        index = (index - 1 + Tr_Rr_BUFFER_SIZE) % Tr_Rr_BUFFER_SIZE;
     }
     DEBUG_PRINT("(Tf) seqNumber: %u, timestamp: %llu\n", rangingTable->Tf.seqNumber, rangingTable->Tf.timestamp.full % UWB_MAX_TIMESTAMP);
     DEBUG_PRINT("(Rf) seqNumber: %u, timestamp: %llu\n", rangingTable->Rf.seqNumber, rangingTable->Rf.timestamp.full % UWB_MAX_TIMESTAMP);
@@ -774,7 +790,7 @@ static void S2_RX(Ranging_Table_t *rangingTable) {
     rangingTable->rangingState = RANGING_STATE_S4;
     RANGING_TABLE_STATE curState = rangingTable->rangingState;
 
-    DEBUG_PRINT("[S2_RX]: S%d -> S%d\n", prevState, curState);
+    DEBUG_PRINT("[S2_RX]: S%d -> S%d.%d\n", prevState, curState, RANGING_SUBSTATE_S1);
 }
 
 static void S2_RX_NO(Ranging_Table_t *rangingTable) {
@@ -836,7 +852,8 @@ static void S4_TX(Ranging_Table_t *rangingTable) {
     rangingTable->rangingState = RANGING_STATE_S5;
     RANGING_TABLE_STATE curState = rangingTable->rangingState;
 
-    DEBUG_PRINT("[S4_TX]: S%d -> S%d\n", prevState, curState);
+    int curSubstate = getCurrentSubstate(rangingTable);
+    DEBUG_PRINT("[S4_TX]: S%d.%d -> S%d.%d\n", prevState, curSubstate, curState, curSubstate);
 }
 
 static void S4_RX(Ranging_Table_t *rangingTable) {
@@ -869,64 +886,76 @@ static void S4_RX(Ranging_Table_t *rangingTable) {
     rangingTable->rangingState = RANGING_STATE_S4;
     RANGING_TABLE_STATE curState = rangingTable->rangingState;
     
-    DEBUG_PRINT("[S4_RX]: S%d -> S%d\n", prevState, curState);
+    int curSubstate = getCurrentSubstate(rangingTable);
+    DEBUG_PRINT("[S4_RX]: S%d.%d -> S%d.%d\n", prevState, curSubstate, curState, curSubstate);
 }
 
 static void S4_RX_NO(Ranging_Table_t *rangingTable) {
     // Calculate ToF, but not shift rangingTable
     RANGING_TABLE_STATE prevState = rangingTable->rangingState;
+    int curSubstate = getCurrentSubstate(rangingTable);
 
-    /* initialize               ===>    update
-        +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+
-        |      |      |      |  Rp  |      |      | S4.1 |            |      |      |      |  Rp  | [Tr] |      | S4.1 |
-        +------+------+------+------+------+------+------+    ===>    +------+------+------+------+------+------+------+
-        |      |      |      |  Tp  |  Rr  |      |      |            |      |      |      |  Tp  |  Rr  |      | [Re] |
-        +------+------+------+------+------+------+------+    <===    +------+------+------+------+------+------+------+
-        |             |             |                                 |             |             |                                
-        +------+------+------+------+                                 +------+------+------+------+
-    */
-    if(rangingTable->PToF == NULL_TOF && rangingTable->EPToF == NULL_TOF) {
-        updateRangingTableRr_Buffer(&rangingTable->TrRrBuffer, rangingTable->Re);
-    }
+    switch (curSubstate) {
+        case RANGING_SUBSTATE_S1: {
+            /* initialize               ===>    update
+                +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+
+                |      |      |      |  Rp  |      |      | S4.1 |            |      |      |      |  Rp  | [Tr] |      | S4.1 |
+                +------+------+------+------+------+------+------+    ===>    +------+------+------+------+------+------+------+
+                |      |      |      |  Tp  |  Rr  |      |      |            |      |      |      |  Tp  |  Rr  |      | [Re] |
+                +------+------+------+------+------+------+------+    <===    +------+------+------+------+------+------+------+
+                |             |             |                                 |             |             |                                
+                +------+------+------+------+                                 +------+------+------+------+
+            */
+            updateRangingTableRr_Buffer(&rangingTable->TrRrBuffer, rangingTable->Re);
+            break;
+        }
 
-    /* swarm ranging            ===>    calculate and update
-        +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+
-        |      | ERp  |  Tb  |  Rp  |      |      | S4.2 |            |      | ERp  |  Tb  |  Rp  | [Tr] |      | S4.2 |
-        +------+------+------+------+------+------+------+    ===>    +------+------+------+------+------+------+------+
-        |      | ETp  |  Rb  |  Tp  |  Rr  |      |      |            |      | ETp  |  Rb  |  Tp  |  Rr  |      | [Re] |   
-        +------+------+------+------+------+------+------+    <===    +------+------+------+------+------+------+------+
-        |             |    PToF     |                                 |             |    PToF     |                                
-        +------+------+------+------+                                 +------+------+------+------+ 
-    */
-    else if(rangingTable->EPToF == NULL_TOF) {
-        Ranging_Table_Tr_Rr_Candidate_t candidate = rangingTableTr_Rr_BufferGetCandidate(&rangingTable->TrRrBuffer, rangingTable->Rp, nullTimestampTuple);
-        float curPToF = classicCalculatePToF(rangingTable->Tb, rangingTable->Rb, rangingTable->Tp, rangingTable->Rp, candidate.Tr, candidate.Rr);
-        distanceCalculate[rangingTable->neighborAddress] = (curPToF == NULL_TOF) ? ((rangingTable->PToF * VELOCITY) / 2) : ((curPToF * VELOCITY) / 2);
+        case RANGING_SUBSTATE_S2: {
+            /* swarm ranging            ===>    calculate and update
+                +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+
+                |      | ERp  |  Tb  |  Rp  |      |      | S4.2 |            |      | ERp  |  Tb  |  Rp  | [Tr] |      | S4.2 |
+                +------+------+------+------+------+------+------+    ===>    +------+------+------+------+------+------+------+
+                |      | ETp  |  Rb  |  Tp  |  Rr  |      |      |            |      | ETp  |  Rb  |  Tp  |  Rr  |      | [Re] |   
+                +------+------+------+------+------+------+------+    <===    +------+------+------+------+------+------+------+
+                |             |    PToF     |                                 |             |    PToF     |                                
+                +------+------+------+------+                                 +------+------+------+------+ 
+            */
+            Ranging_Table_Tr_Rr_Candidate_t candidate = rangingTableTr_Rr_BufferGetCandidate(&rangingTable->TrRrBuffer, rangingTable->Rp, nullTimestampTuple);
+            float curPToF = classicCalculatePToF(rangingTable->Tb, rangingTable->Rb, rangingTable->Tp, rangingTable->Rp, candidate.Tr, candidate.Rr);
+            distanceCalculate[rangingTable->neighborAddress] = (curPToF == NULL_TOF) ? ((rangingTable->PToF * VELOCITY) / 2) : ((curPToF * VELOCITY) / 2);
 
-        updateRangingTableRr_Buffer(&rangingTable->TrRrBuffer, rangingTable->Re);
-    }
+            updateRangingTableRr_Buffer(&rangingTable->TrRrBuffer, rangingTable->Re);
+            break;
+        }
 
-    /* dynamic swarm ranging    ===>    calculate and update
-        +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+      
-        | ETb  | ERp  |  Tb  |  Rp  |      |      | S4.3 |            | ETb  | ERp  |  Tb  |  Rp  | [Tr] |      | S4.3 |          
-        +------+------+------+------+------+------+------+    ===>    +------+------+------+------+------+------+------+         
-        | ERb  | ETp  |  Rb  |  Tp  |  Rr  |      |      |            | ERb  | ETp  |  Rb  |  Tp  |  Rr  |      | [Re] |   
-        +------+------+------+------+------+------+------+    <===    +------+------+------+------+------+------+------+          
-        |    EPToF    |    PToF     |                                 |    EPToF    |    PToF     |                                
-        +------+------+------+------+                                 +------+------+------+------+ 
-    */
-    else {
-        Ranging_Table_Tr_Rr_Candidate_t candidate = rangingTableTr_Rr_BufferGetCandidate(&rangingTable->TrRrBuffer, rangingTable->Rp, nullTimestampTuple);
-        float curPToF = calculatePToF(rangingTable, candidate);
-        distanceCalculate[rangingTable->neighborAddress] = (curPToF == NULL_TOF) ? (rangingTable->PToF * VELOCITY) / 2 : (curPToF * VELOCITY) / 2;
+        case RANGING_SUBSTATE_S3: {
+            /* dynamic swarm ranging    ===>    calculate and update
+                +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+      
+                | ETb  | ERp  |  Tb  |  Rp  |      |      | S4.3 |            | ETb  | ERp  |  Tb  |  Rp  | [Tr] |      | S4.3 |          
+                +------+------+------+------+------+------+------+    ===>    +------+------+------+------+------+------+------+         
+                | ERb  | ETp  |  Rb  |  Tp  |  Rr  |      |      |            | ERb  | ETp  |  Rb  |  Tp  |  Rr  |      | [Re] |   
+                +------+------+------+------+------+------+------+    <===    +------+------+------+------+------+------+------+          
+                |    EPToF    |    PToF     |                                 |    EPToF    |    PToF     |                                
+                +------+------+------+------+                                 +------+------+------+------+ 
+            */
+            Ranging_Table_Tr_Rr_Candidate_t candidate = rangingTableTr_Rr_BufferGetCandidate(&rangingTable->TrRrBuffer, rangingTable->Rp, nullTimestampTuple);
+            float curPToF = calculatePToF(rangingTable, candidate);
+            distanceCalculate[rangingTable->neighborAddress] = (curPToF == NULL_TOF) ? (rangingTable->PToF * VELOCITY) / 2 : (curPToF * VELOCITY) / 2;
 
-        updateRangingTableRr_Buffer(&rangingTable->TrRrBuffer, rangingTable->Re);
+            updateRangingTableRr_Buffer(&rangingTable->TrRrBuffer, rangingTable->Re);
+            break;
+        }
+
+        default: {
+            ASSERT(0 && "[S4_RX_NO]: Should not be called\n");
+            break;
+        }
     }
 
     rangingTable->rangingState = RANGING_STATE_S4;
     RANGING_TABLE_STATE curState = rangingTable->rangingState;
 
-    DEBUG_PRINT("[S4_RX_NO]: S%d -> S%d\n", prevState, curState);
+    DEBUG_PRINT("[S4_RX_NO]: S%d.%d -> S%d.%d\n", prevState, curSubstate, curState, curSubstate);
 }
 
 static void S5_TX(Ranging_Table_t *rangingTable) {
@@ -959,139 +988,173 @@ static void S5_TX(Ranging_Table_t *rangingTable) {
     rangingTable->rangingState = RANGING_STATE_S5;
     RANGING_TABLE_STATE curState = rangingTable->rangingState;
 
-    DEBUG_PRINT("[S5_TX]: S%d -> S%d\n", prevState, curState);
+    int curSubstate = getCurrentSubstate(rangingTable);
+    DEBUG_PRINT("[S5_TX]: S%d.%d -> S%d.%d\n", prevState, curSubstate, curState, curSubstate);
 }
 
 static void S5_RX(Ranging_Table_t *rangingTable) {
     // Calculate ToF, shift the rangingTable, calculation is quick, directly skipping S6 and entering S4
     RANGING_TABLE_STATE prevState = rangingTable->rangingState;
+    int curSubstate = getCurrentSubstate(rangingTable);
 
-    /* initialize               ===>    calculate, update and shift
-        +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+
-        |      |      |      |  Rp  |      |      | S5.1 |            |      |      |      |  Rp  | [Tr] | [Rf] | S6.1 |            |      | ERp  |  Tb  |  Rp  |      |      | S4.2 |
-        +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+
-        |      |      |      |  Tp  |  Rr  |  Tf  |      |    ===>    |      |      |      |  Tp  |  Rr  |  Tf  | [Re] |    ===>    |      | ETp  |  Rb  |  Tp  |  Rr  |      |      |
-        +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+
-        |             |             |                                 |             |             |                                 |             |    PToF     |
-        +------+------+------+------+                                 +------+------+------+------+                                 +------+------+------+------+
-    */
-    if(rangingTable->PToF == NULL_TOF && rangingTable->EPToF == NULL_TOF) {
-        Ranging_Table_Tr_Rr_Candidate_t candidate = rangingTableTr_Rr_BufferGetCandidate(&rangingTable->TrRrBuffer, rangingTable->Rp, rangingTable->Tf);
-        float curPToF = classicCalculatePToF(rangingTable->Tp, rangingTable->Rp, candidate.Tr, candidate.Rr, rangingTable->Tf, rangingTable->Rf);
-        if(curPToF != NULL_TOF) {
-            distanceCalculate[rangingTable->neighborAddress] = (curPToF * VELOCITY) / 2;
+    switch (curSubstate) {
+        case RANGING_SUBSTATE_S1: {
+            /* initialize               ===>    calculate, update and shift
+                +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+
+                |      |      |      |  Rp  |      |      | S5.1 |            |      |      |      |  Rp  | [Tr] | [Rf] | S6.1 |            |      | ERp  |  Tb  |  Rp  |      |      | S4.2 |
+                +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+
+                |      |      |      |  Tp  |  Rr  |  Tf  |      |    ===>    |      |      |      |  Tp  |  Rr  |  Tf  | [Re] |    ===>    |      | ETp  |  Rb  |  Tp  |  Rr  |      |      |
+                +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+
+                |             |             |                                 |             |             |                                 |             |    PToF     |
+                +------+------+------+------+                                 +------+------+------+------+                                 +------+------+------+------+
+            */
+            Ranging_Table_Tr_Rr_Candidate_t candidate = rangingTableTr_Rr_BufferGetCandidate(&rangingTable->TrRrBuffer, rangingTable->Rp, rangingTable->Tf);
+            float curPToF = classicCalculatePToF(rangingTable->Tp, rangingTable->Rp, candidate.Tr, candidate.Rr, rangingTable->Tf, rangingTable->Rf);
+            if(curPToF != NULL_TOF) {
+                distanceCalculate[rangingTable->neighborAddress] = (curPToF * VELOCITY) / 2;
+            }
+
+            updateRangingTableRr_Buffer(&rangingTable->TrRrBuffer, rangingTable->Re);
+
+            if(curPToF != NULL_TOF) {
+                shiftRangingTable(rangingTable, candidate.Tr, candidate.Rr, curPToF);
+            }
+            break;
         }
 
-        updateRangingTableRr_Buffer(&rangingTable->TrRrBuffer, rangingTable->Re);
+        case RANGING_SUBSTATE_S2: {
+            /* swarm ranging            ===>    calculate, update and shift
+                +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+
+                |      | ERp  |  Tb  |  Rp  |      |      | S5.2 |            |      | ERp  |  Tb  |  Rp  | [Tr] | [Rf] | S6.2 |            | ETb  | ERp  |  Tb  |  Rp  |      |      | S4.3 |
+                +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+
+                |      | ETp  |  Rb  |  Tp  |  Rr  |  Tf  |      |    ===>    |      | ETp  |  Rb  |  Tp  |  Rr  |  Tf  | [Re] |    ===>    | ERb  | ETp  |  Rb  |  Tp  |  Rr  |      |      |
+                +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+
+                |             |    PToF     |                                 |             |    PToF     |                                 |   EPToF     |    PToF     |
+                +------+------+------+------+                                 +------+------+------+------+                                 +------+------+------+------+
+            */
+            Ranging_Table_Tr_Rr_Candidate_t candidate = rangingTableTr_Rr_BufferGetCandidate(&rangingTable->TrRrBuffer, rangingTable->Rp, rangingTable->Tf);
+            float curPToF = classicCalculatePToF(rangingTable->Tp, rangingTable->Rp, candidate.Tr, candidate.Rr, rangingTable->Tf, rangingTable->Rf);
+            distanceCalculate[rangingTable->neighborAddress] = (curPToF == NULL_TOF) ? (rangingTable->PToF * VELOCITY) / 2 : (curPToF * VELOCITY) / 2;
 
-        if(curPToF != NULL_TOF) {
-            shiftRangingTable(rangingTable, candidate.Tr, candidate.Rr, curPToF);
+            updateRangingTableRr_Buffer(&rangingTable->TrRrBuffer, rangingTable->Re);
+
+            if(curPToF != NULL_TOF) {
+                shiftRangingTable(rangingTable, candidate.Tr, candidate.Rr, curPToF);
+            }
+            break;
         }
-    }
 
-    /* swarm ranging            ===>    calculate, update and shift
-        +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+
-        |      | ERp  |  Tb  |  Rp  |      |      | S5.2 |            |      | ERp  |  Tb  |  Rp  | [Tr] | [Rf] | S6.2 |            | ETb  | ERp  |  Tb  |  Rp  |      |      | S4.3 |
-        +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+
-        |      | ETp  |  Rb  |  Tp  |  Rr  |  Tf  |      |    ===>    |      | ETp  |  Rb  |  Tp  |  Rr  |  Tf  | [Re] |    ===>    | ERb  | ETp  |  Rb  |  Tp  |  Rr  |      |      |
-        +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+
-        |             |    PToF     |                                 |             |    PToF     |                                 |   EPToF     |    PToF     |
-        +------+------+------+------+                                 +------+------+------+------+                                 +------+------+------+------+
-    */
-    else if(rangingTable->EPToF == NULL_TOF) {
-        Ranging_Table_Tr_Rr_Candidate_t candidate = rangingTableTr_Rr_BufferGetCandidate(&rangingTable->TrRrBuffer, rangingTable->Rp, rangingTable->Tf);
-        float curPToF = classicCalculatePToF(rangingTable->Tp, rangingTable->Rp, candidate.Tr, candidate.Rr, rangingTable->Tf, rangingTable->Rf);
-        distanceCalculate[rangingTable->neighborAddress] = (curPToF == NULL_TOF) ? (rangingTable->PToF * VELOCITY) / 2 : (curPToF * VELOCITY) / 2;
+        case RANGING_SUBSTATE_S3: {
+            /* dynamic swarm ranging    ===>    calculate, update and shift
+                +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+
+                | ETb  | ERp  |  Tb  |  Rp  |      |      | S5.3 |            | ETb  | ERp  |  Tb  |  Rp  | [Tr] | [Rf] | S6.3 |            | ETb  | ERp  |  Tb  |  Rp  |      |      | S4.3 |
+                +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+
+                | ERb  | ETp  |  Rb  |  Tp  |  Rr  |  Tf  |      |    ===>    | ERb  | ETp  |  Rb  |  Tp  |  Rr  |  Tf  | [Re] |    ===>    | ERb  | ETp  |  Rb  |  Tp  |  Rr  |      |      |
+                +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+
+                |    EPToF    |    PToF     |                                 |    EPToF    |    PToF     |                                 |   EPToF     |    PToF     |
+                +------+------+------+------+                                 +------+------+------+------+                                 +------+------+------+------+
+            */
+            Ranging_Table_Tr_Rr_Candidate_t candidate = rangingTableTr_Rr_BufferGetCandidate(&rangingTable->TrRrBuffer, rangingTable->Rp, rangingTable->Tf);
+            
+            uint16_t seqGap = rangingTable->Re.seqNumber - candidate.Rr.seqNumber;
+            
+            // long-term continuous packet loss
+            if(candidate.Tr.seqNumber != NULL_SEQ && candidate.Rr.seqNumber != NULL_SEQ && seqGap >= SEQGAP_THRESHOLD) {
+                continuousPacketLossHandler(rangingTable, candidate);
+                return;
+            }
 
-        updateRangingTableRr_Buffer(&rangingTable->TrRrBuffer, rangingTable->Re);
+            // normal
+            else {
+                float curPToF = calculatePToF(rangingTable, candidate);
+                distanceCalculate[rangingTable->neighborAddress] = (curPToF == NULL_TOF) ? (rangingTable->PToF * VELOCITY) / 2 : (curPToF * VELOCITY) / 2;
 
-        if(curPToF != NULL_TOF) {
-            shiftRangingTable(rangingTable, candidate.Tr, candidate.Rr, curPToF);
+                updateRangingTableRr_Buffer(&rangingTable->TrRrBuffer, rangingTable->Re);
+
+                if(curPToF != NULL_TOF && candidate.Tr.seqNumber != NULL_SEQ && candidate.Rr.seqNumber != NULL_SEQ) {
+                    shiftRangingTable(rangingTable, candidate.Tr, candidate.Rr, curPToF);
+                }
+            }
+            break;
         }
-    }
-
-    /* dynamic swarm ranging    ===>    calculate, update and shift
-        +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+
-        | ETb  | ERp  |  Tb  |  Rp  |      |      | S5.3 |            | ETb  | ERp  |  Tb  |  Rp  | [Tr] | [Rf] | S6.3 |            | ETb  | ERp  |  Tb  |  Rp  |      |      | S4.3 |
-        +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+
-        | ERb  | ETp  |  Rb  |  Tp  |  Rr  |  Tf  |      |    ===>    | ERb  | ETp  |  Rb  |  Tp  |  Rr  |  Tf  | [Re] |    ===>    | ERb  | ETp  |  Rb  |  Tp  |  Rr  |      |      |
-        +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+
-        |    EPToF    |    PToF     |                                 |    EPToF    |    PToF     |                                 |   EPToF     |    PToF     |
-        +------+------+------+------+                                 +------+------+------+------+                                 +------+------+------+------+
-    */
-    else {
-        Ranging_Table_Tr_Rr_Candidate_t candidate = rangingTableTr_Rr_BufferGetCandidate(&rangingTable->TrRrBuffer, rangingTable->Rp, rangingTable->Tf);
-        float curPToF = calculatePToF(rangingTable, candidate);
-        distanceCalculate[rangingTable->neighborAddress] = (curPToF == NULL_TOF) ? (rangingTable->PToF * VELOCITY) / 2 : (curPToF * VELOCITY) / 2;
-
-        updateRangingTableRr_Buffer(&rangingTable->TrRrBuffer, rangingTable->Re);
-
-        if(curPToF != NULL_TOF && candidate.Tr.seqNumber != NULL_SEQ && candidate.Rr.seqNumber != NULL_SEQ) {
-            shiftRangingTable(rangingTable, candidate.Tr, candidate.Rr, curPToF);
+        default: {
+            ASSERT(0 && "[S5_RX]: Should not be called\n");
+            break;
         }
     }
 
     rangingTable->rangingState = RANGING_STATE_S4;
     RANGING_TABLE_STATE curState = rangingTable->rangingState;
 
-    DEBUG_PRINT("[S5_RX]: S%d -> S%d\n", prevState, curState);
+    DEBUG_PRINT("[S5_RX]: S%d.%d -> S%d.%d\n", prevState, curSubstate, curState, (curSubstate == RANGING_SUBSTATE_S3) ? RANGING_SUBSTATE_S3 : curSubstate + 1);
 }
 
 static void S5_RX_NO(Ranging_Table_t *rangingTable) {
     // Calculate ToF, but not shift rangingTable
     RANGING_TABLE_STATE prevState = rangingTable->rangingState;
+    int curSubstate = getCurrentSubstate(rangingTable);
 
-    /* initialize               ===>    update
-        +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+
-        |      |      |      |  Rp  |      |      | S5.1 |            |      |      |      |  Rp  | [Tr] |      | S5.1 |
-        +------+------+------+------+------+------+------+    ===>    +------+------+------+------+------+------+------+
-        |      |      |      |  Tp  |  Rr  |  Tf  |      |            |      |      |      |  Tp  |  Rr  |  Tf  | [Re] |
-        +------+------+------+------+------+------+------+    <===    +------+------+------+------+------+------+------+
-        |             |             |                                 |             |             |                                
-        +------+------+------+------+                                 +------+------+------+------+
-    */
-    if(rangingTable->PToF == NULL_TOF && rangingTable->EPToF == NULL_TOF) {
-        updateRangingTableRr_Buffer(&rangingTable->TrRrBuffer, rangingTable->Re);
-    }
+    switch (curSubstate) {
+        case RANGING_SUBSTATE_S1: {
+            /* initialize               ===>    update
+                +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+
+                |      |      |      |  Rp  |      |      | S5.1 |            |      |      |      |  Rp  | [Tr] |      | S5.1 |
+                +------+------+------+------+------+------+------+    ===>    +------+------+------+------+------+------+------+
+                |      |      |      |  Tp  |  Rr  |  Tf  |      |            |      |      |      |  Tp  |  Rr  |  Tf  | [Re] |
+                +------+------+------+------+------+------+------+    <===    +------+------+------+------+------+------+------+
+                |             |             |                                 |             |             |                                
+                +------+------+------+------+                                 +------+------+------+------+
+            */
+            updateRangingTableRr_Buffer(&rangingTable->TrRrBuffer, rangingTable->Re);
+            break;
+        }
 
-    /* swarm ranging            ===>    calculate and update
-        +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+
-        |      | ERp  |  Tb  |  Rp  |      |      | S4.2 |            |      | ERp  |  Tb  |  Rp  | [Tr] |      | S4.2 |
-        +------+------+------+------+------+------+------+    ===>    +------+------+------+------+------+------+------+
-        |      | ETp  |  Rb  |  Tp  |  Rr  |  Tf  |      |            |      | ETp  |  Rb  |  Tp  |  Rr  |  Tf  | [Re] |   
-        +------+------+------+------+------+------+------+    <===    +------+------+------+------+------+------+------+
-        |             |    PToF     |                                 |             |    PToF     |                                
-        +------+------+------+------+                                 +------+------+------+------+ 
-    */
-    else if(rangingTable->EPToF == NULL_TOF) {
-        Ranging_Table_Tr_Rr_Candidate_t candidate = rangingTableTr_Rr_BufferGetCandidate(&rangingTable->TrRrBuffer, rangingTable->Rp, nullTimestampTuple);
-        float curPToF = classicCalculatePToF(rangingTable->Tb, rangingTable->Rb, rangingTable->Tp, rangingTable->Rp, candidate.Tr, candidate.Rr);
-        distanceCalculate[rangingTable->neighborAddress] = (curPToF == NULL_TOF) ? (rangingTable->PToF * VELOCITY) / 2 : (curPToF * VELOCITY) / 2;
+        case RANGING_SUBSTATE_S2: {
+            /* swarm ranging            ===>    calculate and update
+                +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+
+                |      | ERp  |  Tb  |  Rp  |      |      | S4.2 |            |      | ERp  |  Tb  |  Rp  | [Tr] |      | S4.2 |
+                +------+------+------+------+------+------+------+    ===>    +------+------+------+------+------+------+------+
+                |      | ETp  |  Rb  |  Tp  |  Rr  |  Tf  |      |            |      | ETp  |  Rb  |  Tp  |  Rr  |  Tf  | [Re] |   
+                +------+------+------+------+------+------+------+    <===    +------+------+------+------+------+------+------+
+                |             |    PToF     |                                 |             |    PToF     |                                
+                +------+------+------+------+                                 +------+------+------+------+ 
+            */
+            Ranging_Table_Tr_Rr_Candidate_t candidate = rangingTableTr_Rr_BufferGetCandidate(&rangingTable->TrRrBuffer, rangingTable->Rp, nullTimestampTuple);
+            float curPToF = classicCalculatePToF(rangingTable->Tb, rangingTable->Rb, rangingTable->Tp, rangingTable->Rp, candidate.Tr, candidate.Rr);
+            distanceCalculate[rangingTable->neighborAddress] = (curPToF == NULL_TOF) ? (rangingTable->PToF * VELOCITY) / 2 : (curPToF * VELOCITY) / 2;
 
-        updateRangingTableRr_Buffer(&rangingTable->TrRrBuffer, rangingTable->Re);
-    }
+            updateRangingTableRr_Buffer(&rangingTable->TrRrBuffer, rangingTable->Re);
+            break;
+        }
 
-    /* dynamic swarm ranging    ===>    calculate and update
-        +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+      
-        | ETb  | ERp  |  Tb  |  Rp  |      |      | S4.3 |            | ETb  | ERp  |  Tb  |  Rp  | [Tr] |      | S4.3 |          
-        +------+------+------+------+------+------+------+    ===>    +------+------+------+------+------+------+------+         
-        | ERb  | ETp  |  Rb  |  Tp  |  Rr  |  Tf  |      |            | ERb  | ETp  |  Rb  |  Tp  |  Rr  |  Tf  | [Re] |   
-        +------+------+------+------+------+------+------+    <===    +------+------+------+------+------+------+------+          
-        |    EPToF    |    PToF     |                                 |    EPToF    |    PToF     |                                
-        +------+------+------+------+                                 +------+------+------+------+ 
-    */
-    else {
-        Ranging_Table_Tr_Rr_Candidate_t candidate = rangingTableTr_Rr_BufferGetCandidate(&rangingTable->TrRrBuffer, rangingTable->Rp, nullTimestampTuple);
-        float curPToF = calculatePToF(rangingTable, candidate);
-        distanceCalculate[rangingTable->neighborAddress] = (curPToF == NULL_TOF) ? (rangingTable->PToF * VELOCITY) / 2 : (curPToF * VELOCITY) / 2;
+        case RANGING_SUBSTATE_S3: {
+            /* dynamic swarm ranging    ===>    calculate and update
+                +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+      
+                | ETb  | ERp  |  Tb  |  Rp  |      |      | S4.3 |            | ETb  | ERp  |  Tb  |  Rp  | [Tr] |      | S4.3 |          
+                +------+------+------+------+------+------+------+    ===>    +------+------+------+------+------+------+------+         
+                | ERb  | ETp  |  Rb  |  Tp  |  Rr  |  Tf  |      |            | ERb  | ETp  |  Rb  |  Tp  |  Rr  |  Tf  | [Re] |   
+                +------+------+------+------+------+------+------+    <===    +------+------+------+------+------+------+------+          
+                |    EPToF    |    PToF     |                                 |    EPToF    |    PToF     |                                
+                +------+------+------+------+                                 +------+------+------+------+ 
+            */
+            Ranging_Table_Tr_Rr_Candidate_t candidate = rangingTableTr_Rr_BufferGetCandidate(&rangingTable->TrRrBuffer, rangingTable->Rp, nullTimestampTuple);
+            float curPToF = calculatePToF(rangingTable, candidate);
+            distanceCalculate[rangingTable->neighborAddress] = (curPToF == NULL_TOF) ? (rangingTable->PToF * VELOCITY) / 2 : (curPToF * VELOCITY) / 2;
 
-        updateRangingTableRr_Buffer(&rangingTable->TrRrBuffer, rangingTable->Re);
+            updateRangingTableRr_Buffer(&rangingTable->TrRrBuffer, rangingTable->Re);
+            break;
+        }
+
+        default: {
+            ASSERT(0 && "[S5_RX_NO]: Should not be called\n");
+            break;
+        }
     }
 
     rangingTable->rangingState = RANGING_STATE_S5;
     RANGING_TABLE_STATE curState = rangingTable->rangingState;
 
-    DEBUG_PRINT("[S5_RX_NO]: S%d -> S%d\n", prevState, curState);
+    DEBUG_PRINT("[S5_RX_NO]: S%d.%d -> S%d.%d\n", prevState, curSubstate, curState, curSubstate);
 }
 
 static void S6_TX(Ranging_Table_t *rangingTable) {
@@ -1105,6 +1168,128 @@ static void S6_RX(Ranging_Table_t *rangingTable) {
 static void S6_RX_NO(Ranging_Table_t *rangingTable) {
     ASSERT(0 && "[S6_RX_NO]: Should not be called\n");
 }
+
+/* State Machine
++------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+
+|      |      |      |      | [Tr] | [Rf] |  S1  |            |      |      |      |      |      |      |  S1  |            |      |      |      |      | [Tr] |      |  S1  |
++------+------+------+------+------+------+------+     Rx     +------+------+------+------+------+------+------+   RX_NO    +------+------+------+------+------+------+------+
+|      |      |      |      |      |      | [Re] |    <==>    |      |      |      |      |      |      |      |    <==>    |      |      |      |      |      |      | [Re] |
++------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+
+|             |             |                                 |             |             |                                 |             |             |
++------+------+------+------+                                 +------+------+------+------+                                 +------+------+------+------+
+                                                                                          |
+                                                                                          |  Tx
+                                                                                          |
++------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+
+|      |      |      |      |      |      |  S2  |            |      |      |      |      |      |      |  S2  |            |      |      |      |      | [Tr] |      |  S2  |
++------+------+------+------+------+------+------+     Tx     +------+------+------+------+------+------+------+   RX_NO    +------+------+------+------+------+------+------+
+|      |      |      |      |      | [Tf] |      |    <==>    |      |      |      |      |      | [Tf] |      |    <==>    |      |      |      |      |      |  Tf  | [Re] |
++------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+
+|             |             |                                 |             |             |                                 |             |             |
++------+------+------+------+                                 +------+------+------+------+                                 +------+------+------+------+
+                                                                                          |
+                                                                                          |  Rx
+                                                                                          |
+                                                              +------+------+------+------+------+------+------+
+                                                              |      |      |      |      | [Tr] | [Rf] |  S3  |
+                                                              +------+------+------+------+------+------+------+
+                                                              |      |      |      |      |      |  Tf  | [Re] |
+                                                              +------+------+------+------+------+------+------+
+                                                              |             |             |
+                                                              +------+------+------+------+
+                                                                                          |
+                                                                                          |  shift
+                                                                                          |
++------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+
+|      |      |      |  Rp  | [Tr] | [Rf] | S4.1 |            |      |      |      |  Rp  |      |      | S4.1 |            |      |      |      |  Rp  | [Tr] |      | S4.1 |
++------+------+------+------+------+------+------+     Rx     +------+------+------+------+------+------+------+   RX_NO    +------+------+------+------+------+------+------+
+|      |      |      |  Tp  |  Rr  |      | [Re] |    <==>    |      |      |      |  Tp  |  Rr  |      |      |    <==>    |      |      |      |  Tp  |  Rr  |      | [Re] |
++------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+
+|             |             |                                 |             |             |                                 |             |             |
++------+------+------+------+                                 +------+------+------+------+                                 +------+------+------+------+    
+                                                                                          |
+                                                                                          |  Tx
+                                                                                          |
++------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+
+|      |      |      |  Rp  |      |      | S5.1 |            |      |      |      |  Rp  |      |      | S5.1 |            |      |      |      |  Rp  | [Tr] |      | S5.1 |
++------+------+------+------+------+------+------+     Tx     +------+------+------+------+------+------+------+   RX_NO    +------+------+------+------+------+------+------+
+|      |      |      |  Tp  |  Rr  | [Tf] |      |    <==>    |      |      |      |  Tp  |  Rr  | [Tf] |      |    <==>    |      |      |      |  Tp  |  Rr  | [Tf] | [Re] |
++------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+
+|             |             |                                 |             |             |                                 |             |             |
++------+------+------+------+                                 +------+------+------+------+                                 +------+------+------+------+    
+                                                                                          |
+                                                                                          |  Rx
+                                                                                          |
+                                                              +------+------+------+------+------+------+------+          
+                                                              |      |      |      |  Rp  | [Tr] | [Rf] | S6.1 |         
+                                                              +------+------+------+------+------+------+------+  
+                                                              |      |      |      |  Tp  |  Rr  |  Tf  | [Re] |  
+                                                              +------+------+------+------+------+------+------+         
+                                                              |             |             |                               
+                                                              +------+------+------+------+                             
+                                                                                          |                                                 continuous packet loss
+                                                                                          |  shift                  +-------------------------------------------------------------+
+                                                                                          |                         |                                                             |
++------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+<---+       +------+------+------+------+------+------+------+    |
+|      | ERp  |  Tb  |  Rp  | [Tr] | [Rf] | S4.2 |            |      | ERp  |  Tb  |  Rp  |      |      | S4.2 |            |      | ERp  |  Tb  |  Rp  | [Tr] |      | S4.2 |    |
++------+------+------+------+------+------+------+     Rx     +------+------+------+------+------+------+------+   RX_NO    +------+------+------+------+------+------+------+    |
+|      | ETp  |  Rb  |  Tp  |  Rr  |      | [Re] |    <==>    |      | ETp  |  Rb  |  Tp  |  Rr  |      |      |    <==>    |      | ETp  |  Rb  |  Tp  |  Rr  |      | [Re] |    |
++------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+    |
+|             |    PTof     |                                 |             |    PTof     |                                 |             |    PTof     |                         |
++------+------+------+------+                                 +------+------+------+------+                                 +------+------+------+------+                         |
+                                                                                          |                                                                                       |
+                                                                                          |  Tx                                                                                   |
+                                                                                          |                                                                                       |
++------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+    |
+|      | ERp  |  Tb  |  Rp  |      |      | S5.2 |            |      | ERp  |  Tb  |  Rp  |      |      | S5.2 |            |      | ERp  |  Tb  |  Rp  | [Tr] |      | S5.2 |    |
++------+------+------+------+------+------+------+     Tx     +------+------+------+------+------+------+------+   RX_NO    +------+------+------+------+------+------+------+    |
+|      | ETp  |  Rb  |  Tp  |  Rr  | [Tf] |      |    <==>    |      | ETp  |  Rb  |  Tp  |  Rr  | [Tf] |      |    <==>    |      | ETp  |  Rb  |  Tp  |  Rr  |  Tf  | [Re] |    |
++------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+    |
+|             |    PTof     |                                 |             |    PTof     |                                 |             |    PTof     |                         |  
++------+------+------+------+                                 +------+------+------+------+                                 +------+------+------+------+                         |
+                                                                                          |                                                                                       |
+                                                                                          |  Rx                                                                                   |
+                                                                                          |                                                                                       |
+                                                              +------+------+------+------+------+------+------+                                                                  |
+                                                              |      | ERp  |  Tb  |  Rp  | [Tr] | [Rf] | S6.2 |                                                                  |
+                                                              +------+------+------+------+------+------+------+                                                                  |
+                                                              |      | ETp  |  Rb  |  Tp  |  Rr  |  Tf  | [Re] |                                                                  |
+                                                              +------+------+------+------+------+------+------+                                                                  |
+                                                              |             |    PTof     |                                                                                       |
+                                                              +------+------+------+------+                                                                                       |
+                                                                                          |                                                 normal case                                               |
+                                                                                          |  shift                  +-------------------------------------------------------------+
+                                                                                          |                         |                                                             |
++------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+<---+       +------+------+------+------+------+------+------+    |
+| ETb  | ERp  |  Tb  |  Rp  | [Tr] | [Rf] | S4.3 |            | ETb  | ERp  |  Tb  |  Rp  |      |      | S4.3 |            | ETb  | ERp  |  Tb  |  Rp  | [Tr] |      | S4.3 |    |
++------+------+------+------+------+------+------+     Rx     +------+------+------+------+------+------+------+   RX_NO    +------+------+------+------+------+------+------+    |
+| ERb  | ETp  |  Rb  |  Tp  |  Rr  |      | [Re] |    <==>    | ERb  | ETp  |  Rb  |  Tp  |  Rr  |      |      |    <==>    | ERb  | ETp  |  Rb  |  Tp  |  Rr  |      | [Re] |    |
++------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+    |
+|    EPTof    |    PTof     |                                 |    EPTof    |    PTof     |                                 |    EPTof    |    PTof     |                         |
++------+------+------+------+                                 +------+------+------+------+                                 +------+------+------+------+                         |
+                                                                                          |                                                                                       |
+                                                                                          |  Tx                                                                                   |
+                                                                                          |                                                                                       |
++------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+    |
+| ETb  | ERp  |  Tb  |  Rp  |      |      | S5.3 |            | ETb  | ERp  |  Tb  |  Rp  |      |      | S5.3 |            | ETb  | ERp  |  Tb  |  Rp  | [Tr] |      | S5.3 |    |
++------+------+------+------+------+------+------+     Tx     +------+------+------+------+------+------+------+   RX_NO    +------+------+------+------+------+------+------+    |
+| ERb  | ETp  |  Rb  |  Tp  |  Rr  | [Tf] |      |    <==>    | ERb  | ETp  |  Rb  |  Tp  |  Rr  | [Tf] |      |    <==>    | ERb  | ETp  |  Rb  |  Tp  |  Rr  |  Tf  | [Re] |    |
++------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+    |
+|    EPTof    |    PTof     |                                 |             |    PTof     |                                 |    EPTof    |    PTof     |                         |
++------+------+------+------+                                 +------+------+------+------+                                 +------+------+------+------+                         |
+                                                                                          |                                                                                       | 
+                                                                                          |  Rx                                                                                   |
+                                                                                          |                                                                                       |
+                                                              +------+------+------+------+------+------+------+                                                                  |
+                                                              | ETb  | ERp  |  Tb  |  Rp  | [Tr] | [Rf] | S6.3 |                                                                  |
+                                                              +------+------+------+------+------+------+------+                                                                  |
+                                                              | ERb  | ETp  |  Rb  |  Tp  |  Rr  |  Tf  | [Re] |                                                                  |
+                                                              +------+------+------+------+------+------+------+                                                                  |
+                                                              |    EPTof    |    PTof     |                                                                                       |
+                                                              +------+------+------+------+                                                                                       |
+                                                                                          |  shift                                                                                |
+                                                                                          +---------------------------------------------------------------------------------------+ 
+*/
 
 static EventHandlerTable EVENT_HANDLER[RANGING_TABLE_STATE_COUNT][RANGING_TABLE_EVENT_COUNT] = {
     {RESERVED_STUB, RESERVED_STUB, RESERVED_STUB},
@@ -1133,7 +1318,7 @@ Time_t generateDSRMessage(Ranging_Message_t *rangingMessage) {
     rangingMessage->header.filter = 0;
 
     /* generate bodyUnit */
-    while(bodyUnitCount < MESSAGE_BODY_UNIT_SIZE && bodyUnitCount < rangingTableSet->size) {
+    while(bodyUnitCount < MESSAGE_BODYUNIT_SIZE && bodyUnitCount < rangingTableSet->size) {
         index_t index = rangingTableSet->priorityQueue[bodyUnitCount];
 
         // update timestamp field first to avoid memory overwrite
@@ -1468,7 +1653,9 @@ void rangingRxCallback(void *parameters) {
 
     xQueueSendFromISR(rxQueue, &rxMessageWithTimestamp, &xHigherPriorityTaskWoken);
 
-PACKET_LOSS:
+    #ifdef PACKET_LOSS_ENABLE
+    PACKET_LOSS:
+    #endif
 }
 
 void rangingInit() {

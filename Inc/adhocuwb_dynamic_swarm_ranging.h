@@ -13,32 +13,33 @@
 
 /* -------------------- Define -------------------- */
 #define         CLASSIC_SUPPORT_ENABLE
-// #define         COORDINATE_SEND_ENABLE
 #define         COMPENSATE_ENABLE
-#define         STATE_MACHINE_ENABLE
+// #define         COORDINATE_SEND_ENABLE
 // #define         PACKET_LOSS_ENABLE
+#define         STATE_MACHINE_ENABLE
 
-#define         COMPENSATE_RATE             0.5f
-#define         SEQGAP_THRESHOLD            3
-#define         PACKET_LOSS_RATE            0.1f
-
+/* Invalid Value */
 #define         NULL_ADDR                   0xFFFF
+#define         NULL_DIS                    -1.0f
+#define         NULL_INDEX                  0xFF
 #define         NULL_SEQ                    0x0
 #define         NULL_TIMESTAMP              0xFFFFFFFFU
-#define         NULL_INDEX                  0xFF
 #define         NULL_TOF                    -1.0f
-#define         NULL_DIS                    -1.0f
 
-#define         table_index_t               uint8_t
+/* Index */
 #define         index_t                     uint16_t
+#define         table_index_t               uint8_t
 
+/* Ranging Message */
+#define         MESSAGE_BODYUNIT_SIZE       2
 #define         MESSAGE_TX_POOL_SIZE        3
-#define         MESSAGE_BODY_UNIT_SIZE      2
 
+/* Ranging Table Set */
 #define         SEND_LIST_SIZE              5
-#define         Tr_Rr_BUFFER_POOL_SIZE      3
-#define         RANGING_TABLE_SIZE          10        
+#define         Tr_Rr_BUFFER_SIZE           3
+#define         RANGING_TABLE_SIZE          10
 
+/* Effective Distance Range */
 #define         UPPER_BOUND_DISTANCE        1000
 #define         LOWER_BOUND_DISTANCE        0
 
@@ -51,11 +52,15 @@
 #define         RANGING_RX_QUEUE_SIZE       10
 #define         RANGING_RX_QUEUE_ITEM_SIZE  sizeof(Ranging_Message_With_Additional_Info_t)
 
+/* Else */
 #define         CHECK_PERIOD                15
-#define         UWB_MAX_TIMESTAMP           1099511627776
-#define         VELOCITY                    0.4691763978616f
+#define         COMPENSATE_RATE             0.5f
 #define         CONVERGENCE_THRESHOLD       0.989f
 #define         NEIGHBOR_ADDRESS_MAX        32
+#define         PACKET_LOSS_RATE            0.1f
+#define         SEQGAP_THRESHOLD            3
+#define         UWB_MAX_TIMESTAMP           1099511627776
+#define         VELOCITY                    0.4691763978616f
 
 /* -------------------- Base Struct -------------------- */
 typedef struct {
@@ -78,12 +83,20 @@ typedef enum {
     RANGING_STATE_RESERVED,
     RANGING_STATE_S1,
     RANGING_STATE_S2,
-    RANGING_STATE_S3,   // RANGING_STATE_S3 is effectively a temporary state for initialization, never been invoked
+    RANGING_STATE_S3,       // RANGING_STATE_S3 is effectively a temporary state for initialization, never been invoked
     RANGING_STATE_S4,
     RANGING_STATE_S5,
-    RANGING_STATE_S6,   // RANGING_STATE_S6 is effectively a temporary state for distance calculation, never been invoked
+    RANGING_STATE_S6,       // RANGING_STATE_S6 is effectively a temporary state for distance calculation, never been invoked
     RANGING_TABLE_STATE_COUNT
 } RANGING_TABLE_STATE;
+
+typedef enum {
+    RANGING_SUBSTATE_RESERVED,
+    RANGING_SUBSTATE_S1,    // initialize
+    RANGING_SUBSTATE_S2,    // swarm ranging
+    RANGING_SUBSTATE_S3,    // dynamic swarm ranging
+    RANGING_TABLE_SUBSTATE_COUNT
+} RANGING_TABLE_SUBSTATE;   // used during RANGING_STATE_S4 ~ RANGING_STATE_S6
 
 typedef enum {
   RANGING_EVENT_TX,
@@ -122,8 +135,8 @@ typedef union{
 
 typedef struct {
     Message_Header_t header;
-    Message_Body_Unit_t bodyUnits[MESSAGE_BODY_UNIT_SIZE];
-} __attribute__((packed)) Ranging_Message_t;            // 38 + 12 * MESSAGE_BODY_UNIT_SIZE byte = 158 byte
+    Message_Body_Unit_t bodyUnits[MESSAGE_BODYUNIT_SIZE];
+} __attribute__((packed)) Ranging_Message_t;            // 38 + 12 * MESSAGE_BODYUNIT_SIZE byte = 158 byte
 
 typedef struct {
     Ranging_Message_t rangingMessage;
@@ -150,7 +163,7 @@ typedef struct {
 
 typedef struct {
     index_t topIndex;                   // index of latest valid (Tr,Rr) pair
-    Ranging_Table_Tr_Rr_Candidate_t candidates[Tr_Rr_BUFFER_POOL_SIZE];
+    Ranging_Table_Tr_Rr_Candidate_t candidates[Tr_Rr_BUFFER_SIZE];
 } __attribute__((packed)) Ranging_Table_Tr_Rr_Buffer_t;
 
 /* Ranging Table
@@ -242,11 +255,14 @@ void rangingTableSetInit();
 
 void checkExpiration(Ranging_Table_Set_t *rangingTableSet);
 
+int getCurrentSubstate(Ranging_Table_t *rangingTable);
+
 
 /* -------------------- Calculation Function -------------------- */
 float rangingAlgorithm(Timestamp_Tuple_t T1, Timestamp_Tuple_t R1, Timestamp_Tuple_t T2, Timestamp_Tuple_t R2, Timestamp_Tuple_t T3, Timestamp_Tuple_t R3, float ToF12);
 float classicCalculatePToF(Timestamp_Tuple_t Tp, Timestamp_Tuple_t Rp, Timestamp_Tuple_t Tr, Timestamp_Tuple_t Rr, Timestamp_Tuple_t Tf, Timestamp_Tuple_t Rf);
 float calculatePToF(Ranging_Table_t *rangingTable, Ranging_Table_Tr_Rr_Candidate_t candidate);
+void continuousPacketLossHandler(Ranging_Table_t *rangingTable, Ranging_Table_Tr_Rr_Candidate_t candidate);
 
 
 /* -------------------- Print Function -------------------- */
