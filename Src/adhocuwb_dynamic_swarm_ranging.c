@@ -4,6 +4,7 @@
 #include "queue.h"
 #include "task.h"
 #include "timers.h"
+#include "log.h"
 #include "adhocuwb_init.h"
 #include "adhocuwb_platform.h"
 #include "adhocuwb_dynamic_swarm_ranging.h"
