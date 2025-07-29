@@ -1361,13 +1361,17 @@ Time_t generateDSRMessage(Ranging_Message_t *rangingMessage) {
         checkExpiration(rangingTableSet);
     }
 
-    // printRangingMessage(rangingMessage);
+    DEBUG_PRINT("[generate]\n");
+    printRangingMessage(rangingMessage);
 
     return taskDelay;
 }
 
 void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWithAdditionalInfo) {
     Ranging_Message_t *rangingMessage = &rangingMessageWithAdditionalInfo->rangingMessage;
+
+    DEBUG_PRINT("[process]\n");
+    printRangingMessage(rangingMessage);
 
     uint16_t neighborAddress = rangingMessage->header.srcAddress;
     index_t neighborIndex = findRangingTable(rangingTableSet, neighborAddress);
@@ -1401,9 +1405,11 @@ void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
     /* process bodyUnit */
     Timestamp_Tuple_t Rf = nullTimestampTuple;
     if (rangingMessage->header.filter & (1 << (uwbGetAddress() % 16))) {
+        DEBUG_PRINT("[DEBUG]: neighborAddress = %u, enter filter\n", rangingTable->neighborAddress);
         uint8_t bodyUnitCount = (rangingMessage->header.msgLength - sizeof(Message_Header_t)) / sizeof(Message_Body_Unit_t);
         for(int i = 0; i < bodyUnitCount; i++) {
             if(rangingMessage->bodyUnits[i].address == (uint8_t)uwbGetAddress()) {
+                DEBUG_PRINT("[DEBUG]: neighborAddress = %u, get Rf\n", rangingTable->neighborAddress);
                 Rf.timestamp = rangingMessage->bodyUnits[i].timestamp;
                 Rf.seqNumber = rangingMessage->bodyUnits[i].seqNumber;
                 break;
@@ -1416,6 +1422,10 @@ void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
     index_Tf = findSendList(&rangingTableSet->sendList, Rf.seqNumber);
     if(index_Tf != NULL_INDEX) {
         Tf = rangingTableSet->sendList.Txtimestamps[index_Tf];
+        DEBUG_PRINT("[DEBUG]: neighborAddress = %u, get Tf\n", rangingTable->neighborAddress);
+    }
+    else {
+        DEBUG_PRINT("[DEBUG]: neighborAddress = %u, getting Tf failed\n", rangingTable->neighborAddress);
     }
 
     fillRangingTable(rangingTable, Tf, Rf, Re);
