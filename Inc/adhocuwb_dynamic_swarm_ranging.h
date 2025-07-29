@@ -15,7 +15,7 @@
 #define         CLASSIC_SUPPORT_ENABLE
 #define         COMPENSATE_ENABLE
 // #define         COORDINATE_SEND_ENABLE
-// #define         PACKET_LOSS_ENABLE
+#define         PACKET_LOSS_ENABLE
 #define         STATE_MACHINE_ENABLE
 
 /* Invalid Value */

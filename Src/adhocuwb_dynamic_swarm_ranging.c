@@ -1640,7 +1640,7 @@ void rangingRxCallback(void *parameters) {
     #ifdef PACKET_LOSS_ENABLE
         int randnum = rand() % 100;
         if(randnum < (int)(PACKET_LOSS_RATE * 100)) {
-            goto PACKET_LOSS;
+            return;
         }
     #endif
 
@@ -1657,10 +1657,6 @@ void rangingRxCallback(void *parameters) {
     rxMessageWithTimestamp.rangingMessage = *rangingMessage;
 
     xQueueSendFromISR(rxQueue, &rxMessageWithTimestamp, &xHigherPriorityTaskWoken);
-
-    #ifdef PACKET_LOSS_ENABLE
-    PACKET_LOSS:
-    #endif
 }
 
 void rangingInit() {
