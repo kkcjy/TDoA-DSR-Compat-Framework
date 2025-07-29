@@ -590,7 +590,7 @@ void continuousPacketLossHandler(Ranging_Table_t *rangingTable, Ranging_Table_Tr
     rangingTable->rangingState = RANGING_STATE_S4;
     RANGING_TABLE_STATE curState = rangingTable->rangingState;
 
-    DEBUG_PRINT("[S5_RX]: S%d.%d -> S%d.%d\n", prevState, RANGING_SUBSTATE_S3, curState, RANGING_SUBSTATE_S2);
+    DEBUG_PRINT("[S5_RX{local_%u, neighbor_%u}]: S%d.%d -> S%d.%d\n", MY_UWB_ADDRESS, rangingTable->neighborAddress, prevState, RANGING_SUBSTATE_S3, curState, RANGING_SUBSTATE_S2);
 }
 
 
@@ -735,7 +735,7 @@ static void S1_RX(Ranging_Table_t *rangingTable) {
     rangingTable->rangingState = RANGING_STATE_S1;
     RANGING_TABLE_STATE curState = rangingTable->rangingState;
 
-    DEBUG_PRINT("[S1_RX_NO]: S%d -> S%d\n", prevState, curState);
+    DEBUG_PRINT("[S1_RX{local_%u, neighbor_%u}]: S%d -> S%d\n", MY_UWB_ADDRESS, rangingTable->neighborAddress, prevState, curState);
 }
 
 static void S1_RX_NO(Ranging_Table_t *rangingTable) {
@@ -752,7 +752,7 @@ static void S1_RX_NO(Ranging_Table_t *rangingTable) {
     rangingTable->rangingState = RANGING_STATE_S1;
     RANGING_TABLE_STATE curState = rangingTable->rangingState;
 
-    DEBUG_PRINT("[S1_RX_NO]: S%d -> S%d\n", prevState, curState);
+    DEBUG_PRINT("[S1_RX_NO{local_%u, neighbor_%u}]: S%d -> S%d\n", MY_UWB_ADDRESS, rangingTable->neighborAddress, prevState, curState);
 }
 
 static void S2_TX(Ranging_Table_t *rangingTable) {
@@ -790,7 +790,7 @@ static void S2_RX(Ranging_Table_t *rangingTable) {
     rangingTable->rangingState = RANGING_STATE_S4;
     RANGING_TABLE_STATE curState = rangingTable->rangingState;
 
-    DEBUG_PRINT("[S2_RX]: S%d -> S%d.%d\n", prevState, curState, RANGING_SUBSTATE_S1);
+    DEBUG_PRINT("[S2_RX{local_%u, neighbor_%u}]: S%d -> S%d.%d\n", MY_UWB_ADDRESS, rangingTable->neighborAddress, prevState, curState, RANGING_SUBSTATE_S1);
 }
 
 static void S2_RX_NO(Ranging_Table_t *rangingTable) {
@@ -807,7 +807,7 @@ static void S2_RX_NO(Ranging_Table_t *rangingTable) {
     rangingTable->rangingState = RANGING_STATE_S2;
     RANGING_TABLE_STATE curState = rangingTable->rangingState;
 
-    DEBUG_PRINT("[S2_RX_NO]: S%d -> S%d\n", prevState, curState);
+    DEBUG_PRINT("[S2_RX_NO{local_%u, neighbor_%u}]: S%d -> S%d\n", MY_UWB_ADDRESS, rangingTable->neighborAddress, prevState, curState);
 }
 
 static void S3_TX(Ranging_Table_t *rangingTable) {
@@ -887,7 +887,7 @@ static void S4_RX(Ranging_Table_t *rangingTable) {
     RANGING_TABLE_STATE curState = rangingTable->rangingState;
     
     int curSubstate = getCurrentSubstate(rangingTable);
-    DEBUG_PRINT("[S4_RX]: S%d.%d -> S%d.%d\n", prevState, curSubstate, curState, curSubstate);
+    DEBUG_PRINT("[S4_RX{local_%u, neighbor_%u}]: S%d.%d -> S%d.%d\n", MY_UWB_ADDRESS, rangingTable->neighborAddress, prevState, curSubstate, curState, curSubstate);
 }
 
 static void S4_RX_NO(Ranging_Table_t *rangingTable) {
@@ -955,7 +955,7 @@ static void S4_RX_NO(Ranging_Table_t *rangingTable) {
     rangingTable->rangingState = RANGING_STATE_S4;
     RANGING_TABLE_STATE curState = rangingTable->rangingState;
 
-    DEBUG_PRINT("[S4_RX_NO]: S%d.%d -> S%d.%d\n", prevState, curSubstate, curState, curSubstate);
+    DEBUG_PRINT("[S4_RX_NO{local_%u, neighbor_%u}]: S%d.%d -> S%d.%d\n", MY_UWB_ADDRESS, rangingTable->neighborAddress, prevState, curSubstate, curState, curSubstate);
 }
 
 static void S5_TX(Ranging_Table_t *rangingTable) {
@@ -1086,7 +1086,7 @@ static void S5_RX(Ranging_Table_t *rangingTable) {
     rangingTable->rangingState = RANGING_STATE_S4;
     RANGING_TABLE_STATE curState = rangingTable->rangingState;
 
-    DEBUG_PRINT("[S5_RX]: S%d.%d -> S%d.%d\n", prevState, curSubstate, curState, (curSubstate == RANGING_SUBSTATE_S3) ? RANGING_SUBSTATE_S3 : curSubstate + 1);
+    DEBUG_PRINT("[S5_RX{local_%u, neighbor_%u}]: S%d.%d -> S%d.%d\n", MY_UWB_ADDRESS, rangingTable->neighborAddress, prevState, curSubstate, curState, (curSubstate == RANGING_SUBSTATE_S3) ? RANGING_SUBSTATE_S3 : curSubstate + 1);
 }
 
 static void S5_RX_NO(Ranging_Table_t *rangingTable) {
@@ -1154,7 +1154,7 @@ static void S5_RX_NO(Ranging_Table_t *rangingTable) {
     rangingTable->rangingState = RANGING_STATE_S5;
     RANGING_TABLE_STATE curState = rangingTable->rangingState;
 
-    DEBUG_PRINT("[S5_RX_NO]: S%d.%d -> S%d.%d\n", prevState, curSubstate, curState, curSubstate);
+    DEBUG_PRINT("[S5_RX_NO{local_%u, neighbor_%u}]: S%d.%d -> S%d.%d\n", MY_UWB_ADDRESS, rangingTable->neighborAddress, prevState, curSubstate, curState, curSubstate);
 }
 
 static void S6_TX(Ranging_Table_t *rangingTable) {
@@ -1529,14 +1529,14 @@ void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
             if(lastSeqNumber[rangingTable->neighborAddress] == NULL_SEQ || lastDistanceCalculate[rangingTable->neighborAddress] == NULL_DIS) {
                 lastDistanceCalculate[rangingTable->neighborAddress] = distanceCalculate[rangingTable->neighborAddress];
                 lastSeqNumber[rangingTable->neighborAddress] = rangingMessage->header.msgSequence;
-                DEBUG_PRINT("[current_%u]: ModifiedD = %f", MY_UWB_ADDRESS, (double)distanceCalculate[rangingTable->neighborAddress]);
+                DEBUG_PRINT("[local_%u<-neighbor_%u]: ModifiedD = %f", MY_UWB_ADDRESS, rangingTable->neighborAddress, (double)distanceCalculate[rangingTable->neighborAddress]);
             }
             else if(deltaDistanceUnit[rangingTable->neighborAddress] == NULL_DIS) {
                 uint16_t seqGap = rangingMessage->header.msgSequence - lastSeqNumber[rangingTable->neighborAddress];
                 deltaDistanceUnit[rangingTable->neighborAddress] = (distanceCalculate[rangingTable->neighborAddress] - lastDistanceCalculate[rangingTable->neighborAddress]) / seqGap;
                 lastDistanceCalculate[rangingTable->neighborAddress] = distanceCalculate[rangingTable->neighborAddress];
                 lastSeqNumber[rangingTable->neighborAddress] = rangingMessage->header.msgSequence;
-                DEBUG_PRINT("[current_%u]: ModifiedD = %f", MY_UWB_ADDRESS, (double)distanceCalculate[rangingTable->neighborAddress]);
+                DEBUG_PRINT("[local_%u<-neighbor_%u]: ModifiedD = %f", MY_UWB_ADDRESS, rangingTable->neighborAddress, (double)distanceCalculate[rangingTable->neighborAddress]);
             }
             else {
                 uint16_t seqGap = rangingMessage->header.msgSequence - lastSeqNumber[rangingTable->neighborAddress];
@@ -1546,15 +1546,15 @@ void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
                 lastSeqNumber[rangingTable->neighborAddress] = rangingMessage->header.msgSequence;
                 if(seqGap < SEQGAP_THRESHOLD) {
                     float distance = distanceCalculate[rangingTable->neighborAddress] + distanceCompensate * COMPENSATE_RATE;                    
-                    DEBUG_PRINT("[current_%u]: ModifiedD = %f", MY_UWB_ADDRESS, (double)distance);
+                    DEBUG_PRINT("[local_%u<-neighbor_%u]: ModifiedD = %f", MY_UWB_ADDRESS, rangingTable->neighborAddress, (double)distance);
                 } 
                 else {
                     // If packet loss is severe, disable compensation
-                    DEBUG_PRINT("[current_%u]: ModifiedD = %f", MY_UWB_ADDRESS, (double)distanceCalculate[rangingTable->neighborAddress]);
+                    DEBUG_PRINT("[local_%u<-neighbor_%u]: ModifiedD = %f", MY_UWB_ADDRESS, rangingTable->neighborAddress, (double)distanceCalculate[rangingTable->neighborAddress]);
                 }
             }
         #else
-            DEBUG_PRINT("[current_%u]: ModifiedD = %f", MY_UWB_ADDRESS, (double)distanceCalculate[rangingTable->neighborAddress]);
+            DEBUG_PRINT("[local_%u<-neighbor_%u]: ModifiedD = %f", MY_UWB_ADDRESS, rangingTable->neighborAddress, (double)distanceCalculate[rangingTable->neighborAddress]);
         #endif
 
         #ifdef COORDINATE_SEND_ENABLE
@@ -1563,7 +1563,7 @@ void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
         DEBUG_PRINT(", time = %llu\n", Re.timestamp.full % UWB_MAX_TIMESTAMP);
     }
     else {
-        DEBUG_PRINT("[current_%u]: calculation failed\n", MY_UWB_ADDRESS);
+        DEBUG_PRINT("[local_%u]: calculation failed\n", MY_UWB_ADDRESS);
     }
 
 
