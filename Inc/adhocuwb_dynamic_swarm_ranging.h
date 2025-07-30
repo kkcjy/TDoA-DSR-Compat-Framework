@@ -13,13 +13,14 @@
 
 /* -------------------- Define -------------------- */
 #define         CLASSIC_SUPPORT_ENABLE
-#define         COMPENSATE_ENABLE
+// #define         COMPENSATE_ENABLE
 // #define         COORDINATE_SEND_ENABLE
 #define         PACKET_LOSS_ENABLE
 #define         STATE_MACHINE_ENABLE
 
 /* Invalid Value */
-#define         NULL_ADDR                   0xFFFF
+#define         NULL_ADDRESS                0xFFFF
+#define         NULL_ADDR                   0xFF
 #define         NULL_DIS                    -1.0f
 #define         NULL_INDEX                  0xFF
 #define         NULL_SEQ                    0x0
@@ -31,7 +32,7 @@
 #define         table_index_t               uint8_t
 
 /* Ranging Message */
-#define         MESSAGE_BODYUNIT_SIZE       2
+#define         MESSAGE_BODYUNIT_SIZE       1
 #define         MESSAGE_TX_POOL_SIZE        3
 
 /* Ranging Table Set */
@@ -99,10 +100,10 @@ typedef enum {
 } RANGING_TABLE_SUBSTATE;   // used during RANGING_STATE_S4 ~ RANGING_STATE_S6
 
 typedef enum {
-  RANGING_EVENT_TX,
-  RANGING_EVENT_RX,
-  RANGING_EVENT_RX_NO,
-  RANGING_TABLE_EVENT_COUNT
+    RANGING_EVENT_TX,
+    RANGING_EVENT_RX,
+    RANGING_EVENT_RX_NO,
+    RANGING_TABLE_EVENT_COUNT
 } RANGING_TABLE_EVENT;
 
 typedef enum {

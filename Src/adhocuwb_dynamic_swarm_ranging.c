@@ -119,7 +119,7 @@ Ranging_Table_Tr_Rr_Candidate_t rangingTableTr_Rr_BufferGetCandidate(Ranging_Tab
 
 // init rangingTable
 void rangingTableInit(Ranging_Table_t *rangingTable) {
-    rangingTable->neighborAddress = NULL_ADDR;
+    rangingTable->neighborAddress = NULL_ADDRESS;
     rangingTable->ETb = nullTimestampTuple;
     rangingTable->ERb = nullTimestampTuple;
     rangingTable->ETp = nullTimestampTuple;
@@ -139,7 +139,7 @@ void rangingTableInit(Ranging_Table_t *rangingTable) {
     rangingTable->expirationSign = true;
     rangingTable->tableState = UNUSED;
     #ifdef STATE_MACHINE_ENABLE
-        rangingTable->rangingState = RANGING_STATE_RESERVED;
+        rangingTable->rangingState = RANGING_STATE_S1;
     #endif
 }
 
@@ -154,9 +154,7 @@ table_index_t registerRangingTable(Ranging_Table_Set_t *rangingTableSet, uint16_
         if(rangingTableSet->rangingTable[index].tableState == UNUSED) {
             rangingTableSet->rangingTable[index].neighborAddress = address;
             rangingTableSet->rangingTable[index].tableState = USING;
-            #ifdef STATE_MACHINE_ENABLE
-                rangingTableSet->rangingTable[index].rangingState = RANGING_STATE_S1;
-            #endif
+
             // newly registered neighbor is in the initialization phase and cannot trigger calculations in the short term, so their priority is low
             rangingTableSet->priorityQueue[rangingTableSet->size] = index;
             rangingTableSet->size++;
@@ -179,7 +177,7 @@ void deregisterRangingTable(Ranging_Table_Set_t *rangingTableSet, uint16_t addre
 
     table_index_t tableIdx = NULL_INDEX;
     for(table_index_t i = 0; i < RANGING_TABLE_SIZE; i++) {
-        if(rangingTableSet->rangingTable[i].neighborAddress == address) {
+        if(rangingTableSet->rangingTable[i].neighborAddress == address &&  rangingTableSet->rangingTable[i].tableState == USING) {
             tableIdx = i;
             break;
         }
@@ -190,7 +188,7 @@ void deregisterRangingTable(Ranging_Table_Set_t *rangingTableSet, uint16_t addre
         return;
     }
 
-    rangingTableInit(rangingTableSet->rangingTable);
+    rangingTableInit(&rangingTableSet->rangingTable[tableIdx]);
 
     table_index_t queueIdx = NULL_INDEX;
     for(table_index_t i = 0; i < rangingTableSet->size; i++) {
@@ -206,7 +204,7 @@ void deregisterRangingTable(Ranging_Table_Set_t *rangingTableSet, uint16_t addre
     }
 
     for(table_index_t i = queueIdx; i < rangingTableSet->size - 1; i++) {
-        rangingTableSet->priorityQueue[i] = rangingTableSet->priorityQueue[i+1];
+        rangingTableSet->priorityQueue[i] = rangingTableSet->priorityQueue[i + 1];
     }
     rangingTableSet->priorityQueue[rangingTableSet->size - 1] = NULL_INDEX;
     rangingTableSet->size--;
@@ -223,7 +221,7 @@ table_index_t findRangingTable(Ranging_Table_Set_t *rangingTableSet, uint16_t ad
 
     for (table_index_t i = 0; i < rangingTableSet->size; i++) {
         table_index_t idx = rangingTableSet->priorityQueue[i];
-        if (rangingTableSet->rangingTable[idx].neighborAddress == address) {
+        if (rangingTableSet->rangingTable[idx].neighborAddress == address && rangingTableSet->rangingTable[idx].tableState == USING) {
             return idx;
         }
     }
@@ -308,29 +306,22 @@ void replaceRangingTable(Ranging_Table_t *rangingTable, Timestamp_Tuple_t Tb, Ti
 
 // update the circular priority queue
 void updatePriorityQueue(Ranging_Table_Set_t *rangingTableSet, int8_t shiftCount) {
-    if(rangingTableSet->size <= 1 || shiftCount <= 0) {
+    // no need to shift
+    if(rangingTableSet->size <= 1 || shiftCount <= 0 || rangingTableSet->size == shiftCount) {
         return;
     }
 
-    index_t *tmpQueue = malloc(sizeof(index_t) * shiftCount);
-
-    if(!tmpQueue) {
+    index_t *tmpQueue = malloc(sizeof(index_t) * rangingTableSet->size);
+    if (!tmpQueue) {
         ASSERT(0 && "Warning: Should not be called\n");
     }
 
-    for(int i = 0; i < shiftCount; i++) {
-        tmpQueue[i] = rangingTableSet->priorityQueue[i];
+    for (index_t i = 0; i < rangingTableSet->size; i++) {
+        tmpQueue[i] = rangingTableSet->priorityQueue[(i + shiftCount) % rangingTableSet->size];
     }
 
-    int8_t idx = 0;
-
-    for(; idx < rangingTableSet->size; idx++) {
-        if(idx + shiftCount < rangingTableSet->size) {
-            rangingTableSet->priorityQueue[idx] = rangingTableSet->priorityQueue[idx + shiftCount];
-        }
-        else {
-            rangingTableSet->priorityQueue[idx] = tmpQueue[idx + shiftCount - rangingTableSet->size];
-        }
+    for (index_t i = 0; i < rangingTableSet->size; i++) {
+        rangingTableSet->priorityQueue[i] = tmpQueue[i];
     }
 
     free(tmpQueue);
@@ -359,10 +350,10 @@ void rangingTableSetInit() {
 // check expirationSign of rangingTables and deregister rangingTable expired
 void checkExpiration(Ranging_Table_Set_t *rangingTableSet) {
     for(table_index_t i = rangingTableSet->size; i > 0; i--) {
-        table_index_t idx = rangingTableSet->priorityQueue[i-1];
+        table_index_t idx = rangingTableSet->priorityQueue[i - 1];
         if(rangingTableSet->rangingTable[idx].expirationSign == true) {
             deregisterRangingTable(rangingTableSet, rangingTableSet->rangingTable[idx].neighborAddress);
-        } 
+        }
         else {
             rangingTableSet->rangingTable[idx].expirationSign = true;
         }
@@ -674,7 +665,7 @@ void printRangingTableSet(Ranging_Table_Set_t *rangingTableSet) {
 
     DEBUG_PRINT("\n[rangingTable]\n");
     for(int i = 0; i < rangingTableSet->size; i++) {
-        printRangingTable(&rangingTableSet->rangingTable[i]);
+        printRangingTable(&rangingTableSet->rangingTable[rangingTableSet->priorityQueue[i]]);
     }
 }
 
@@ -1338,6 +1329,14 @@ Time_t generateDSRMessage(Ranging_Message_t *rangingMessage) {
 
     // update priority queue
     updatePriorityQueue(rangingTableSet, bodyUnitCount);
+
+    // fill in empty info
+    while(bodyUnitCount < MESSAGE_BODYUNIT_SIZE) {
+        rangingMessage->bodyUnits[bodyUnitCount].timestamp.full = NULL_TIMESTAMP;
+        rangingMessage->bodyUnits[bodyUnitCount].seqNumber = NULL_SEQ;
+        rangingMessage->bodyUnits[bodyUnitCount].address = NULL_ADDR;
+        bodyUnitCount++;
+    }
 
     /* generate header */
     rangingMessage->header.srcAddress = MY_UWB_ADDRESS;
