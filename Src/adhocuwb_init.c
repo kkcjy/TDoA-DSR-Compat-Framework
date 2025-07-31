@@ -79,7 +79,7 @@ void adhocuwb_rxCallback(void *parameters) {
   if (!(packet->header.destAddress == MY_UWB_ADDRESS || packet->header.destAddress == UWB_DEST_ANY)) {
     return;
   }
-#ifdef ENABLE_SNIFFER
+#ifdef SNIFFER_ENABLE
   listeners[SNIFFER].rxCb(packet);
 #else
   if (listeners[msgType].rxCb) {
@@ -140,7 +140,7 @@ void adhocuwbInit() {
 #ifdef UWB_FLOODING_ENABLE
   floodingInit();
 #endif
-#ifdef ENABLE_SNIFFER
+#ifdef SNIFFER_ENABLE
   snifferInit(); 
 
 #endif

@@ -1354,7 +1354,7 @@ Time_t generateDSRMessage(Ranging_Message_t *rangingMessage) {
     #ifdef COORDINATE_SEND_ENABLE
         rangingMessage->header.TxCoordinate = rangingTableSet->sendList.TxCoordinate;
     #endif
-    rangingMessage->header.msgLength = sizeof(Message_Header_t) + sizeof(Message_Body_Unit_t) * bodyUnitCount;
+    rangingMessage->header.msgLength = sizeof(Ranging_Message_Header_t) + sizeof(Ranging_Message_Body_Unit_t) * bodyUnitCount;
 
     // clear expired rangingTable
     if(rangingTableSet->localSeqNumber % CHECK_PERIOD == 0) {
@@ -1405,7 +1405,7 @@ void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
     /* process bodyUnit */
     Timestamp_Tuple_t Rf = nullTimestampTuple;
     if (rangingMessage->header.filter & (1 << (uwbGetAddress() % 16))) {
-        uint8_t bodyUnitCount = (rangingMessage->header.msgLength - sizeof(Message_Header_t)) / sizeof(Message_Body_Unit_t);
+        uint8_t bodyUnitCount = (rangingMessage->header.msgLength - sizeof(Ranging_Message_Header_t)) / sizeof(Ranging_Message_Body_Unit_t);
         for(int i = 0; i < bodyUnitCount; i++) {
             if(rangingMessage->bodyUnits[i].address == (uint8_t)uwbGetAddress()) {
                 Rf.timestamp = rangingMessage->bodyUnits[i].timestamp;

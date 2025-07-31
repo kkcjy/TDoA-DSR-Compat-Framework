@@ -1,6 +1,8 @@
 # 编译器
 CC = gcc
 
+# for linux
+CFLAGS = -I/usr/include/libusb-1.0 -I../../../../../vendor/libdw3000/include
 
 # 链接库
 LDFLAGS = -lusb-1.0

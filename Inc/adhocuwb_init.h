@@ -1,6 +1,14 @@
 #ifndef __ADHOCUWB_INIT_H__
 #define __ADHOCUWB_INIT_H__
 
+#define UWB_DEBUG_ENABLE
+// #define UWB_RANGING_ENABLE
+//#define UWB_ROUTING_ENABLE
+//#define UWB_RAFT_ENABLE
+//#define UWB_FLOODING_ENABLE
+#define SNIFFER_ENABLE
+
+#ifndef SNIFFER_ENABLE
 #include "adhocuwb_platform.h"
 #include "dwm3000_init.h"
 
@@ -12,13 +20,6 @@
 
   #include "dwTypes.h"
 #endif
-
-#define UWB_DEBUG_ENABLE
-#define UWB_RANGING_ENABLE
-//#define UWB_ROUTING_ENABLE
-//#define UWB_RAFT_ENABLE
-//#define UWB_FLOODING_ENABLE
-// #define ENABLE_SNIFFER
 
 /* Queue Constants */
 #define UWB_TX_QUEUE_SIZE 5
@@ -86,5 +87,6 @@ int uwbReceivePacketBlock(UWB_MESSAGE_TYPE type, UWB_Packet_t *packet);
 int uwbReceivePacketWait(UWB_MESSAGE_TYPE type, UWB_Packet_t *packet, int wait);
 void uwbRegisterListener(UWB_Message_Listener_t *listener);
 void adhocuwbInit();
+#endif
 
 #endif

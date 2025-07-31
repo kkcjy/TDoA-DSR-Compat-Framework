@@ -6,8 +6,10 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include "dwTypes.h"
-#include "adhocuwb_platform.h"
 #include "adhocuwb_init.h"
+
+#ifndef SNIFFER_ENABLE
+#include "adhocuwb_platform.h"
 #include "dwm3000_init.h"
 
 
@@ -33,8 +35,10 @@
 
 /* Ranging Message */
 #define         MESSAGE_BODYUNIT_SIZE       1
+#endif
 #define         MESSAGE_TX_POOL_SIZE        3
 
+#ifndef SNIFFER_ENABLE
 /* Ranging Table Set */
 #define         SEND_LIST_SIZE              5
 #define         Tr_Rr_BUFFER_SIZE           3
@@ -62,6 +66,7 @@
 #define         SEQGAP_THRESHOLD            3
 #define         UWB_MAX_TIMESTAMP           1099511627776
 #define         VELOCITY                    0.4691763978616f
+#endif
 
 /* -------------------- Base Struct -------------------- */
 typedef struct {
@@ -69,6 +74,7 @@ typedef struct {
     uint16_t seqNumber;   
 } __attribute__((packed)) Timestamp_Tuple_t;            // 10 byte
 
+#ifndef SNIFFER_ENABLE
 typedef struct {
     uint16_t x;
     uint16_t y;
@@ -110,6 +116,7 @@ typedef enum {
     FIRST_CALCULATE,
     SECOND_CALCULATE
 } CalculateState;
+#endif
 
 
 /* -------------------- Ranging Message -------------------- */
@@ -123,8 +130,9 @@ typedef struct {
     #endif
     uint16_t filter;                    // bloom filter
     uint16_t msgLength;                 // size of message
-} __attribute__((packed)) Message_Header_t;             // 8 + 10 * MESSAGE_TX_POOL_SIZE byte = 38 byte
+} __attribute__((packed)) Ranging_Message_Header_t;     // 8 + 10 * MESSAGE_TX_POOL_SIZE byte = 38 byte
 
+#ifndef SNIFFER_ENABLE
 typedef union{
     struct {
         uint8_t rawtime[5]; 
@@ -132,11 +140,11 @@ typedef union{
         uint16_t seqNumber;             // last local Rxtimestamp.seqNumber when message is received
     } __attribute__((packed));
     dwTime_t timestamp;                 // last local Rxtimestamp.timestamp when message is received
-} Message_Body_Unit_t;                                  // 8 byte
+} Ranging_Message_Body_Unit_t;                          // 8 byte
 
 typedef struct {
-    Message_Header_t header;
-    Message_Body_Unit_t bodyUnits[MESSAGE_BODYUNIT_SIZE];
+    Ranging_Message_Header_t header;
+    Ranging_Message_Body_Unit_t bodyUnits[MESSAGE_BODYUNIT_SIZE];
 } __attribute__((packed)) Ranging_Message_t;            // 38 + 12 * MESSAGE_BODYUNIT_SIZE byte = 158 byte
 
 typedef struct {
@@ -283,5 +291,6 @@ typedef void (*EventHandlerTable)(Ranging_Table_t*);
 /* -------------------- Generate and Process -------------------- */
 Time_t generateDSRMessage(Ranging_Message_t *rangingMessage);
 void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWithAdditionalInfo);
+#endif
 
 #endif

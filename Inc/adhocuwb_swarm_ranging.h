@@ -2,8 +2,10 @@
 #define _SWARM_RANGING_H_
 
 #include "dwTypes.h"
-#include "adhocuwb_platform.h"
 #include "adhocuwb_init.h"
+
+#ifndef SNIFFER_ENABLE
+#include "adhocuwb_platform.h"
 #include "dwm3000_init.h"
 
 
@@ -29,7 +31,11 @@
 /* Ranging Struct Constants */
 #define RANGING_MESSAGE_SIZE_MAX UWB_PAYLOAD_SIZE_MAX
 #define RANGING_MESSAGE_PAYLOAD_SIZE_MAX (RANGING_MESSAGE_SIZE_MAX - sizeof(Ranging_Message_Header_t))
+#endif
+
 #define RANGING_MAX_Tr_UNIT 5
+
+#ifndef SNIFFER_ENABLE
 #define RANGING_MAX_BODY_UNIT (RANGING_MESSAGE_PAYLOAD_SIZE_MAX / sizeof(Body_Unit_t))
 #define RANGING_TABLE_SIZE 32 // default up to 20 one-hop neighbors
 #define RANGING_TABLE_SIZE_MAX 32
@@ -116,7 +122,7 @@ typedef union{
   }__attribute__((packed));
   dwTime_t timestamp; // 8 byte, 后5字节有用，高3字节未使用
 } Body_Unit_t;
-
+#endif
 
 typedef union{
   struct {
@@ -148,6 +154,7 @@ typedef struct {
   #endif
 } __attribute__((packed)) Ranging_Message_Header_t; // 10 byte + 10 byte * MAX_Tr_UNIT
 
+#ifndef SNIFFER_ENABLE
 /* Ranging Message */
 typedef struct {
   Ranging_Message_Header_t header; // 18 byte
@@ -349,5 +356,6 @@ void printRangingTableSet(Ranging_Table_Set_t *set);
 void printRangingMessage(Ranging_Message_t *rangingMessage);
 void printNeighborBitSet(Neighbor_Bit_Set_t *bitSet);
 void printNeighborSet(Neighbor_Set_t *set);
+#endif
 
 #endif
