@@ -4,7 +4,7 @@
 #include "dwTypes.h"
 #include "adhocuwb_init.h"
 
-#ifndef SNIFFER_ENABLE
+#ifndef SNIFFER_COMPILE
 #include "adhocuwb_platform.h"
 #include "dwm3000_init.h"
 
@@ -35,7 +35,7 @@
 
 #define RANGING_MAX_Tr_UNIT 5
 
-#ifndef SNIFFER_ENABLE
+#ifndef SNIFFER_COMPILE
 #define RANGING_MAX_BODY_UNIT (RANGING_MESSAGE_PAYLOAD_SIZE_MAX / sizeof(Body_Unit_t))
 #define RANGING_TABLE_SIZE 32 // default up to 20 one-hop neighbors
 #define RANGING_TABLE_SIZE_MAX 32
@@ -154,7 +154,7 @@ typedef struct {
   #endif
 } __attribute__((packed)) Ranging_Message_Header_t; // 10 byte + 10 byte * MAX_Tr_UNIT
 
-#ifndef SNIFFER_ENABLE
+#ifndef SNIFFER_COMPILE
 /* Ranging Message */
 typedef struct {
   Ranging_Message_Header_t header; // 18 byte

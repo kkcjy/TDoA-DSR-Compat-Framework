@@ -2,13 +2,14 @@
 #define __ADHOCUWB_INIT_H__
 
 #define UWB_DEBUG_ENABLE
-// #define UWB_RANGING_ENABLE
+#define UWB_RANGING_ENABLE
 //#define UWB_ROUTING_ENABLE
 //#define UWB_RAFT_ENABLE
 //#define UWB_FLOODING_ENABLE
-#define SNIFFER_ENABLE
+// #define SNIFFER_ENABLE
+#define SNIFFER_COMPILE   // used to compile src/deck/drivers/AdHocUWB/sniffer
 
-#ifndef SNIFFER_ENABLE
+#ifndef SNIFFER_COMPILE
 #include "adhocuwb_platform.h"
 #include "dwm3000_init.h"
 

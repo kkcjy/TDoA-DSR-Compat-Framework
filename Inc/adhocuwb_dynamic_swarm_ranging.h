@@ -8,7 +8,7 @@
 #include "dwTypes.h"
 #include "adhocuwb_init.h"
 
-#ifndef SNIFFER_ENABLE
+#ifndef SNIFFER_COMPILE
 #include "adhocuwb_platform.h"
 #include "dwm3000_init.h"
 
@@ -38,7 +38,7 @@
 #endif
 #define         MESSAGE_TX_POOL_SIZE        3
 
-#ifndef SNIFFER_ENABLE
+#ifndef SNIFFER_COMPILE
 /* Ranging Table Set */
 #define         SEND_LIST_SIZE              5
 #define         Tr_Rr_BUFFER_SIZE           3
@@ -74,7 +74,7 @@ typedef struct {
     uint16_t seqNumber;   
 } __attribute__((packed)) Timestamp_Tuple_t;            // 10 byte
 
-#ifndef SNIFFER_ENABLE
+#ifndef SNIFFER_COMPILE
 typedef struct {
     uint16_t x;
     uint16_t y;
@@ -132,7 +132,7 @@ typedef struct {
     uint16_t msgLength;                 // size of message
 } __attribute__((packed)) Ranging_Message_Header_t;     // 8 + 10 * MESSAGE_TX_POOL_SIZE byte = 38 byte
 
-#ifndef SNIFFER_ENABLE
+#ifndef SNIFFER_COMPILE
 typedef union{
     struct {
         uint8_t rawtime[5]; 

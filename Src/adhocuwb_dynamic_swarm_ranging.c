@@ -1374,6 +1374,12 @@ void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
     // printRangingMessage(rangingMessage);
 
     uint16_t neighborAddress = rangingMessage->header.srcAddress;
+
+    if(neighborAddress > NEIGHBOR_ADDRESS_MAX) {
+        DEBUG_PRINT("[processDSRMessage]: neighborAddress > NEIGHBOR_ADDRESS_MAX\n");
+        return;
+    }
+
     index_t neighborIndex = findRangingTable(rangingTableSet, neighborAddress);
 
     // handle new neighbor
