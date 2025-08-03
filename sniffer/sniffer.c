@@ -7,8 +7,8 @@
 #include "../Inc/dwm3000_init.h"
 
 
-#define SWARM_RANGING_MODE
-// #define DYNAMIC_SWARM_RANGING_MODE
+// #define SWARM_RANGING_MODE
+#define DYNAMIC_SWARM_RANGING_MODE
 
 #if defined(SWARM_RANGING_MODE)
 #include "../Inc/adhocuwb_swarm_ranging.h"
@@ -77,7 +77,6 @@ void fprintSwarmRangingMessaage(FILE* file, libusb_device_handle *device_handle)
         // success
         if(response == 0 && transferred <= MAX_PACKET_SIZE) {
             Sniffer_Meta_t *meta = (Sniffer_Meta_t *)buffer;
-            // meta->rxTime = BE64_TO_LE(meta->rxTime);
             fprintf(file, "%lu,", meta->rxTime);
 
             if(meta->magic == MAGIC_MATCH && meta->msgLength <= 256) {
@@ -120,12 +119,12 @@ void fprintDynamicSwarmRangingMessaage(FILE* file, libusb_device_handle *device_
     uint8_t endpoint = 0x81; 
     int transferred;
 
-    fprintf(file, "sniffer_rx_time,");
+    fprintf(file, "sniffer_rx_time,src_addr,msg_seq,msg_len,filter,");
     for(int i = 0; i < MESSAGE_TX_POOL_SIZE; i++) {
-        fprintf(file, "Tx%d_time, Tx%d_seq,", i, i);
+        fprintf(file, "Tx%d_time,Tx%d_seq,", i, i);
     }
     for(int i = 0; i < MESSAGE_BODYUNIT_SIZE && i < LISTENED_DRONES - 1; i++) {
-        fprintf(file, "Rx%d_addr, Rx_%d_time, Rx_%d_seq", i, i, i);
+        fprintf(file, "Rx%d_addr,Rx%d_time,Rx%d_seq,", i, i, i);
     }
     fprintf(file, "\n");
 
@@ -145,9 +144,10 @@ void fprintDynamicSwarmRangingMessaage(FILE* file, libusb_device_handle *device_
                     memcpy(&rangingMessage, payload, sizeof(Ranging_Message_t));
 
                     // header
-                    fprintf(file, "%u,%u,%u", rangingMessage.header.srcAddress, rangingMessage.header.msgSequence, rangingMessage.header.filter);
+                    fprintf(file, "%u,%u,%u,%u,", rangingMessage.header.srcAddress, rangingMessage.header.msgSequence, rangingMessage.header.msgLength, rangingMessage.header.filter);
+
                     for(int i = 0; i < MESSAGE_TX_POOL_SIZE; i++) {
-                        fprintf(file, "%lu,%u", rangingMessage.header.Txtimestamps[i].timestamp.full % UWB_MAX_TIMESTAMP, rangingMessage.header.Txtimestamps[i].seqNumber);
+                        fprintf(file, "%lu,%u,", rangingMessage.header.Txtimestamps[i].timestamp.full % UWB_MAX_TIMESTAMP, rangingMessage.header.Txtimestamps[i].seqNumber);
                     }
 
                     // bodyunit
