@@ -2,7 +2,7 @@
 CC = gcc
 
 # for linux
-CFLAGS = -I/usr/include/libusb-1.0 -I../../../../../vendor/libdw3000/include
+CFLAGS = -I/usr/include/libusb-1.0 -I../../../../../vendor/libdw3000/include -I../Inc -DSNIFFER_COMPILE
 
 # 链接库
 LDFLAGS = -lusb-1.0

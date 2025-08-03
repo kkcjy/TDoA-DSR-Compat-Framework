@@ -27,16 +27,15 @@
 /* Queue Constants */
 #define RANGING_RX_QUEUE_SIZE 10
 #define RANGING_RX_QUEUE_ITEM_SIZE sizeof(Ranging_Message_With_Timestamp_t)
+#endif
 
 /* Ranging Struct Constants */
 #define RANGING_MESSAGE_SIZE_MAX UWB_PAYLOAD_SIZE_MAX
 #define RANGING_MESSAGE_PAYLOAD_SIZE_MAX (RANGING_MESSAGE_SIZE_MAX - sizeof(Ranging_Message_Header_t))
-#endif
-
 #define RANGING_MAX_Tr_UNIT 5
+#define RANGING_MAX_BODY_UNIT (RANGING_MESSAGE_PAYLOAD_SIZE_MAX / sizeof(Body_Unit_t))
 
 #ifndef SNIFFER_COMPILE
-#define RANGING_MAX_BODY_UNIT (RANGING_MESSAGE_PAYLOAD_SIZE_MAX / sizeof(Body_Unit_t))
 #define RANGING_TABLE_SIZE 32 // default up to 20 one-hop neighbors
 #define RANGING_TABLE_SIZE_MAX 32
 #define RANGING_TABLE_HOLD_TIME (6 * RANGING_PERIOD_MAX)
@@ -104,6 +103,7 @@ typedef struct {
   dwTime_t timestamp; // 8 byte
   uint16_t seqNumber; // 2 byte
 } __attribute__((packed)) Timestamp_Tuple_t; // 10 byte
+#endif
 
 /* Body Unit */
 // typedef struct {
@@ -122,7 +122,6 @@ typedef union{
   }__attribute__((packed));
   dwTime_t timestamp; // 8 byte, 后5字节有用，高3字节未使用
 } Body_Unit_t;
-#endif
 
 typedef union{
   struct {
@@ -154,13 +153,13 @@ typedef struct {
   #endif
 } __attribute__((packed)) Ranging_Message_Header_t; // 10 byte + 10 byte * MAX_Tr_UNIT
 
-#ifndef SNIFFER_COMPILE
 /* Ranging Message */
 typedef struct {
   Ranging_Message_Header_t header; // 18 byte
   Body_Unit_t bodyUnits[RANGING_MAX_BODY_UNIT]; // 13 byte * MAX_BODY_UNIT
 } __attribute__((packed)) Ranging_Message_t; // 18 + 13 byte * MAX_BODY_UNIT
 
+#ifndef SNIFFER_COMPILE
 /* Ranging Message With RX Timestamp, used in RX Queue */
 typedef struct {
   Ranging_Message_t rangingMessage;

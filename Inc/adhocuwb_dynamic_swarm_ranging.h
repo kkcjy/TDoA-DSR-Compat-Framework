@@ -32,13 +32,12 @@
 /* Index */
 #define         index_t                     uint16_t
 #define         table_index_t               uint8_t
+#endif
 
 /* Ranging Message */
 #define         MESSAGE_BODYUNIT_SIZE       1
-#endif
 #define         MESSAGE_TX_POOL_SIZE        3
 
-#ifndef SNIFFER_COMPILE
 /* Ranging Table Set */
 #define         SEND_LIST_SIZE              5
 #define         Tr_Rr_BUFFER_SIZE           3
@@ -66,7 +65,7 @@
 #define         SEQGAP_THRESHOLD            3
 #define         UWB_MAX_TIMESTAMP           1099511627776
 #define         VELOCITY                    0.4691763978616f
-#endif
+
 
 /* -------------------- Base Struct -------------------- */
 typedef struct {
@@ -74,7 +73,6 @@ typedef struct {
     uint16_t seqNumber;   
 } __attribute__((packed)) Timestamp_Tuple_t;            // 10 byte
 
-#ifndef SNIFFER_COMPILE
 typedef struct {
     uint16_t x;
     uint16_t y;
@@ -116,7 +114,6 @@ typedef enum {
     FIRST_CALCULATE,
     SECOND_CALCULATE
 } CalculateState;
-#endif
 
 
 /* -------------------- Ranging Message -------------------- */
@@ -132,7 +129,6 @@ typedef struct {
     uint16_t msgLength;                 // size of message
 } __attribute__((packed)) Ranging_Message_Header_t;     // 8 + 10 * MESSAGE_TX_POOL_SIZE byte = 38 byte
 
-#ifndef SNIFFER_COMPILE
 typedef union{
     struct {
         uint8_t rawtime[5]; 
@@ -147,6 +143,7 @@ typedef struct {
     Ranging_Message_Body_Unit_t bodyUnits[MESSAGE_BODYUNIT_SIZE];
 } __attribute__((packed)) Ranging_Message_t;            // 38 + 12 * MESSAGE_BODYUNIT_SIZE byte = 158 byte
 
+#ifndef SNIFFER_COMPILE
 typedef struct {
     Ranging_Message_t rangingMessage;
     dwTime_t timestamp;                 // local timestamp when message is received

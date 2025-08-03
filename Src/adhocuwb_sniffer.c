@@ -65,6 +65,7 @@ static void snifferTask(void *parameters) {
         usbSendData(sizeToSend, pointer);
         pointer += sizeToSend;
         remain -= sizeToSend;
+        vTaskDelay(1);
       }
     
       DEBUG_PRINT("snifferUsbSend\n");
