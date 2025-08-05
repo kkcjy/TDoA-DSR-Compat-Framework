@@ -2068,9 +2068,9 @@ static void uwbRangingTxTask(void *parameters)
 
   while (true)
   {
-	DEBUG_PRINT("uwbRangingTxTask, while, before xSemaphoreTake\n");
+    // DEBUG_PRINT("uwbRangingTxTask, while, before xSemaphoreTake\n");
     xSemaphoreTake(rangingTableSet.mu, portMAX_DELAY);
-	// xSemaphoreTake(neighborSet.mu, portMAX_DELAY);
+    // xSemaphoreTake(neighborSet.mu, portMAX_DELAY);
     Time_t taskDelay = RANGING_PERIOD;
     generateRangingMessage(rangingMessage);
     txPacketCache.header.seqNumber++;
@@ -2200,16 +2200,16 @@ void rangingInit()
 
 LOG_GROUP_START(Ranging)
 
-LOG_ADD(LOG_INT16, distTo0, distanceTowards + 0)
-LOG_ADD(LOG_INT16, distTo1, distanceTowards + 1)
-LOG_ADD(LOG_INT16, distTo2, distanceTowards + 2)
-LOG_ADD(LOG_INT16, distTo3, distanceTowards + 3)
-LOG_ADD(LOG_INT16, distTo4, distanceTowards + 4)
-LOG_ADD(LOG_INT16, distTo5, distanceTowards + 5)
-LOG_ADD(LOG_INT16, distTo6, distanceTowards + 6)
-LOG_ADD(LOG_INT16, distTo7, distanceTowards + 7)
-LOG_ADD(LOG_INT16, distTo8, distanceTowards + 8)
-LOG_ADD(LOG_INT16, distTo9, distanceTowards + 9)
+LOG_ADD(LOG_INT16, distTo00, distanceTowards + 0)
+LOG_ADD(LOG_INT16, distTo01, distanceTowards + 1)
+LOG_ADD(LOG_INT16, distTo02, distanceTowards + 2)
+LOG_ADD(LOG_INT16, distTo03, distanceTowards + 3)
+LOG_ADD(LOG_INT16, distTo04, distanceTowards + 4)
+LOG_ADD(LOG_INT16, distTo05, distanceTowards + 5)
+LOG_ADD(LOG_INT16, distTo06, distanceTowards + 6)
+LOG_ADD(LOG_INT16, distTo07, distanceTowards + 7)
+LOG_ADD(LOG_INT16, distTo08, distanceTowards + 8)
+LOG_ADD(LOG_INT16, distTo09, distanceTowards + 9)
 LOG_ADD(LOG_INT16, distTo10, distanceTowards + 10)
 LOG_ADD(LOG_INT16, distTo11, distanceTowards + 11)
 LOG_ADD(LOG_INT16, distTo12, distanceTowards + 12)
