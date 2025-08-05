@@ -2,10 +2,11 @@
 CC = gcc
 
 # for linux
-CFLAGS = -I/usr/include/libusb-1.0 -I../../../../../vendor/libdw3000/include -I../Inc -DSNIFFER_COMPILE
+CFLAGS = -I/opt/homebrew/include -I../../../../../vendor/libdw3000/include -I../Inc -DSNIFFER_COMPILE
 
 # 链接库
-LDFLAGS = -lusb-1.0
+LDFLAGS = -L/opt/homebrew/lib -lusb-1.0
+
 
 # 源文件和目标文件
 SRC = sniffer.c
