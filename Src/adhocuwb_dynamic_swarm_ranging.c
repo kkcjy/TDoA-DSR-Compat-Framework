@@ -1,5 +1,8 @@
 #include <math.h>
 #include <string.h>
+#include "adhocuwb_dynamic_swarm_ranging.h"
+
+#ifndef SIMULATION_ENABLE
 #include "FreeRTOS.h"
 #include "queue.h"
 #include "task.h"
@@ -7,10 +10,10 @@
 #include "log.h"
 #include "adhocuwb_init.h"
 #include "adhocuwb_platform.h"
-#include "adhocuwb_dynamic_swarm_ranging.h"
+#endif
 
 #ifdef CONFIG_ADHOCUWB_PLATFORM_ADHOCUWBH7
-    #include "uwb_send_print.h"
+#include "uwb_send_print.h"
 #endif
 
 
@@ -1576,13 +1579,13 @@ void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
         DEBUG_PRINT("[local_%u]: calculation failed\n", MY_UWB_ADDRESS);
     }
 
-
     rangingTableSet->rangingTable[neighborIndex].expirationSign = false;
 
     // printRangingTableSet(rangingTableSet);
 }
 
 
+#ifndef SIMULATION_ENABLE
 /* -------------------- Call back -------------------- */
 static void uwbRangingTxTask(void *parameters) {
     systemWaitStart();
@@ -1684,8 +1687,9 @@ void rangingInit() {
     xTaskCreate(uwbRangingRxTask, ADHOC_UWB_RANGING_RX_TASK_NAME, UWB_TASK_STACK_SIZE, NULL,
                 ADHOC_UWB_TASK_PRI, &uwbRangingRxTaskHandle);
 }
-LOG_GROUP_START(Ranging)
 
+
+LOG_GROUP_START(Ranging)
 LOG_ADD(LOG_INT16, distTo00, distanceCalculate + 0)
 LOG_ADD(LOG_INT16, distTo01, distanceCalculate + 1)
 LOG_ADD(LOG_INT16, distTo02, distanceCalculate + 2)
@@ -1716,5 +1720,5 @@ LOG_ADD(LOG_INT16, distTo26, distanceCalculate + 26)
 LOG_ADD(LOG_INT16, distTo27, distanceCalculate + 27)
 LOG_ADD(LOG_INT16, distTo28, distanceCalculate + 28)
 LOG_ADD(LOG_INT16, distTo29, distanceCalculate + 29)
-
 LOG_GROUP_STOP(Ranging)
+#endif

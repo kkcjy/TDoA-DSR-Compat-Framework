@@ -1,6 +1,7 @@
 #ifndef DYNAMIC_SWARM_RANGING
 #define DYNAMIC_SWARM_RANGING
 
+#define SIMULATION_ENABLE
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -8,11 +9,13 @@
 #include "dwTypes.h"
 #include "adhocuwb_init.h"
 
-#ifndef SNIFFER_COMPILE
+#if !defined(SNIFFER_COMPILE) && !defined(SIMULATION_ENABLE)
 #include "adhocuwb_platform.h"
 #include "dwm3000_init.h"
+#endif
 
 
+#ifndef SNIFFER_COMPILE
 /* -------------------- Define -------------------- */
 #define         CLASSIC_SUPPORT_ENABLE
 // #define         COMPENSATE_ENABLE
