@@ -1,5 +1,6 @@
-#include <math.h>
+#include <stdlib.h>
 #include <string.h>
+#include <math.h>
 #include "FreeRTOS.h"
 #include "queue.h"
 #include "task.h"
@@ -21,11 +22,13 @@
   #include "uwb_send_print.h"
 #endif
 
-#ifndef RANGING_DEBUG_ENABLE
+#ifdef RANGING_DEBUG_ENABLE
+  #ifdef CONFIG_ADHOCUWB_PLATFORM_ADHOCUWBH7
+    #define DEBUG_PRINT printf
+  #endif
+#else 
   #undef DEBUG_PRINT
   #define DEBUG_PRINT
-#else defined(CONFIG_ADHOCUWB_PLATFORM_ADHOCUWBH7)
-  #define DEBUG_PRINT printf
 #endif
 
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
