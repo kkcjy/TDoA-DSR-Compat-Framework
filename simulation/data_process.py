@@ -30,7 +30,7 @@ def count_tx_rx_from_header(file_path):
 
 if __name__ == '__main__':
     # Needs to be replaced in a timely manner.
-    file_name = 'dsr2025-08-03-22-29-48.csv'
+    file_name = 'sr_2025-08-03-21-50-49.csv'
     drone_num = 2
 
     line_num = 3 * drone_num
@@ -97,9 +97,9 @@ if __name__ == '__main__':
 
             # Rx time
             for rx_idx in range(rx_count):
-                last_Tx_addr = int(parts[11 + 3 * rx_idx])
-                last_Rx_time = int(parts[12 + 3 * rx_idx])
-                last_Rx_seq = int(parts[13 + 3 * rx_idx])
+                last_Tx_addr = int(parts[5 + 2 * tx_count + 3 * rx_idx])
+                last_Rx_time = int(parts[6 + 2 * tx_count + 3 * rx_idx])
+                last_Rx_seq = int(parts[7 + 2 * tx_count + 3 * rx_idx])
 
                 found = False
                 # forward_part[0, table_pos - 1]
