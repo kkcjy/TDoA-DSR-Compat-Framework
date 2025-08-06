@@ -2,3 +2,5 @@
 sniffer/data/
 sniffer/sniffer
 simulation/data/
+simulation/center
+simulation/drone

@@ -20,10 +20,14 @@
 static uint16_t MY_UWB_ADDRESS;
 Ranging_Table_Set_t *rangingTableSet;
 
+#ifdef SIMULATION_ENABLE
+extern const char* localAddress;
+#else
 static QueueHandle_t rxQueue;
 static UWB_Message_Listener_t listener;
 static TaskHandle_t uwbRangingTxTaskHandle = 0;
 static TaskHandle_t uwbRangingRxTaskHandle = 0;
+#endif
 
 int16_t distanceReal[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = NULL_DIS};
 int16_t distanceCalculate[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = NULL_DIS};
@@ -347,7 +351,11 @@ void rangingTableSetInit() {
         rangingTableSet->lastRxtimestamp[i] = nullTimestampTuple;
         rangingTableSet->priorityQueue[i] = NULL_INDEX;
     }
-    rangingTableSet->mutex = xSemaphoreCreateMutex();
+    #ifndef SIMULATION_ENABLE
+        rangingTableSet->mutex = xSemaphoreCreateMutex();
+    #else
+        MY_UWB_ADDRESS = (uint16_t)strtoul(localAddress, NULL, 10);
+    #endif
 }
 
 // check expirationSign of rangingTables and deregister rangingTable expired
@@ -585,7 +593,7 @@ void continuousPacketLossHandler(Ranging_Table_t *rangingTable, Ranging_Table_Tr
     rangingTable->rangingState = RANGING_STATE_S4;
     RANGING_TABLE_STATE curState = rangingTable->rangingState;
 
-    DEBUG_PRINT("[S5_RX{local_%u, neighbor_%u}]: S%d.%d -> S%d.%d\n", MY_UWB_ADDRESS, rangingTable->neighborAddress, prevState, RANGING_SUBSTATE_S3, curState, RANGING_SUBSTATE_S2);
+    //DEBUG_PRINT("[S5_RX{local_%u, neighbor_%u}]: S%d.%d -> S%d.%d\n", MY_UWB_ADDRESS, rangingTable->neighborAddress, prevState, RANGING_SUBSTATE_S3, curState, RANGING_SUBSTATE_S2);
 }
 
 
@@ -654,10 +662,10 @@ void printPriorityQueue(Ranging_Table_Set_t *rangingTableSet) {
 
 void printRangingTableSet(Ranging_Table_Set_t *rangingTableSet) {
     DEBUG_PRINT("\n{rangingTableSet}\n");
-    DEBUG_PRINT("size: %u\n", rangingTableSet->size);
+    // DEBUG_PRINT("size: %u\n", rangingTableSet->size);
     DEBUG_PRINT("localSeqNumber: %lu\n", rangingTableSet->localSeqNumber);
 
-    printPriorityQueue(rangingTableSet);
+    // printPriorityQueue(rangingTableSet);
 
     printSendList(&rangingTableSet->sendList);
 
@@ -666,10 +674,10 @@ void printRangingTableSet(Ranging_Table_Set_t *rangingTableSet) {
         DEBUG_PRINT("neighborAddress: %u, seqNumber: %u, timestamp: %llu\n", rangingTableSet->rangingTable[i].neighborAddress, rangingTableSet->lastRxtimestamp[i].seqNumber, rangingTableSet->lastRxtimestamp[i].timestamp.full % UWB_MAX_TIMESTAMP);
     }
 
-    DEBUG_PRINT("\n[rangingTable]\n");
-    for(int i = 0; i < rangingTableSet->size; i++) {
-        printRangingTable(&rangingTableSet->rangingTable[rangingTableSet->priorityQueue[i]]);
-    }
+    // DEBUG_PRINT("\n[rangingTable]\n");
+    // for(int i = 0; i < rangingTableSet->size; i++) {
+    //     printRangingTable(&rangingTableSet->rangingTable[rangingTableSet->priorityQueue[i]]);
+    // }
 }
 
 void printclassicCalculateTuple(Timestamp_Tuple_t Tp, Timestamp_Tuple_t Rp, Timestamp_Tuple_t Tr, Timestamp_Tuple_t Rr, Timestamp_Tuple_t Tf, Timestamp_Tuple_t Rf) {
@@ -713,7 +721,7 @@ static void S1_TX(Ranging_Table_t *rangingTable) {
     rangingTable->rangingState = RANGING_STATE_S2;
     RANGING_TABLE_STATE curState = rangingTable->rangingState;
 
-    DEBUG_PRINT("[S1_TX]: S%d -> S%d\n", prevState, curState);
+    //DEBUG_PRINT("[S1_TX]: S%d -> S%d\n", prevState, curState);
 }
 
 static void S1_RX(Ranging_Table_t *rangingTable) {
@@ -730,7 +738,7 @@ static void S1_RX(Ranging_Table_t *rangingTable) {
     rangingTable->rangingState = RANGING_STATE_S1;
     RANGING_TABLE_STATE curState = rangingTable->rangingState;
 
-    DEBUG_PRINT("[S1_RX{local_%u, neighbor_%u}]: S%d -> S%d\n", MY_UWB_ADDRESS, rangingTable->neighborAddress, prevState, curState);
+    //DEBUG_PRINT("[S1_RX{local_%u, neighbor_%u}]: S%d -> S%d\n", MY_UWB_ADDRESS, rangingTable->neighborAddress, prevState, curState);
 }
 
 static void S1_RX_NO(Ranging_Table_t *rangingTable) {
@@ -747,7 +755,7 @@ static void S1_RX_NO(Ranging_Table_t *rangingTable) {
     rangingTable->rangingState = RANGING_STATE_S1;
     RANGING_TABLE_STATE curState = rangingTable->rangingState;
 
-    DEBUG_PRINT("[S1_RX_NO{local_%u, neighbor_%u}]: S%d -> S%d\n", MY_UWB_ADDRESS, rangingTable->neighborAddress, prevState, curState);
+    //DEBUG_PRINT("[S1_RX_NO{local_%u, neighbor_%u}]: S%d -> S%d\n", MY_UWB_ADDRESS, rangingTable->neighborAddress, prevState, curState);
 }
 
 static void S2_TX(Ranging_Table_t *rangingTable) {
@@ -764,7 +772,7 @@ static void S2_TX(Ranging_Table_t *rangingTable) {
     rangingTable->rangingState = RANGING_STATE_S2;
     RANGING_TABLE_STATE curState = rangingTable->rangingState;
 
-    DEBUG_PRINT("[S2_TX]: S%d -> S%d\n", prevState, curState);
+    //DEBUG_PRINT("[S2_TX]: S%d -> S%d\n", prevState, curState);
 }
 
 static void S2_RX(Ranging_Table_t *rangingTable) {
@@ -785,7 +793,7 @@ static void S2_RX(Ranging_Table_t *rangingTable) {
     rangingTable->rangingState = RANGING_STATE_S4;
     RANGING_TABLE_STATE curState = rangingTable->rangingState;
 
-    DEBUG_PRINT("[S2_RX{local_%u, neighbor_%u}]: S%d -> S%d.%d\n", MY_UWB_ADDRESS, rangingTable->neighborAddress, prevState, curState, RANGING_SUBSTATE_S1);
+    //DEBUG_PRINT("[S2_RX{local_%u, neighbor_%u}]: S%d -> S%d.%d\n", MY_UWB_ADDRESS, rangingTable->neighborAddress, prevState, curState, RANGING_SUBSTATE_S1);
 }
 
 static void S2_RX_NO(Ranging_Table_t *rangingTable) {
@@ -802,7 +810,7 @@ static void S2_RX_NO(Ranging_Table_t *rangingTable) {
     rangingTable->rangingState = RANGING_STATE_S2;
     RANGING_TABLE_STATE curState = rangingTable->rangingState;
 
-    DEBUG_PRINT("[S2_RX_NO{local_%u, neighbor_%u}]: S%d -> S%d\n", MY_UWB_ADDRESS, rangingTable->neighborAddress, prevState, curState);
+    //DEBUG_PRINT("[S2_RX_NO{local_%u, neighbor_%u}]: S%d -> S%d\n", MY_UWB_ADDRESS, rangingTable->neighborAddress, prevState, curState);
 }
 
 static void S3_TX(Ranging_Table_t *rangingTable) {
@@ -848,7 +856,7 @@ static void S4_TX(Ranging_Table_t *rangingTable) {
     RANGING_TABLE_STATE curState = rangingTable->rangingState;
 
     int curSubstate = getCurrentSubstate(rangingTable);
-    DEBUG_PRINT("[S4_TX]: S%d.%d -> S%d.%d\n", prevState, curSubstate, curState, curSubstate);
+    //DEBUG_PRINT("[S4_TX]: S%d.%d -> S%d.%d\n", prevState, curSubstate, curState, curSubstate);
 }
 
 static void S4_RX(Ranging_Table_t *rangingTable) {
@@ -882,7 +890,7 @@ static void S4_RX(Ranging_Table_t *rangingTable) {
     RANGING_TABLE_STATE curState = rangingTable->rangingState;
     
     int curSubstate = getCurrentSubstate(rangingTable);
-    DEBUG_PRINT("[S4_RX{local_%u, neighbor_%u}]: S%d.%d -> S%d.%d\n", MY_UWB_ADDRESS, rangingTable->neighborAddress, prevState, curSubstate, curState, curSubstate);
+    //DEBUG_PRINT("[S4_RX{local_%u, neighbor_%u}]: S%d.%d -> S%d.%d\n", MY_UWB_ADDRESS, rangingTable->neighborAddress, prevState, curSubstate, curState, curSubstate);
 }
 
 static void S4_RX_NO(Ranging_Table_t *rangingTable) {
@@ -950,7 +958,7 @@ static void S4_RX_NO(Ranging_Table_t *rangingTable) {
     rangingTable->rangingState = RANGING_STATE_S4;
     RANGING_TABLE_STATE curState = rangingTable->rangingState;
 
-    DEBUG_PRINT("[S4_RX_NO{local_%u, neighbor_%u}]: S%d.%d -> S%d.%d\n", MY_UWB_ADDRESS, rangingTable->neighborAddress, prevState, curSubstate, curState, curSubstate);
+    //DEBUG_PRINT("[S4_RX_NO{local_%u, neighbor_%u}]: S%d.%d -> S%d.%d\n", MY_UWB_ADDRESS, rangingTable->neighborAddress, prevState, curSubstate, curState, curSubstate);
 }
 
 static void S5_TX(Ranging_Table_t *rangingTable) {
@@ -984,7 +992,7 @@ static void S5_TX(Ranging_Table_t *rangingTable) {
     RANGING_TABLE_STATE curState = rangingTable->rangingState;
 
     int curSubstate = getCurrentSubstate(rangingTable);
-    DEBUG_PRINT("[S5_TX]: S%d.%d -> S%d.%d\n", prevState, curSubstate, curState, curSubstate);
+    //DEBUG_PRINT("[S5_TX]: S%d.%d -> S%d.%d\n", prevState, curSubstate, curState, curSubstate);
 }
 
 static void S5_RX(Ranging_Table_t *rangingTable) {
@@ -1081,7 +1089,7 @@ static void S5_RX(Ranging_Table_t *rangingTable) {
     rangingTable->rangingState = RANGING_STATE_S4;
     RANGING_TABLE_STATE curState = rangingTable->rangingState;
 
-    DEBUG_PRINT("[S5_RX{local_%u, neighbor_%u}]: S%d.%d -> S%d.%d\n", MY_UWB_ADDRESS, rangingTable->neighborAddress, prevState, curSubstate, curState, (curSubstate == RANGING_SUBSTATE_S3) ? RANGING_SUBSTATE_S3 : curSubstate + 1);
+    //DEBUG_PRINT("[S5_RX{local_%u, neighbor_%u}]: S%d.%d -> S%d.%d\n", MY_UWB_ADDRESS, rangingTable->neighborAddress, prevState, curSubstate, curState, (curSubstate == RANGING_SUBSTATE_S3) ? RANGING_SUBSTATE_S3 : curSubstate + 1);
 }
 
 static void S5_RX_NO(Ranging_Table_t *rangingTable) {
@@ -1149,7 +1157,7 @@ static void S5_RX_NO(Ranging_Table_t *rangingTable) {
     rangingTable->rangingState = RANGING_STATE_S5;
     RANGING_TABLE_STATE curState = rangingTable->rangingState;
 
-    DEBUG_PRINT("[S5_RX_NO{local_%u, neighbor_%u}]: S%d.%d -> S%d.%d\n", MY_UWB_ADDRESS, rangingTable->neighborAddress, prevState, curSubstate, curState, curSubstate);
+    //DEBUG_PRINT("[S5_RX_NO{local_%u, neighbor_%u}]: S%d.%d -> S%d.%d\n", MY_UWB_ADDRESS, rangingTable->neighborAddress, prevState, curSubstate, curState, curSubstate);
 }
 
 static void S6_TX(Ranging_Table_t *rangingTable) {
@@ -1305,9 +1313,7 @@ void RangingTableEventHandler(Ranging_Table_t *rangingTable, RANGING_TABLE_EVENT
 
 
 /* -------------------- Generate and Process -------------------- */
-Time_t generateDSRMessage(Ranging_Message_t *rangingMessage) {
-    Time_t taskDelay = M2T(RANGING_PERIOD);
-
+void generateDSRMessage(Ranging_Message_t *rangingMessage) {
     int8_t bodyUnitCount = 0;     
     rangingTableSet->localSeqNumber++;
     rangingMessage->header.filter = 0;
@@ -1365,9 +1371,7 @@ Time_t generateDSRMessage(Ranging_Message_t *rangingMessage) {
     }
 
     // DEBUG_PRINT("[generate]\n");
-    // printRangingMessage(rangingMessage);
-
-    return taskDelay;
+    printRangingMessage(rangingMessage);
 }
 
 void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWithAdditionalInfo) {
@@ -1413,10 +1417,10 @@ void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
 
     /* process bodyUnit */
     Timestamp_Tuple_t Rf = nullTimestampTuple;
-    if (rangingMessage->header.filter & (1 << (uwbGetAddress() % 16))) {
+    if (rangingMessage->header.filter & (1 << (MY_UWB_ADDRESS % 16))) {
         uint8_t bodyUnitCount = (rangingMessage->header.msgLength - sizeof(Ranging_Message_Header_t)) / sizeof(Ranging_Message_Body_Unit_t);
         for(int i = 0; i < bodyUnitCount; i++) {
-            if(rangingMessage->bodyUnits[i].address == (uint8_t)uwbGetAddress()) {
+            if(rangingMessage->bodyUnits[i].address == (uint8_t)MY_UWB_ADDRESS) {
                 Rf.timestamp = rangingMessage->bodyUnits[i].timestamp;
                 Rf.seqNumber = rangingMessage->bodyUnits[i].seqNumber;
                 break;
@@ -1576,12 +1580,12 @@ void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
         DEBUG_PRINT(", time = %llu\n", Re.timestamp.full % UWB_MAX_TIMESTAMP);
     }
     else {
-        DEBUG_PRINT("[local_%u]: calculation failed\n", MY_UWB_ADDRESS);
+        // DEBUG_PRINT("[local_%u]: calculation failed\n", MY_UWB_ADDRESS);
     }
 
     rangingTableSet->rangingTable[neighborIndex].expirationSign = false;
 
-    // printRangingTableSet(rangingTableSet);
+    printRangingTableSet(rangingTableSet);
 }
 
 
@@ -1591,7 +1595,7 @@ static void uwbRangingTxTask(void *parameters) {
     systemWaitStart();
 
     UWB_Packet_t txPacketCache;
-    txPacketCache.header.srcAddress = uwbGetAddress();
+    txPacketCache.header.srcAddress = MY_UWB_ADDRESS;
     txPacketCache.header.destAddress = UWB_DEST_ANY;
     txPacketCache.header.type = UWB_RANGING_MESSAGE;
     txPacketCache.header.length = 0;

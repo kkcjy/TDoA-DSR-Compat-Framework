@@ -1,13 +1,17 @@
 #ifndef DYNAMIC_SWARM_RANGING
 #define DYNAMIC_SWARM_RANGING
 
-#define SIMULATION_ENABLE
 
+#include <assert.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdio.h>
 #include "dwTypes.h"
+
+#ifndef SIMULATION_ENABLE
 #include "adhocuwb_init.h"
+#endif
 
 #if !defined(SNIFFER_COMPILE) && !defined(SIMULATION_ENABLE)
 #include "adhocuwb_platform.h"
@@ -68,6 +72,12 @@
 #define         SEQGAP_THRESHOLD            3
 #define         UWB_MAX_TIMESTAMP           1099511627776
 #define         VELOCITY                    0.4691763978616f
+
+/* Simulation */
+#ifdef SIMULATION_ENABLE
+#define         DEBUG_PRINT                 printf
+#define         ASSERT                      assert
+#endif
 
 
 /* -------------------- Base Struct -------------------- */
@@ -221,7 +231,9 @@ typedef struct {
     Ranging_Table_t rangingTable[RANGING_TABLE_SIZE];
     Timestamp_Tuple_t lastRxtimestamp[RANGING_TABLE_SIZE];  
     index_t priorityQueue[RANGING_TABLE_SIZE];              // circular priority queue used for choosing neighbors to send messages
+    #ifndef SIMULATION_ENABLE
     SemaphoreHandle_t mutex;
+    #endif
 } __attribute__((packed)) Ranging_Table_Set_t;
 
 
@@ -289,7 +301,7 @@ typedef void (*EventHandlerTable)(Ranging_Table_t*);
 
 
 /* -------------------- Generate and Process -------------------- */
-Time_t generateDSRMessage(Ranging_Message_t *rangingMessage);
+void generateDSRMessage(Ranging_Message_t *rangingMessage);
 void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWithAdditionalInfo);
 #endif
 

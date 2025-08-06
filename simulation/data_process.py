@@ -30,7 +30,7 @@ def count_tx_rx_from_header(file_path):
 
 if __name__ == '__main__':
     # Needs to be replaced in a timely manner.
-    file_name = 'sr_2025-08-03-21-50-49.csv'
+    file_name = '2025-08-06-17-48-05.csv'
     drone_num = 2
 
     line_num = 3 * drone_num
@@ -139,12 +139,12 @@ if __name__ == '__main__':
 
                     # check if all fields are valid
                     all_valid = True
-                    if src_addr[current_pos] == 0 or msg_seq[current_pos] == 0 or filter[current_pos] == 0 or Tx_time[current_pos] == 0:
+                    if Tx_time[current_pos] == 0:
                         all_valid = False
 
                     if all_valid:
                         for j in range(rx_count):
-                            if Rx_addr[current_pos, j] == 0 or Rx_time[current_pos, j] == 0:
+                            if Rx_time[current_pos, j] == 0:
                                 all_valid = False
                                 break
 

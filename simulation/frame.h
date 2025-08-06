@@ -2,24 +2,29 @@
 #define FRAME_H
 
 
+#include <arpa/inet.h>
 #include <pthread.h>
 #include <netinet/in.h>
 #include <stddef.h>
 #include <stdio.h>
+#include <string.h>
 #include <sys/socket.h>
+#include <time.h>
 #include <unistd.h>
 
 #include "../Inc/adhocuwb_dynamic_swarm_ranging.h"
 
-#define     NODES_NUM       10
-#define     MESSAGE_SIZE    512
+
+#define     NODES_NUM       2
 #define     ADDR_SIZE       20
-#define     CENTER_PORT     8888
 #define     CENTER_ADDRESS  "CENTER"
+#define     CENTER_PORT     8888
+#define     MAX_LINE_LEN    256
+#define     MESSAGE_SIZE    512
 #define     PAYLOAD_SIZE    MESSAGE_SIZE - ADDR_SIZE - sizeof(size_t)
-#define     REJECT_INFO     "REJECT"
 #define     READ_PERIOD     200
-    
+#define     REJECT_INFO     "REJECT"
+
 
 typedef enum {
     TX,                     // sender
@@ -27,7 +32,7 @@ typedef enum {
 } Simu_Direction_t;
 
 typedef struct {
-    char address[ADDR_SIZE];
+    uint16_t address;
     Simu_Direction_t status;
     dwTime_t timestamp;
 } Line_Message_t;

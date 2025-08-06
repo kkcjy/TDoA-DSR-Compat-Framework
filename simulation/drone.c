@@ -1,56 +1,95 @@
+#define _POSIX_C_SOURCE 199309L
 #include "frame.h"
 
 
 const char* localAddress;
-dwTime_t TxTimestamp;                           // store timestamp from flightLog
-dwTime_t RxTimestamp;                           // store timestamp from flightLog
+extern Ranging_Table_Set_t *rangingTableSet;
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;      // mutex for synchronizing access to the rangingTableSet
+dwTime_t TxTimestamp;                                   // store timestamp from flightLog
+dwTime_t RxTimestamp;                                   // store timestamp from flightLog
+volatile bool has_response = false;                     // flag to indicate if response has been received
 
 
-void sendToCenter(int center_socket, const char* address, const Ranging_Message_t *ranging_msg) {
-    Simu_Message_t simu_message;
+void send_to_center(int center_socket, const char* address, const Ranging_Message_t *ranging_msg) {
+    Simu_Message_t simu_msg;
 
     if(sizeof(Ranging_Message_t) > PAYLOAD_SIZE) {
-        perror("Warning: %ld > %ld, Ranging_Message_t too large!\n", sizeof(Ranging_Message_t), PAYLOAD_SIZE);
+        perror("Warning: Ranging_Message_t too large!\n");
     }
 
-    snprintf(simu_message.srcAddress, sizeof(simu_message.srcAddress), "%s", address);
-    memcpy(simu_message.payload, ranging_msg, sizeof(Ranging_Message_t));
-    simu_message.size = sizeof(Ranging_Message_t);
+    snprintf(simu_msg.srcAddress, sizeof(simu_msg.srcAddress), "%s", address);
+    memcpy(simu_msg.payload, ranging_msg, sizeof(Ranging_Message_t));
+    simu_msg.size = sizeof(Ranging_Message_t);
 
-    if (send(center_socket, &simu_message, sizeof(simu_message), 0) < 0) {
+    if (send(center_socket, &simu_msg, sizeof(Simu_Message_t), 0) < 0) {
         perror("Send failed");
     }
 }
 
+void TxCallBack(int center_socket, dwTime_t timestamp) {
+    Ranging_Message_t ranging_msg;
+
+    pthread_mutex_lock(&mutex);
+    generateDSRMessage(&ranging_msg);
+    Timestamp_Tuple_t curTimeTuple = {
+        .timestamp = timestamp,
+        .seqNumber = ranging_msg.header.msgSequence
+    };
+    updateSendList(&rangingTableSet->sendList, curTimeTuple);
+    pthread_mutex_unlock(&mutex);
+
+    send_to_center(center_socket, localAddress, &ranging_msg);
+
+    // printf("Txcall, Txtimesatamp = %lu\n", timestamp.full);
+   
+    // reset TxTimestamp after callback
+    TxTimestamp.full = NULL_TIMESTAMP;
+}
+
+void RxCallBack(Ranging_Message_t *rangingMessage, dwTime_t timestamp) {
+    Ranging_Message_With_Additional_Info_t rangingMessageWithAdditionalInfo;
+    rangingMessageWithAdditionalInfo.rangingMessage = *rangingMessage;
+    rangingMessageWithAdditionalInfo.timestamp = timestamp;
+
+    pthread_mutex_lock(&mutex);
+    processDSRMessage(&rangingMessageWithAdditionalInfo);
+    pthread_mutex_unlock(&mutex);
+
+    // printf("Rxcall, Rx timestamp = %lu\n", timestamp.full);
+
+    // reset TxTimestamp after callback
+    RxTimestamp.full = NULL_TIMESTAMP;
+}
+
 void *receive_from_center(void *arg) {
     int center_socket = *(int*)arg;
-    Simu_Message_t simu_message;
+    Simu_Message_t simu_msg;
 
     while(true) {
-        ssize_t bytes_received = recv(center_socket, &simu_message, sizeof(simu_message), 0);
+        ssize_t bytes_received = recv(center_socket, &simu_msg, sizeof(Simu_Message_t), 0);
 
         if(bytes_received <= 0) {
             printf("Disconnected from Control Center\n");
             break;
         }
 
-        if (strcmp(simu_message.data, REJECT_INFO) == 0) {
+        has_response = true;
+
+        if (strcmp(simu_msg.payload, REJECT_INFO) == 0) {
             printf("Connection rejected: Maximum drones reached (%d)\n", NODES_NUM);
             exit(1);
         }
 
         // ignore the message from itself
-        if(strcmp(simu_message.srcAddress, localAddress) != 0) {
+        if(strcmp(simu_msg.srcAddress, localAddress) != 0) {
             // handle message of flightLog
-            if(simu_message.size == sizeof(Line_Message_t)) {
-                Line_Message_t *line_message = (Line_Message_t*)simu_message.payload;
-                if(strcmp(line_message->address, localAddress) == 0) {
+            if(simu_msg.size == sizeof(Line_Message_t)) {
+                Line_Message_t *line_message = (Line_Message_t*)simu_msg.payload;
+                if(line_message->address == (uint16_t)strtoul(localAddress, NULL, 10)) {
                     // sender
                     if(line_message->status == TX) {
                         TxTimestamp = line_message->timestamp;
-                        TxCallBack(TxTimestamp);
-                        // reset TxTimestamp after callback
-                        TxTimestamp.full = NULL_TIMESTAMP;
+                        TxCallBack(center_socket, TxTimestamp);
                     }
                     // receiver
                     else if(line_message->status == RX) {
@@ -60,16 +99,14 @@ void *receive_from_center(void *arg) {
             }
 
             // handle message of rangingMessage
-            else if(simu_message.size == sizeof(Ranging_Message_t)) {
+            else if(simu_msg.size == sizeof(Ranging_Message_t)) {
                 // wait for flightLog
-                while(RxTimestamp == NULL_TIMESTAMP);
-
-                Ranging_Message_t *ranging_msg = (Ranging_Message_t*)simu_message.payload;
+                while(RxTimestamp.full == NULL_TIMESTAMP);
+                Ranging_Message_t *ranging_msg = (Ranging_Message_t*)simu_msg.payload;
                 RxCallBack(ranging_msg, RxTimestamp);
-                RxTimestamp.full = NULL_TIMESTAMP;
             }
             else {
-                printf("Received unknown message size: %zu\n", simu_message.size);
+                printf("Received unknown message size: %zu\n", simu_msg.size);
                 return NULL;
             }
         }
@@ -126,6 +163,30 @@ int main(int argc, char *argv[]) {
     }
 
     printf("Node %s connected to center\n", localAddress);
+
+    struct timespec timeout;
+    clock_gettime(CLOCK_REALTIME, &timeout);
+    timeout.tv_sec += 10;
+
+    while (1) {
+        struct timespec now;
+        clock_gettime(CLOCK_REALTIME, &now);
+        
+        if (now.tv_sec > timeout.tv_sec || 
+            (now.tv_sec == timeout.tv_sec && now.tv_nsec >= timeout.tv_nsec)) {
+            printf("Timeout: No response from center within 10 seconds\n");
+            close(center_socket);
+            return 1;
+        }
+
+        if (has_response) {
+            has_response = 0;
+            clock_gettime(CLOCK_REALTIME, &timeout);
+            timeout.tv_sec += 10;
+        }
+        
+        sleep(10);
+    }
 
     pthread_join(receive_thread, NULL);
     close(center_socket);

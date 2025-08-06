@@ -2,10 +2,11 @@
 
 
 Drone_Node_Set_t *droneNodeSet;
+const char *filename = "./data/2025-08-06-17-48-05.csv";
 long file_pos = 0;
 
 
-void droneNodeSetInit() {
+void droneNodeSet_init() {
     droneNodeSet = (Drone_Node_Set_t*)malloc(sizeof(Drone_Node_Set_t));
     memset(droneNodeSet->node, 0, sizeof(droneNodeSet->node));
 
@@ -19,22 +20,121 @@ void droneNodeSetInit() {
     }
 }
 
-void broadcastRangingMessage(Simu_Message_t *message) {
+int count_rx_from_header(const char *header_line) {
+    int rx_count = 0;
+    char *copy = strdup(header_line);
+    char *token = strtok(copy, ",");
+
+    while (token != NULL) {
+        if (strncmp(token, "Rx", 2) == 0 && strstr(token, "_addr")) {
+            rx_count++;
+        }
+        token = strtok(NULL, ",");
+    }
+
+    free(copy);
+    return rx_count;
+}
+
+void broadcast_rangingMessage(Simu_Message_t *simu_msg) {
     pthread_mutex_lock(&droneNodeSet->mutex);
     for (int i = 0; i < droneNodeSet->count; i++) {
-        if (send(droneNodeSet->node[i].socket, message, sizeof(Simu_Message_t), 0) < 0) {
+        if (send(droneNodeSet->node[i].socket, simu_msg, sizeof(Simu_Message_t), 0) < 0) {
             perror("Failed to broadcast message");
         }
     }
     pthread_mutex_unlock(&droneNodeSet->mutex);
 }
 
-void broadcastFlightLog(void *arg) {
-    
+void *broadcast_flightLog(void *arg) {
+    FILE *fp = fopen(filename, "r");
+    if (!fp) {
+        perror("Failed to open file");
+        return NULL;
+    }
+
+    char line[MAX_LINE_LEN];
+
+    if (!fgets(line, sizeof(line), fp)) {
+        fprintf(stderr, "Empty file\n");
+        fclose(fp);
+        return NULL;
+    }
+    int rx_count = count_rx_from_header(line);
+    printf("Detected Rx count: %d\n", rx_count);
+
+    // Check if the number of drones matches the count from the file
+    int drone_num = rx_count + 1;
+    if(drone_num != droneNodeSet->count) {
+        printf("Warning: droneNodeSet->count = %d, but drone_num read from file = %d\n", droneNodeSet->count, drone_num);
+        exit(EXIT_FAILURE);
+    }
+
+    // Broadcast flight log to all drones
+    while (fgets(line, sizeof(line), fp)) {
+        usleep(READ_PERIOD * 1000); 
+
+        if (*line == '\n' || *line == '\0') {
+            break;
+        }
+
+        // Tx task
+        Line_Message_t Tx_line_message;
+        char *token = strtok(line, ",");
+        Tx_line_message.address = (uint16_t)strtoul(token, NULL, 10);
+        Tx_line_message.status = TX;
+        for (int i = 0; i < 3; i++) {
+            token = strtok(NULL, ",");
+        }
+        Tx_line_message.timestamp.full = (uint64_t)strtoull(token, NULL, 10);
+
+        for(int i = 0; i < droneNodeSet->count; i++) {
+            if((uint16_t)strtoul(droneNodeSet->node[i].address, NULL, 10) == Tx_line_message.address) {
+                printf("Tx address = %d, Tx timestamp = %lu\n", Tx_line_message.address, Tx_line_message.timestamp.full);
+
+                Simu_Message_t simu_msg;
+                strncpy(simu_msg.srcAddress, CENTER_ADDRESS, ADDR_SIZE);
+                memcpy(simu_msg.payload, &Tx_line_message, sizeof(Line_Message_t));
+                simu_msg.size = sizeof(Line_Message_t);
+
+                if(send(droneNodeSet->node[i].socket, &simu_msg, sizeof(Simu_Message_t), 0) < 0) {
+                    perror("Failed to send Tx message");
+                }
+            }
+        }
+
+        // Rx task
+        for(int i = 0; i < rx_count; i++) {
+            Line_Message_t Rx_line_message;
+            token = strtok(NULL, ",");
+            Rx_line_message.address = (uint16_t)strtoul(token, NULL, 10);
+            Rx_line_message.status = RX;
+            token = strtok(NULL, ",");
+            Rx_line_message.timestamp.full = (uint64_t)strtoull(token, NULL, 10);
+
+            for(int j = 0; j < droneNodeSet->count; j++) {
+                if((uint16_t)strtoul(droneNodeSet->node[j].address, NULL, 10) == Rx_line_message.address) {
+                    printf("Rx address = %d, Rx timestamp = %lu\n", Rx_line_message.address, Rx_line_message.timestamp.full);
+
+                    Simu_Message_t simu_msg;
+                    strncpy(simu_msg.srcAddress, CENTER_ADDRESS, ADDR_SIZE);
+                    memcpy(simu_msg.payload, &Rx_line_message, sizeof(Line_Message_t));
+                    simu_msg.size = sizeof(Line_Message_t);
+
+                    if(send(droneNodeSet->node[j].socket, &simu_msg, sizeof(Simu_Message_t), 0) < 0) {
+                        perror("Failed to send Rx message");
+                    }
+                }
+            }
+        }
+    }
+
+    printf("Flight log broadcast completed.\n");
+    fclose(fp);
     return NULL;
 }
 
-void *handleNodeConnection(void *arg) {
+void *handle_node_connection(void *arg) {
     int node_socket = *(int*)arg;
     free(arg);
 
@@ -45,19 +145,21 @@ void *handleNodeConnection(void *arg) {
         return NULL;
     }
     node_address[bytes_received] = '\0';
-
-    pthread_mutex_lock(&droneNodeSet->mutex);
+    
     if (droneNodeSet->count < NODES_NUM) {
         droneNodeSet->node[droneNodeSet->count].socket = node_socket;
-        strncpy(droneNodeSet->node[droneNodeSet->count].address, node_address, sizeof(droneNodeSet->node[droneNodeSet->count].address));
-        printf("New drone connected: %s\n", droneNodeSet->node[droneNodeSet->count].address);
+        strncpy(droneNodeSet->node[droneNodeSet->count].address, node_address, ADDR_SIZE);
         droneNodeSet->count++;
+        printf("New drone connected: %s\n", droneNodeSet->node[droneNodeSet->count - 1].address);
     }
     else {
         printf("Max nodes reached (%d), rejecting %s\n", NODES_NUM, node_address);
+
         Simu_Message_t reject_msg;
+        strcpy(reject_msg.srcAddress, CENTER_ADDRESS);
         strcpy(reject_msg.payload, REJECT_INFO);
         reject_msg.size = strlen(reject_msg.payload);
+
         send(node_socket, &reject_msg, sizeof(reject_msg), 0);
         close(node_socket);
         pthread_mutex_unlock(&droneNodeSet->mutex);
@@ -66,11 +168,11 @@ void *handleNodeConnection(void *arg) {
     pthread_mutex_unlock(&droneNodeSet->mutex);
 
     // Broadcast received message to all nodes
-    Simu_Message_t message;
-    while ((bytes_received = recv(node_socket, &message, sizeof(message), 0)) > 0) {
-        Ranging_Message_t *ranging_msg = (Ranging_Message_t*)message;
+    Simu_Message_t simu_msg;
+    while ((bytes_received = recv(node_socket, &simu_msg, sizeof(simu_msg), 0)) > 0) {
+        Ranging_Message_t *ranging_msg = (Ranging_Message_t*)simu_msg.payload;
         printf("[Broadcast]: address = %d, msgSeq = %d\n", ranging_msg->header.srcAddress, ranging_msg->header.msgSequence);
-        broadcastRangingMessage(&message);
+        broadcast_rangingMessage(&simu_msg);
     }
 
     pthread_mutex_lock(&droneNodeSet->mutex);
@@ -94,7 +196,7 @@ void *handleNodeConnection(void *arg) {
 }
 
 int main() {
-    droneNodeSetInit();
+    droneNodeSet_init();
 
     int server_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (server_fd < 0) {
@@ -143,15 +245,16 @@ int main() {
             continue;
         }
 
+        pthread_mutex_lock(&droneNodeSet->mutex);
         pthread_t thread_id;
-        if (pthread_create(&thread_id, NULL, handleNodeConnection, new_socket) != 0) {
+        if (pthread_create(&thread_id, NULL, handle_node_connection, new_socket) != 0) {
             perror("pthread_create");
             close(*new_socket);
             free(new_socket);
         }
         pthread_detach(thread_id);
 
-        // make sure all drones connected before broadcastFlightLog
+        // make sure all drones connected before broadcast flightLog
         pthread_mutex_lock(&droneNodeSet->mutex);
         if (droneNodeSet->count == NODES_NUM) {
             pthread_mutex_unlock(&droneNodeSet->mutex);
@@ -160,13 +263,15 @@ int main() {
         pthread_mutex_unlock(&droneNodeSet->mutex);
     }
 
-    // broadcastFlightLog
+    printf("All drones connected, starting flight log broadcast...\n");
+
+    // broadcast flightLog
     pthread_t broadcast_thread;
-    pthread_create(&broadcast_thread, NULL, broadcastFlightLog, NULL);
+    pthread_create(&broadcast_thread, NULL, broadcast_flightLog, NULL);
+
+    while (droneNodeSet->count);
 
     pthread_detach(broadcast_thread);
-    pause();
-    
     close(server_fd);
     return 0;
 }
