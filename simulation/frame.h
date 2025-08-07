@@ -1,15 +1,16 @@
 #ifndef FRAME_H
 #define FRAME_H
 
-#include <stdio.h>
+
+#include <arpa/inet.h>
+#include <pthread.h>
+#include <netinet/in.h>
 #include <stddef.h>
+#include <stdio.h>
 #include <string.h>
+#include <sys/socket.h>
 #include <time.h>
 #include <unistd.h>
-#include <pthread.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
 
 
 // #define SWARM_RANGING_MODE

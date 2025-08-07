@@ -12,7 +12,6 @@
 #include <string.h>
 #include <time.h>
 #include <sys/time.h>
-#include <stdint.h>
 #include <apr_queue.h>
 #include "adhocuwb_init.h"
 // #include "message_struct.h"

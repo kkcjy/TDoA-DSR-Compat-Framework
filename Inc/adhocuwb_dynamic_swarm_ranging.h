@@ -11,11 +11,11 @@
 #include <string.h>
 #include "dwTypes.h"
 
-#ifndef SIMULATION_ENABLE
+#ifndef SIMULATION_COMPILE
 #include "adhocuwb_init.h"
 #endif
 
-#if !defined(SNIFFER_COMPILE) && !defined(SIMULATION_ENABLE)
+#if !defined(SNIFFER_COMPILE) && !defined(SIMULATION_COMPILE)
 #include "adhocuwb_platform.h"
 #include "dwm3000_init.h"
 #endif
@@ -27,6 +27,7 @@
 // #define         COORDINATE_SEND_ENABLE
 #define         PACKET_LOSS_ENABLE
 #define         STATE_MACHINE_ENABLE
+#define         OPTIMAL_RANGING_SCHEDULE_ENABLE
 
 /* Invalid Value */
 #define         NULL_ADDRESS                0xFFFF
@@ -34,7 +35,7 @@
 #define         NULL_DIS                    -1.0f
 #define         NULL_INDEX                  0xFF
 #define         NULL_SEQ                    0x0
-#define         NULL_TIMESTAMP              0xFFFFFFFFU
+#define         NULL_TIMESTAMP              0xFFFFFFFFFFU
 #define         NULL_TOF                    -1.0f
 
 /* Index */
@@ -42,13 +43,14 @@
 #define         table_index_t               uint8_t
 
 /* Ranging Message */
-#define         MESSAGE_BODYUNIT_SIZE       1
 #define         MESSAGE_TX_POOL_SIZE        3
+#define         MESSAGE_BODYUNIT_SIZE       3
 
 /* Ranging Table Set */
-#define         SEND_LIST_SIZE              5
 #define         Tr_Rr_BUFFER_SIZE           3
 #define         RANGING_TABLE_SIZE          10
+#define         SEND_LIST_SIZE              5
+#define         RECEIVE_LIST_SIZE           RANGING_TABLE_SIZE
 
 /* Effective Distance Range */
 #define         UPPER_BOUND_DISTANCE        1000
@@ -74,7 +76,7 @@
 #define         VELOCITY                    0.4691763978616f
 
 /* Simulation */
-#ifdef SIMULATION_ENABLE
+#ifdef SIMULATION_COMPILE
 #define         DEBUG_PRINT                 printf
 #define         ASSERT                      assert
 #endif
@@ -82,8 +84,8 @@
 
 /* -------------------- Base Struct -------------------- */
 typedef struct {
-    dwTime_t timestamp;                      
-    uint16_t seqNumber;   
+    dwTime_t timestamp;
+    uint16_t seqNumber;
 } __attribute__((packed)) Timestamp_Tuple_t;            // 10 byte
 
 typedef struct {
@@ -175,6 +177,11 @@ typedef struct {
 } __attribute__((packed)) SendList_t;
 
 typedef struct {
+    index_t topIndex;
+    dwTime_t Rxtimestamps[RECEIVE_LIST_SIZE];
+} __attribute__((packed)) ReceiveList_t;
+
+typedef struct {
     Timestamp_Tuple_t Tr;
     Timestamp_Tuple_t Rr;
 } __attribute__((packed)) Ranging_Table_Tr_Rr_Candidate_t;
@@ -227,10 +234,13 @@ typedef struct {
     uint16_t size;                                          // number of neighbors
     uint32_t localSeqNumber;                                // seqNumber of message sent
     SendList_t sendList;                                    // timestamps of messages sent to neighbors
+    #ifdef OPTIMAL_RANGING_SCHEDULE_ENABLE
+    ReceiveList_t receiveList;                              // timestamps of messages received from neighbors
+    #endif
     Ranging_Table_t rangingTable[RANGING_TABLE_SIZE];
-    Timestamp_Tuple_t lastRxtimestamp[RANGING_TABLE_SIZE];  
+    Timestamp_Tuple_t lastRxtimestamp[RANGING_TABLE_SIZE];  // timestamps of last received messages from neighbors
     index_t priorityQueue[RANGING_TABLE_SIZE];              // circular priority queue used for choosing neighbors to send messages
-    #if !defined(SNIFFER_COMPILE) && !defined(SIMULATION_ENABLE)
+    #if !defined(SNIFFER_COMPILE) && !defined(SIMULATION_COMPILE)
     SemaphoreHandle_t mutex;
     #endif
 } __attribute__((packed)) Ranging_Table_Set_t;
@@ -254,6 +264,9 @@ index_t findSendList(SendList_t *sendList, uint16_t seqNumber);
 void updateSendList(SendList_t *sendList, Timestamp_Tuple_t timestampTuple, Coordinate_Tuple_t coordinateTuple);
 #else
 void updateSendList(SendList_t *sendList, Timestamp_Tuple_t timestampTuple);
+#endif
+#ifdef OPTIMAL_RANGING_SCHEDULE_ENABLE
+void updateReceiveList(ReceiveList_t *receiveList, dwTime_t timestamp);
 #endif
 
 void rangingTableTr_Rr_BufferInit(Ranging_Table_Tr_Rr_Buffer_t *rangingTableBuffer);

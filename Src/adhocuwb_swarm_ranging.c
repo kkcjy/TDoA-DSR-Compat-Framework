@@ -2,7 +2,7 @@
 #include <string.h>
 #include <math.h>
 
-#ifndef SIMULATION_ENABLE
+#ifndef SIMULATION_COMPILE
 #include "FreeRTOS.h"
 #include "queue.h"
 #include "task.h"
@@ -40,7 +40,7 @@
 
 static uint16_t MY_UWB_ADDRESS;
 
-#ifndef SIMULATION_ENABLE
+#ifndef SIMULATION_COMPILE
 static QueueHandle_t rxQueue;
 NO_DMA_CCM_SAFE_ZERO_INIT Ranging_Table_Set_t rangingTableSet;
 static TimerHandle_t neighborSetEvictionTimer;
@@ -54,7 +54,7 @@ Ranging_Table_Set_t rangingTableSet;
 static Neighbor_Set_t neighborSet;
 static int TfBufferIndex = 0;
 static Timestamp_Tuple_t TfBuffer[Tf_BUFFER_POOL_SIZE] = {0};
-#ifndef SIMULATION_ENABLE
+#ifndef SIMULATION_COMPILE
 static SemaphoreHandle_t TfBufferMutex;
 #else
 static pthread_mutex_t TfBufferMutex;
@@ -255,7 +255,7 @@ static int16_t median_filter_3(int16_t *data)
 #define ABS(a) ((a) > 0 ? (a) : -(a))
 #endif
 
-#ifdef SIMULATION_ENABLE
+#ifdef SIMULATION_COMPILE
 uint16_t uwbGetAddress() {
   return MY_UWB_ADDRESS;
 }
@@ -489,7 +489,7 @@ Ranging_Table_Tr_Rr_Candidate_t rangingTableBufferGetLatest(Ranging_Table_Tr_Rr_
 
 void updateTfBuffer(Timestamp_Tuple_t timestamp)
 {
-  #ifndef SIMULATION_ENABLE
+  #ifndef SIMULATION_COMPILE
     xSemaphoreTake(TfBufferMutex, portMAX_DELAY);
   #else
     pthread_mutex_lock(&TfBufferMutex);
@@ -501,7 +501,7 @@ void updateTfBuffer(Timestamp_Tuple_t timestamp)
   Far_Adjustment(TfBufferIndex);
 #endif
   //  DEBUG_PRINT("updateTfBuffer: time = %llu, seq = %d\n", TfBuffer[TfBufferIndex].timestamp.full, TfBuffer[TfBufferIndex].seqNumber);
-  #ifndef SIMULATION_ENABLE
+  #ifndef SIMULATION_COMPILE
     xSemaphoreGive(TfBufferMutex);
   #else
     pthread_mutex_unlock(&TfBufferMutex);
@@ -510,7 +510,7 @@ void updateTfBuffer(Timestamp_Tuple_t timestamp)
 
 Timestamp_Tuple_t findTfBySeqNumber(uint16_t seqNumber)
 {
-  #ifndef SIMULATION_ENABLE
+  #ifndef SIMULATION_COMPILE
     xSemaphoreTake(TfBufferMutex, portMAX_DELAY);
   #else
     pthread_mutex_lock(&TfBufferMutex);
@@ -538,7 +538,7 @@ Timestamp_Tuple_t findTfBySeqNumber(uint16_t seqNumber)
       }
     }
   }
-  #ifndef SIMULATION_ENABLE
+  #ifndef SIMULATION_COMPILE
     xSemaphoreGive(TfBufferMutex);
   #else
     pthread_mutex_unlock(&TfBufferMutex);
@@ -586,7 +586,7 @@ void rangingTableInit(Ranging_Table_t *table, UWB_Address_t neighborAddress)
 /* Ranging Table Set Operations */
 void rangingTableSetInit(Ranging_Table_Set_t *set)
 {
-  #ifndef SIMULATION_ENABLE
+  #ifndef SIMULATION_COMPILE
     set->mu = xSemaphoreCreateMutex();
   #else
     pthread_mutex_init(&set->mu, NULL);
@@ -890,7 +890,7 @@ Neighbor_Set_t *getGlobalNeighborSet()
 void neighborSetInit(Neighbor_Set_t *set)
 {
   set->size = 0;
-  #ifndef SIMULATION_ENABLE
+  #ifndef SIMULATION_COMPILE
     set->mu = xSemaphoreCreateMutex();
   #else
     pthread_mutex_init(&set->mu, NULL);
@@ -2074,7 +2074,7 @@ estimatorKalmanGetSwarmInfo(&rangingMessage->header.velocityXInWorld,
   return taskDelay;
 }
 
-#ifndef SIMULATION_ENABLE
+#ifndef SIMULATION_COMPILE
 static void uwbRangingTxTask(void *parameters)
 {
   systemWaitStart();

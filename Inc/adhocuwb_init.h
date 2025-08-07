@@ -2,13 +2,13 @@
 #define __ADHOCUWB_INIT_H__
 
 #define UWB_DEBUG_ENABLE
-// #define UWB_RANGING_ENABLE
+#define UWB_RANGING_ENABLE
 // #define UWB_ROUTING_ENABLE
 // #define UWB_RAFT_ENABLE
 // #define UWB_FLOODING_ENABLE
-#define SNIFFER_ENABLE
+// #define SNIFFER_ENABLE
 
-#if !defined(SNIFFER_COMPILE) && !defined(SIMULATION_ENABLE)
+#if !defined(SNIFFER_COMPILE) && !defined(SIMULATION_COMPILE)
 #include "adhocuwb_platform.h"
 #include "dwm3000_init.h"
 #endif
@@ -27,7 +27,7 @@
 #define UWB_TX_QUEUE_ITEM_SIZE sizeof(UWB_Packet_t)
 
 /* UWB Packet */
-#ifndef SIMULATION_ENABLE
+#ifndef SIMULATION_COMPILE
 #define UWB_PACKET_SIZE_MAX UWB_FRAME_LEN_MAX
 #else
 #define UWB_PACKET_SIZE_MAX 256
@@ -35,7 +35,7 @@
 #define UWB_PAYLOAD_SIZE_MAX (UWB_PACKET_SIZE_MAX - sizeof(UWB_Packet_Header_t))
 #define UWB_DEST_ANY 65535
 #define UWB_DEST_EMPTY 65534
-#if !defined(SNIFFER_COMPILE) && !defined(SIMULATION_ENABLE)
+#if !defined(SNIFFER_COMPILE) && !defined(SIMULATION_COMPILE)
 typedef portTickType Time_t;
 #else
 typedef uint32_t Time_t;
@@ -79,7 +79,7 @@ typedef struct {
 
 typedef void (*UWBCallback)(void *);
 
-#if !defined(SNIFFER_COMPILE) && !defined(SIMULATION_ENABLE)
+#if !defined(SNIFFER_COMPILE) && !defined(SIMULATION_COMPILE)
 typedef struct {
   UWB_MESSAGE_TYPE type;
   QueueHandle_t rxQueue;

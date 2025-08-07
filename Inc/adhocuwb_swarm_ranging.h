@@ -1,7 +1,7 @@
 #ifndef _SWARM_RANGING_H_
 #define _SWARM_RANGING_H_
 
-#ifdef SIMULATION_ENABLE
+#ifdef SIMULATION_COMPILE
 #include <assert.h>
 #include <pthread.h>
 #include <stdbool.h>
@@ -12,7 +12,7 @@
 #include "dwTypes.h"
 #include "adhocuwb_init.h"
 
-#if !defined(SNIFFER_COMPILE) && !defined(SIMULATION_ENABLE)
+#if !defined(SNIFFER_COMPILE) && !defined(SIMULATION_COMPILE)
 #include "adhocuwb_platform.h"
 #include "dwm3000_init.h"
 #endif
@@ -23,7 +23,7 @@
 /* Function Switch */
 //#define ENABLE_BUS_BOARDING_SCHEME
 //#define ENABLE_DYNAMIC_RANGING_PERIOD
-//#define ENABLE_OPTIMAL_RANGING_SCHEDULE
+#define ENABLE_OPTIMAL_RANGING_SCHEDULE
 #ifdef ENABLE_DYNAMIC_RANGING_PERIOD
   #define DYNAMIC_RANGING_COEFFICIENT 1
 #endif
@@ -56,7 +56,7 @@
 #define NEIGHBOR_SET_HOLD_TIME (6 * RANGING_PERIOD_MAX)
 
 /* simulation */
-#ifdef SIMULATION_ENABLE
+#ifdef SIMULATION_COMPILE
 #define ASSERT assert
 #define DEBUG_PRINT printf
 #define M2T(X) ((unsigned int)(X))
@@ -247,7 +247,7 @@ typedef struct {
 /* Ranging Table Set */
 typedef struct {
   int size;
-  #ifndef SIMULATION_ENABLE
+  #ifndef SIMULATION_COMPILE
   SemaphoreHandle_t mu;
   #else
   pthread_mutex_t mu;
@@ -271,7 +271,7 @@ typedef struct Neighbor_Set_Hook {
 
 typedef struct {
   uint8_t size;
-  #ifndef SIMULATION_ENABLE
+  #ifndef SIMULATION_COMPILE
   SemaphoreHandle_t mu;
   #else
   pthread_mutex_t mu;
