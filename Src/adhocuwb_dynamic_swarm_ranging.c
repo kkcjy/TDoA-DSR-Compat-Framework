@@ -40,12 +40,20 @@ static int16_t deltaDistanceUnit[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_AD
 static int8_t rangingPeriodFineTune = 0;
 
 void Midpoint_Adjustment(dwTime_t curTxDwtime, ReceiveList_t *receiveList) {
-    uint64_t Min_last_rx = UWB_MAX_TIMESTAMP;
-    uint64_t Min_next_rx = UWB_MAX_TIMESTAMP;
+
+    uint32_t ErrorAllowedinMs = 2;
+
+    uint64_t minRxLast = UWB_MAX_TIMESTAMP;
+    uint64_t minRxNext = UWB_MAX_TIMESTAMP;
     
     uint64_t TicksPerPeriod = (uint64_t)RANGING_PERIOD / (DWT_TIME_UNITS * 1000);
+    uint64_t minRxExpected = TicksPerPeriod / rangingTableSet->size;
+    uint64_t minRxError = (uint64_t)ErrorAllowedinMs / (DWT_TIME_UNITS * 1000);
 
-    for (int i = 0; i < RECEIVE_LIST_SIZE; i++) {
+    for (int i = receiveList->topIndex; 
+                (i - 1 + RECEIVE_LIST_SIZE) % RECEIVE_LIST_SIZE != receiveList->topIndex; 
+                i = (i - 1 + RECEIVE_LIST_SIZE) % RECEIVE_LIST_SIZE) {
+
         if(receiveList->Rxtimestamps[i].full == NULL_TIMESTAMP) {
             continue;
         }
@@ -58,25 +66,27 @@ void Midpoint_Adjustment(dwTime_t curTxDwtime, ReceiveList_t *receiveList) {
                                          last    now    next
         */
         uint64_t curTxtimestamp = curTxDwtime.full % UWB_MAX_TIMESTAMP;
-        uint64_t RxTxtimeStamp = receiveList->Rxtimestamps[i].full % UWB_MAX_TIMESTAMP;
-        uint64_t diffTimestampLast = (curTxtimestamp - RxTxtimeStamp + UWB_MAX_TIMESTAMP) % (UWB_MAX_TIMESTAMP);
-        uint64_t diffTimestampNext = (TicksPerPeriod + RxTxtimeStamp - curTxtimestamp + UWB_MAX_TIMESTAMP) % (UWB_MAX_TIMESTAMP);
+        uint64_t RxTimeStamp = receiveList->Rxtimestamps[i].full % UWB_MAX_TIMESTAMP;
+        uint64_t diffTimestampLast = (curTxtimestamp - RxTimeStamp + UWB_MAX_TIMESTAMP) % (UWB_MAX_TIMESTAMP);
+        uint64_t diffTimestampNext = (TicksPerPeriod + RxTimeStamp - curTxtimestamp + UWB_MAX_TIMESTAMP) % (UWB_MAX_TIMESTAMP);
 
         if(diffTimestampLast > TicksPerPeriod) {
-            continue;
+            break;
         }
 
-        Min_last_rx = diffTimestampLast < Min_last_rx ? diffTimestampLast : Min_last_rx;
-        Min_next_rx = diffTimestampNext < Min_next_rx ? diffTimestampNext : Min_next_rx;
+        minRxLast = diffTimestampLast < minRxLast ? diffTimestampLast : minRxLast;
+        minRxNext = diffTimestampNext < minRxNext ? diffTimestampNext : minRxNext;
     }
-
-    if (Min_last_rx < Min_next_rx) {
+    if(abs((int64_t)minRxExpected - (int64_t)minRxLast) <= minRxError)  {
+        rangingPeriodFineTune = 0;
+    }
+    else if (minRxLast < minRxNext) {
         rangingPeriodFineTune = +1;
     }
-    else if (Min_last_rx > Min_next_rx) {
+    else if (minRxLast > minRxNext) {
         rangingPeriodFineTune = -1;
     }
-    else if(Min_last_rx == UWB_MAX_TIMESTAMP && Min_next_rx == UWB_MAX_TIMESTAMP && rangingTableSet->size > 0) {
+    else if(minRxLast == UWB_MAX_TIMESTAMP && minRxNext == UWB_MAX_TIMESTAMP && rangingTableSet->size > 0) {
         rangingPeriodFineTune = -1;
     }
 }
