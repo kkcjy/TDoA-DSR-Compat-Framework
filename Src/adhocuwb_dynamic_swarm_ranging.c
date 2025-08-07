@@ -38,6 +38,151 @@ static int16_t lastSeqNumber[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRES
 static int16_t deltaDistanceUnit[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = NULL_SEQ};
 #endif
 
+#ifdef ENABLE_OPTIMAL_RANGING_SCHEDULE
+int rx_buffer_index = 0;
+static Timestamp_Tuple_t rx_buffer[NEIGHBOR_ADDRESS_MAX + 1];
+#define SAFETY_DISTANCE_MIN 2
+int8_t temp_delay = 0;
+
+void Close_Adjustment(int rx_buffer_index) //Algorithm 1 : Close Adjustment 
+{
+
+  for (int i = 0; i < Tf_BUFFER_POOL_SIZE; i++)
+  {
+    if (TfBuffer[i].timestamp.full && rx_buffer[rx_buffer_index].timestamp.full)
+    {
+      /*
+      +-------+------+-------+-------+-------+------+
+      |  RX3  |  TX  |  RX1  |  RX2  |  RX3  |  TX  |
+      +-------+------+-------+-------+-------+------+
+                  ^              ^
+                 Tf             now
+      */
+      uint64_t a=TfBuffer[i].timestamp.full% UWB_MAX_TIMESTAMP;
+      uint64_t b=rx_buffer[rx_buffer_index].timestamp.full% UWB_MAX_TIMESTAMP;
+      uint64_t c=(uint64_t)RANGING_PERIOD / (DWT_TIME_UNITS * 1000);
+      uint64_t d=(uint64_t)(SAFETY_DISTANCE_MIN / (DWT_TIME_UNITS * 1000));
+      if (((-a + b) % UWB_MAX_TIMESTAMP < c) && a < b )
+      {
+        /*上一次TX时间 到 本次RX时间 太近*/
+        if ((-a + b) % UWB_MAX_TIMESTAMP < d)
+        {
+          temp_delay = -1;
+          return;
+        }
+
+        /*本次RX时间 到 预测的下一次TX 太近*/
+        if ( (a + c - b) % UWB_MAX_TIMESTAMP < d)
+        {
+          temp_delay = +1;
+          return;
+        }
+      }
+    }
+  }
+}
+
+void Far_Adjustment(int TfBufferIndex)  //Algorithm 2 : Far Adjustment
+{
+
+  bool temp_control[2] = {0, 0};
+
+  for (int i = 0; i < NEIGHBOR_ADDRESS_MAX; i++)
+  {
+    if (TfBuffer[TfBufferIndex].timestamp.full && rx_buffer[i].timestamp.full)
+    {
+      /*
+      +-------+------+-------+-------+-------+------+
+      |  RX3  |  TX  |  RX1  |  RX2  |  RX3  |  TX  |
+      +-------+------+-------+-------+-------+------+
+                                                ^
+                                                now
+      */
+      uint64_t a=TfBuffer[TfBufferIndex].timestamp.full% UWB_MAX_TIMESTAMP;
+      uint64_t b=rx_buffer[i].timestamp.full% UWB_MAX_TIMESTAMP;
+      uint64_t c=(uint64_t)RANGING_PERIOD / (DWT_TIME_UNITS * 1000);
+      uint64_t d=(uint64_t)(RANGING_PERIOD / rangingTableSet.size / (DWT_TIME_UNITS * 1000));
+      if (((a - b) % UWB_MAX_TIMESTAMP < c) && a > b)
+      {
+        if ((a - b) % UWB_MAX_TIMESTAMP < d)
+        {
+          temp_control[0] = 1;
+        }
+      }
+
+      if (((a - b) % UWB_MAX_TIMESTAMP < c) && a > b)
+      {
+        if ( (c - a + b) % UWB_MAX_TIMESTAMP < d)
+        {
+          temp_control[1] = 1;
+        }
+      }
+    }
+  }
+
+  if (!temp_control[0] && temp_control[1])
+  {
+    temp_delay = -1;
+  }
+  if (temp_control[0] && !temp_control[1])
+  {
+    temp_delay = +1;
+  }
+}
+
+
+void Midpoint_Adjustment(int TfBufferIndex)  //Algorithm 3 : Midpoint Adjustment 
+{
+
+  bool temp_control[2] = {0, 0};
+
+  uint64_t Min_last_rx=2^40-1;
+  uint64_t Min_next_rx=2^40-1;
+  
+  for (int i = 0; i < NEIGHBOR_ADDRESS_MAX; i++)
+  {
+
+    if (TfBuffer[TfBufferIndex].timestamp.full && rx_buffer[i].timestamp.full)
+    {
+      /*
+      +-------+------+-------+-------+-------+------+
+      |  RX3  |  TX  |  RX1  |  RX2  |  RX3  |  TX  |
+      +-------+------+-------+-------+-------+------+
+                                                ^
+                                                now
+      */
+      uint64_t a=TfBuffer[TfBufferIndex].timestamp.full% UWB_MAX_TIMESTAMP;
+      uint64_t b=rx_buffer[i].timestamp.full% UWB_MAX_TIMESTAMP;
+      uint64_t c=(uint64_t)RANGING_PERIOD / (DWT_TIME_UNITS * 1000);
+      uint64_t d=(uint64_t)(RANGING_PERIOD / rangingTableSet.size / (DWT_TIME_UNITS * 1000));
+      if (((a - b) % UWB_MAX_TIMESTAMP < c) && a > b)
+      {
+        if ((a - b) % UWB_MAX_TIMESTAMP < Min_last_rx)
+        {
+          Min_last_rx = (a - b) % UWB_MAX_TIMESTAMP;
+        }
+      }
+
+      if (((a - b) % UWB_MAX_TIMESTAMP < c) && a > b)
+      {
+        if ( (c - a + b) % UWB_MAX_TIMESTAMP < Min_next_rx)
+        {
+          Min_next_rx = (c - a + b) % UWB_MAX_TIMESTAMP;
+        }
+      }
+    } 
+  }
+  if (Min_last_rx < Min_next_rx)
+  {
+    temp_delay = +1;
+  }
+  else if (Min_last_rx > Min_next_rx)
+  {
+    temp_delay = -1;
+  }
+
+}
+#endif
 
 /* -------------------- Base Operation -------------------- */
 // comparison of valid parts of timestamps considering cyclic overflow(time_a < time_b)
@@ -1616,6 +1761,10 @@ static void uwbRangingTxTask(void *parameters) {
 
         xSemaphoreGive(rangingTableSet->mutex);
 
+#ifdef ENABLE_OPTIMAL_RANGING_SCHEDULE
+        taskDelay += temp_delay;
+        temp_delay = 0;
+#endif
         vTaskDelay(taskDelay);
     }
 }
@@ -1646,6 +1795,9 @@ void rangingTxCallback(void *parameters) {
 
     Timestamp_Tuple_t timestamp = {.timestamp = txTime, .seqNumber = rangingMessage->header.msgSequence};
     updateSendList(&rangingTableSet->sendList, timestamp);
+#ifdef ENABLE_OPTIMAL_RANGING_SCHEDULE
+    Far_Adjustment(sendList);
+#endif
 }
 
 void rangingRxCallback(void *parameters) {
@@ -1662,6 +1814,14 @@ void rangingRxCallback(void *parameters) {
 
     dwTime_t rxTime;
     dwt_readrxtimestamp((uint8_t*)&rxTime.raw);
+
+#ifdef ENABLE_OPTIMAL_RANGING_SCHEDULE
+    rx_buffer_index++;
+    rx_buffer_index %= NEIGHBOR_ADDRESS_MAX;
+    rx_buffer[rx_buffer_index].seqNumber = rangingSeqNumber;
+    rx_buffer[rx_buffer_index].timestamp = rxTime;
+    Close_Adjustment(rx_buffer_index);
+#endif
 
     Ranging_Message_With_Additional_Info_t rxMessageWithTimestamp;
     rxMessageWithTimestamp.timestamp = rxTime;

@@ -223,8 +223,6 @@ void getCurrentNeighborAddressInfo_t(currentNeighborAddressInfo_t *currentNeighb
   /*--11添加--*/
 }
 
-
-
 static int16_t median_filter_3(int16_t *data)
 {
   int16_t middle;
@@ -244,7 +242,6 @@ static int16_t median_filter_3(int16_t *data)
 }
 #define ABS(a) ((a) > 0 ? (a) : -(a))
 #endif
-
 
 int16_t getDistance(UWB_Address_t neighborAddress)
 {
@@ -352,7 +349,6 @@ void Far_Adjustment(int TfBufferIndex)  //Algorithm 2 : Far Adjustment
   }
 }
 
-
 void Midpoint_Adjustment(int TfBufferIndex)  //Algorithm 3 : Midpoint Adjustment 
 {
 
@@ -402,7 +398,6 @@ void Midpoint_Adjustment(int TfBufferIndex)  //Algorithm 3 : Midpoint Adjustment
   {
     temp_delay = -1;
   }
-
 }
 #endif
 
@@ -2083,12 +2078,10 @@ static void uwbRangingTxTask(void *parameters)
     // xSemaphoreGive(neighborSet.mu);
     xSemaphoreGive(rangingTableSet.mu);
 #ifdef ENABLE_OPTIMAL_RANGING_SCHEDULE
-    int8_t time_Delay = temp_delay;
+    taskDelay += temp_delay;
     temp_delay = 0;
-    vTaskDelay(RANGING_PERIOD + time_Delay);
-#else
-    vTaskDelay(taskDelay);
 #endif
+    vTaskDelay(taskDelay);
   }
 }
 
