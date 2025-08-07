@@ -2,10 +2,6 @@
 #include <string.h>
 #include <math.h>
 
-
-#define SIMULATION_ENABLE
-
-
 #ifndef SIMULATION_ENABLE
 #include "FreeRTOS.h"
 #include "queue.h"
