@@ -26,6 +26,7 @@
 
 char filename[FILENAME_SIZE];
 volatile sig_atomic_t keep_running = 1;     // used for the interruption caused by Ctrl+C
+int ignore_lines = 30;
 
 
 typedef union {
@@ -76,6 +77,10 @@ void fprintSwarmRangingMessaage(FILE* file, libusb_device_handle *device_handle)
         
         // success
         if(response == 0 && transferred <= MAX_PACKET_SIZE) {
+            if(--ignore_lines < 0) {
+                continue;
+            }
+            
             Sniffer_Meta_t *meta = (Sniffer_Meta_t *)buffer;
             fprintf(file, "%lu,", meta->rxTime);
 
@@ -134,6 +139,10 @@ void fprintDynamicSwarmRangingMessaage(FILE* file, libusb_device_handle *device_
         
         // success
         if(response == 0 && transferred <= MAX_PACKET_SIZE) {
+            if(--ignore_lines < 0) {
+                continue;
+            }
+
             Sniffer_Meta_t *meta = (Sniffer_Meta_t *)buffer;
             fprintf(file, "%lu,", meta->rxTime);
 
