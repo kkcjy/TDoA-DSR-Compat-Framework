@@ -1,5 +1,3 @@
-#include <math.h>
-#include <string.h>
 #include "adhocuwb_dynamic_swarm_ranging.h"
 
 #ifndef SIMULATION_ENABLE

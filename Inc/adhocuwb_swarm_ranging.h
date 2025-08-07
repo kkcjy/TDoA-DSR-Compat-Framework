@@ -1,12 +1,21 @@
 #ifndef _SWARM_RANGING_H_
 #define _SWARM_RANGING_H_
 
+#ifdef SIMULATION_ENABLE
+#include <assert.h>
+#include <pthread.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#endif
+
 #include "dwTypes.h"
 #include "adhocuwb_init.h"
 
-#ifndef SNIFFER_COMPILE
+#if !defined(SNIFFER_COMPILE) && !defined(SIMULATION_ENABLE)
 #include "adhocuwb_platform.h"
 #include "dwm3000_init.h"
+#endif
 
 
 #define RANGING_DEBUG_ENABLE
@@ -27,7 +36,6 @@
 /* Queue Constants */
 #define RANGING_RX_QUEUE_SIZE 10
 #define RANGING_RX_QUEUE_ITEM_SIZE sizeof(Ranging_Message_With_Timestamp_t)
-#endif
 
 /* Ranging Struct Constants */
 #define RANGING_MESSAGE_SIZE_MAX UWB_PAYLOAD_SIZE_MAX
@@ -35,7 +43,6 @@
 #define RANGING_MAX_Tr_UNIT 5
 #define RANGING_MAX_BODY_UNIT (RANGING_MESSAGE_PAYLOAD_SIZE_MAX / sizeof(Body_Unit_t))
 
-#ifndef SNIFFER_COMPILE
 #define RANGING_TABLE_SIZE 32 // default up to 20 one-hop neighbors
 #define RANGING_TABLE_SIZE_MAX 32
 #define RANGING_TABLE_HOLD_TIME (6 * RANGING_PERIOD_MAX)
@@ -48,7 +55,16 @@
 #define RangingTableSize
 #define NEIGHBOR_SET_HOLD_TIME (6 * RANGING_PERIOD_MAX)
 
+/* simulation */
+#ifdef SIMULATION_ENABLE
+#define ASSERT assert
+#define DEBUG_PRINT printf
+#define M2T(X) ((unsigned int)(X))
+#define UWB_MAX_TIMESTAMP 1099511627776
+#endif
+
 typedef short set_index_t;
+
 
 #ifdef CONFIG_UWB_LOCALIZATION_ENABLE
 #define RESET_INIT_STAGE 123 
@@ -103,7 +119,6 @@ typedef struct {
   dwTime_t timestamp; // 8 byte
   uint16_t seqNumber; // 2 byte
 } __attribute__((packed)) Timestamp_Tuple_t; // 10 byte
-#endif
 
 /* Body Unit */
 // typedef struct {
@@ -159,7 +174,6 @@ typedef struct {
   Body_Unit_t bodyUnits[RANGING_MAX_BODY_UNIT]; // 13 byte * MAX_BODY_UNIT
 } __attribute__((packed)) Ranging_Message_t; // 18 + 13 byte * MAX_BODY_UNIT
 
-#ifndef SNIFFER_COMPILE
 /* Ranging Message With RX Timestamp, used in RX Queue */
 typedef struct {
   Ranging_Message_t rangingMessage;
@@ -207,8 +221,6 @@ typedef struct {
   Timestamp_Tuple_t Tx;
 }Ranging_Table_Tx_Rx_History_t;
 
-
-
 typedef struct {
   uint16_t neighborAddress;
 
@@ -231,10 +243,15 @@ typedef struct {
   RANGING_TABLE_STATE state;
 } __attribute__((packed)) Ranging_Table_t;
 
+#ifndef SNIFFER_COMPILE
 /* Ranging Table Set */
 typedef struct {
   int size;
+  #ifndef SIMULATION_ENABLE
   SemaphoreHandle_t mu;
+  #else
+  pthread_mutex_t mu;
+  #endif
   Ranging_Table_t tables[RANGING_TABLE_SIZE_MAX];
 } Ranging_Table_Set_t;
 
@@ -254,7 +271,11 @@ typedef struct Neighbor_Set_Hook {
 
 typedef struct {
   uint8_t size;
+  #ifndef SIMULATION_ENABLE
   SemaphoreHandle_t mu;
+  #else
+  pthread_mutex_t mu;
+  #endif
   Neighbor_Bit_Set_t oneHop;
   Neighbor_Bit_Set_t twoHop;
   /* one hop neighbors can be used to reach the corresponding two hop neighbor */
@@ -356,5 +377,9 @@ void printRangingMessage(Ranging_Message_t *rangingMessage);
 void printNeighborBitSet(Neighbor_Bit_Set_t *bitSet);
 void printNeighborSet(Neighbor_Set_t *set);
 #endif
+
+/* Message Operation */
+void processRangingMessage(Ranging_Message_With_Timestamp_t *rangingMessageWithTimestamp);
+Time_t generateRangingMessage(Ranging_Message_t *rangingMessage);
 
 #endif

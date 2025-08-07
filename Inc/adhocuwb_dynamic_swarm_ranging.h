@@ -3,10 +3,12 @@
 
 
 #include <assert.h>
+#include <math.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 #include "dwTypes.h"
 
 #ifndef SIMULATION_ENABLE
@@ -19,7 +21,6 @@
 #endif
 
 
-#ifndef SNIFFER_COMPILE
 /* -------------------- Define -------------------- */
 #define         CLASSIC_SUPPORT_ENABLE
 // #define         COMPENSATE_ENABLE
@@ -39,7 +40,6 @@
 /* Index */
 #define         index_t                     uint16_t
 #define         table_index_t               uint8_t
-#endif
 
 /* Ranging Message */
 #define         MESSAGE_BODYUNIT_SIZE       1
@@ -156,7 +156,6 @@ typedef struct {
     Ranging_Message_Body_Unit_t bodyUnits[MESSAGE_BODYUNIT_SIZE];
 } __attribute__((packed)) Ranging_Message_t;            // 38 + 12 * MESSAGE_BODYUNIT_SIZE byte = 158 byte
 
-#ifndef SNIFFER_COMPILE
 typedef struct {
     Ranging_Message_t rangingMessage;
     dwTime_t timestamp;                 // local timestamp when message is received
@@ -231,7 +230,7 @@ typedef struct {
     Ranging_Table_t rangingTable[RANGING_TABLE_SIZE];
     Timestamp_Tuple_t lastRxtimestamp[RANGING_TABLE_SIZE];  
     index_t priorityQueue[RANGING_TABLE_SIZE];              // circular priority queue used for choosing neighbors to send messages
-    #ifndef SIMULATION_ENABLE
+    #if !defined(SNIFFER_COMPILE) && !defined(SIMULATION_ENABLE)
     SemaphoreHandle_t mutex;
     #endif
 } __attribute__((packed)) Ranging_Table_Set_t;
@@ -303,6 +302,5 @@ typedef void (*EventHandlerTable)(Ranging_Table_t*);
 /* -------------------- Generate and Process -------------------- */
 void generateDSRMessage(Ranging_Message_t *rangingMessage);
 void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWithAdditionalInfo);
-#endif
 
 #endif

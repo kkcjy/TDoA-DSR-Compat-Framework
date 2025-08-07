@@ -1,11 +1,18 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+
+
+#define SIMULATION_ENABLE
+
+
+#ifndef SIMULATION_ENABLE
 #include "FreeRTOS.h"
 #include "queue.h"
 #include "task.h"
 #include "timers.h"
 #include "adhocuwb_platform.h"
+#endif
 
 #ifdef CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE
 //#include "system.h"
@@ -22,6 +29,7 @@
   #include "uwb_send_print.h"
 #endif
 
+
 #ifdef RANGING_DEBUG_ENABLE
   #ifdef CONFIG_ADHOCUWB_PLATFORM_ADHOCUWBH7
     #define DEBUG_PRINT printf
@@ -36,17 +44,25 @@
 
 static uint16_t MY_UWB_ADDRESS;
 
+#ifndef SIMULATION_ENABLE
 static QueueHandle_t rxQueue;
-static Neighbor_Set_t neighborSet;
-static TimerHandle_t neighborSetEvictionTimer;
 NO_DMA_CCM_SAFE_ZERO_INIT Ranging_Table_Set_t rangingTableSet;
+static TimerHandle_t neighborSetEvictionTimer;
 static TimerHandle_t rangingTableSetEvictionTimer;
-static UWB_Message_Listener_t listener;
 static TaskHandle_t uwbRangingTxTaskHandle = 0;
 static TaskHandle_t uwbRangingRxTaskHandle = 0;
+static UWB_Message_Listener_t listener;
+#else
+Ranging_Table_Set_t rangingTableSet;
+#endif
+static Neighbor_Set_t neighborSet;
 static int TfBufferIndex = 0;
 static Timestamp_Tuple_t TfBuffer[Tf_BUFFER_POOL_SIZE] = {0};
+#ifndef SIMULATION_ENABLE
 static SemaphoreHandle_t TfBufferMutex;
+#else
+static pthread_mutex_t TfBufferMutex;
+#endif
 static int rangingSeqNumber = 1;
 static float velocity;
 static int16_t distances[65], distidx=0, abnormal_dist_count=0;
@@ -241,6 +257,12 @@ static int16_t median_filter_3(int16_t *data)
   return middle;
 }
 #define ABS(a) ((a) > 0 ? (a) : -(a))
+#endif
+
+#ifdef SIMULATION_ENABLE
+uint16_t uwbGetAddress() {
+  return MY_UWB_ADDRESS;
+}
 #endif
 
 int16_t getDistance(UWB_Address_t neighborAddress)
@@ -471,7 +493,11 @@ Ranging_Table_Tr_Rr_Candidate_t rangingTableBufferGetLatest(Ranging_Table_Tr_Rr_
 
 void updateTfBuffer(Timestamp_Tuple_t timestamp)
 {
-  xSemaphoreTake(TfBufferMutex, portMAX_DELAY);
+  #ifndef SIMULATION_ENABLE
+    xSemaphoreTake(TfBufferMutex, portMAX_DELAY);
+  #else
+    pthread_mutex_lock(&TfBufferMutex);
+  #endif
   TfBufferIndex++;
   TfBufferIndex %= Tf_BUFFER_POOL_SIZE;
   TfBuffer[TfBufferIndex] = timestamp;
@@ -479,12 +505,20 @@ void updateTfBuffer(Timestamp_Tuple_t timestamp)
   Far_Adjustment(TfBufferIndex);
 #endif
   //  DEBUG_PRINT("updateTfBuffer: time = %llu, seq = %d\n", TfBuffer[TfBufferIndex].timestamp.full, TfBuffer[TfBufferIndex].seqNumber);
-  xSemaphoreGive(TfBufferMutex);
+  #ifndef SIMULATION_ENABLE
+    xSemaphoreGive(TfBufferMutex);
+  #else
+    pthread_mutex_unlock(&TfBufferMutex);
+  #endif
 }
 
 Timestamp_Tuple_t findTfBySeqNumber(uint16_t seqNumber)
 {
-  xSemaphoreTake(TfBufferMutex, portMAX_DELAY);
+  #ifndef SIMULATION_ENABLE
+    xSemaphoreTake(TfBufferMutex, portMAX_DELAY);
+  #else
+    pthread_mutex_lock(&TfBufferMutex);
+  #endif
   Timestamp_Tuple_t Tf = {.timestamp.full = 0, .seqNumber = 0};
   int startIndex = TfBufferIndex;
   /* Backward search */
@@ -508,7 +542,11 @@ Timestamp_Tuple_t findTfBySeqNumber(uint16_t seqNumber)
       }
     }
   }
-  xSemaphoreGive(TfBufferMutex);
+  #ifndef SIMULATION_ENABLE
+    xSemaphoreGive(TfBufferMutex);
+  #else
+    pthread_mutex_unlock(&TfBufferMutex);
+  #endif
   return Tf;
 }
 
@@ -552,7 +590,11 @@ void rangingTableInit(Ranging_Table_t *table, UWB_Address_t neighborAddress)
 /* Ranging Table Set Operations */
 void rangingTableSetInit(Ranging_Table_Set_t *set)
 {
-  set->mu = xSemaphoreCreateMutex();
+  #ifndef SIMULATION_ENABLE
+    set->mu = xSemaphoreCreateMutex();
+  #else
+    pthread_mutex_init(&set->mu, NULL);
+  #endif
   set->size = 0;
   for (int i = 0; i < RANGING_TABLE_SIZE_MAX; i++)
   {
@@ -852,7 +894,11 @@ Neighbor_Set_t *getGlobalNeighborSet()
 void neighborSetInit(Neighbor_Set_t *set)
 {
   set->size = 0;
-  set->mu = xSemaphoreCreateMutex();
+  #ifndef SIMULATION_ENABLE
+    set->mu = xSemaphoreCreateMutex();
+  #else
+    pthread_mutex_init(&set->mu, NULL);
+  #endif
   neighborBitSetInit(&set->oneHop);
   neighborBitSetInit(&set->twoHop);
   set->neighborNewHooks.hook = NULL;
@@ -1710,7 +1756,7 @@ void computeRealDistance(uint16_t neighborAddress, float x1, float y1, float z1,
 }
 
 /* Swarm Ranging */
-static void processRangingMessage(Ranging_Message_With_Timestamp_t *rangingMessageWithTimestamp)
+void processRangingMessage(Ranging_Message_With_Timestamp_t *rangingMessageWithTimestamp)
 {
   Ranging_Message_t *rangingMessage = &rangingMessageWithTimestamp->rangingMessage;
   uint16_t neighborAddress = rangingMessage->header.srcAddress;
@@ -1865,7 +1911,7 @@ static void processRangingMessage(Ranging_Message_With_Timestamp_t *rangingMessa
  * nextExpectedDeliveryTime (only include timestamp with expected next delivery time less or equal than current
  * time) by sort the ranging table set by each timestamp's last send time.
  */
-static Time_t generateRangingMessage(Ranging_Message_t *rangingMessage)
+Time_t generateRangingMessage(Ranging_Message_t *rangingMessage)
 {
   int8_t bodyUnitNumber = 0;
   rangingSeqNumber++;
@@ -2032,6 +2078,7 @@ estimatorKalmanGetSwarmInfo(&rangingMessage->header.velocityXInWorld,
   return taskDelay;
 }
 
+#ifndef SIMULATION_ENABLE
 static void uwbRangingTxTask(void *parameters)
 {
   systemWaitStart();
@@ -2226,3 +2273,4 @@ LOG_ADD(LOG_INT16, distTo29, distanceTowards + 29)
 LOG_ADD(LOG_INT16, distTo30, distanceTowards + 30)
 
 LOG_GROUP_STOP(Ranging)
+#endif

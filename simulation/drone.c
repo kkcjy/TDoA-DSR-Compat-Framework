@@ -28,7 +28,21 @@ void send_to_center(int center_socket, const char* address, const Ranging_Messag
 
 void TxCallBack(int center_socket, dwTime_t timestamp) {
     #if defined(SWARM_RANGING_MODE)
+        Ranging_Message_t ranging_msg;
 
+        generateRangingMessage(&ranging_msg);
+        Timestamp_Tuple_t curTimeTuple = {
+            .timestamp = timestamp,
+            .seqNumber = ranging_msg.header.msgSequence
+        };
+        updateTfBuffer(curTimeTuple);
+
+        send_to_center(center_socket, localAddress, &ranging_msg);
+
+        // printf("Txcall, Txtimesatamp = %lu\n", timestamp.full);
+    
+        // reset TxTimestamp after callback
+        TxTimestamp.full = 0;
 
     #elif defined(DYNAMIC_SWARM_RANGING_MODE)
         Ranging_Message_t ranging_msg;
@@ -51,7 +65,16 @@ void TxCallBack(int center_socket, dwTime_t timestamp) {
 
 void RxCallBack(Ranging_Message_t *rangingMessage, dwTime_t timestamp) {
     #if defined(SWARM_RANGING_MODE)
+        Ranging_Message_With_Timestamp_t rangingMessageWithTimestamp;
+        rangingMessageWithTimestamp.rangingMessage = *rangingMessage;
+        rangingMessageWithTimestamp.rxTime = timestamp;
         
+        processRangingMessage(&rangingMessageWithTimestamp);
+
+        // printf("Rxcall, Rx timestamp = %lu\n", timestamp.full);
+
+        // reset RxTimestamp after callback
+        RxTimestamp.full = 0;
     
     #elif defined(DYNAMIC_SWARM_RANGING_MODE)
         Ranging_Message_With_Additional_Info_t rangingMessageWithAdditionalInfo;
@@ -134,7 +157,11 @@ int main(int argc, char *argv[]) {
     TxTimestamp.full = 0;
     RxTimestamp.full = 0;
 
-    rangingTableSetInit();
+    #if defined(SWARM_RANGING_MODE)
+
+    #elif defined(DYNAMIC_SWARM_RANGING_MODE)
+        rangingTableSetInit();
+    #endif
 
     int center_socket = socket(AF_INET, SOCK_STREAM, 0);
     if (center_socket < 0) {
