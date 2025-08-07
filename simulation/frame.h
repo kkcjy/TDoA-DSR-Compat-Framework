@@ -1,20 +1,19 @@
 #ifndef FRAME_H
 #define FRAME_H
 
-
-#include <arpa/inet.h>
-#include <pthread.h>
-#include <netinet/in.h>
-#include <stddef.h>
 #include <stdio.h>
+#include <stddef.h>
 #include <string.h>
-#include <sys/socket.h>
 #include <time.h>
 #include <unistd.h>
+#include <pthread.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
 
 
-#define SWARM_RANGING_MODE
-// #define DYNAMIC_SWARM_RANGING_MODE
+// #define SWARM_RANGING_MODE
+#define DYNAMIC_SWARM_RANGING_MODE
 
 #if defined(SWARM_RANGING_MODE)
 #include "../Inc/adhocuwb_swarm_ranging.h"
@@ -33,7 +32,7 @@
 #define     REJECT_INFO     "REJECT"
 
 
-const char *FILE_NAME = "./data/2025-08-06-17-48-05_.csv";
+const char *FILE_NAME = "./data/2025-08-07-17-21-33.csv";
 
 
 typedef enum {

@@ -17,7 +17,7 @@ void send_to_center(int center_socket, const char* address, const Ranging_Messag
         perror("Warning: Ranging_Message_t too large!\n");
     }
 
-    snprintf(simu_msg.srcAddress, sizeof(simu_msg.srcAddress), "%s", address);
+    memcpy(simu_msg.srcAddress, address, sizeof(simu_msg.srcAddress));
     memcpy(simu_msg.payload, ranging_msg, sizeof(Ranging_Message_t));
     simu_msg.size = sizeof(Ranging_Message_t);
 

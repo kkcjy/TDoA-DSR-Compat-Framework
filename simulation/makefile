@@ -1,7 +1,7 @@
 CC = gcc
 
-SR_CFLAGS  = -Wall -g -I../../../../../vendor/libdw3000/include -I../../../../../vendor/FreeRTOS/include -I../Inc -I../Src -DSIMULATION_ENABLE
-DSR_CFLAGS = -Wall -g -I../../../../../vendor/libdw3000/include -I../../../../../vendor/FreeRTOS/include -I../Inc -I../Src -DSIMULATION_ENABLE
+SR_CFLAGS  = -Wall -g -I../../../../../vendor/libdw3000/include -I../../../../../vendor/FreeRTOS/include -I../Inc -DSIMULATION_ENABLE
+DSR_CFLAGS = -Wall -g -I../../../../../vendor/libdw3000/include -I../../../../../vendor/FreeRTOS/include -I../Inc -DSIMULATION_ENABLE
 
 FRAME_SRC = frame.h
 CENTER_SRC = center.c
@@ -15,18 +15,21 @@ DRONE_OUT = drone
 
 all: $(CENTER_OUT) $(DRONE_OUT)
 
-SWARM_MODE_DEFINED = $(shell grep -v '^[[:space:]]*//' $(FRAME_SRC) | grep -v '^[[:space:]]*$$' | grep -q '^[[:space:]]*#define[[:space:]]*SWARM_RANGING_MODE[[:space:]]*$$' && echo 1)
-DYNAMIC_MODE_DEFINED = $(shell grep -v '^[[:space:]]*//' $(FRAME_SRC) | grep -v '^[[:space:]]*$$' | grep -q '^[[:space:]]*#define[[:space:]]*DYNAMIC_SWARM_RANGING_MODE[[:space:]]*$$' && echo 1)
+SWARM_MODE_DEFINED = $(shell grep 'define SWARM_RANGING_MODE' frame.h | grep '//' -v -c) 
+DYNAMIC_MODE_DEFINED = $(shell grep 'define DYNAMIC_SWARM_RANGING_MODE' frame.h | grep '//' -v -c) 
 
-ifeq ($(SWARM_MODE_DEFINED)$(DYNAMIC_MODE_DEFINED),11)
+ifeq ("$(SWARM_MODE_DEFINED)""$(DYNAMIC_MODE_DEFINED)","1 1 ")
 $(error "Error: Both modes are defined! Please define only one mode")
-else ifneq ($(SWARM_MODE_DEFINED),)
+else ifeq ("$(SWARM_MODE_DEFINED)","1 ")
+$(info 'else ifeq ("(SWARM_MODE_DEFINED)","1 ")')
+$(info 'else ifeq SWARM_MODE_DEFINED')
 $(CENTER_OUT): $(CENTER_SRC) $(FRAME_SRC)
 	$(CC) $(SR_CFLAGS) -o $@ $(CENTER_SRC)
 
 $(DRONE_OUT): $(DRONE_SRC) $(FRAME_SRC) $(SR_SRC)
 	$(CC) $(SR_CFLAGS) -o $@ $(DRONE_SRC) $(SR_SRC)
-else ifneq ($(DYNAMIC_MODE_DEFINED),)
+else ifeq ("$(DYNAMIC_MODE_DEFINED)","1 ")
+$(info 'else ifeq DYNAMIC_MODE_DEFINED')
 $(CENTER_OUT): $(CENTER_SRC) $(FRAME_SRC)
 	$(CC) $(DSR_CFLAGS) -o $@ $(CENTER_SRC)
 
