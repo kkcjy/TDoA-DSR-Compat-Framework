@@ -27,34 +27,44 @@ void send_to_center(int center_socket, const char* address, const Ranging_Messag
 }
 
 void TxCallBack(int center_socket, dwTime_t timestamp) {
-    Ranging_Message_t ranging_msg;
+    #if defined(SWARM_RANGING_MODE)
 
-    generateDSRMessage(&ranging_msg);
-    Timestamp_Tuple_t curTimeTuple = {
-        .timestamp = timestamp,
-        .seqNumber = ranging_msg.header.msgSequence
-    };
-    updateSendList(&rangingTableSet->sendList, curTimeTuple);
 
-    send_to_center(center_socket, localAddress, &ranging_msg);
+    #elif defined(DYNAMIC_SWARM_RANGING_MODE)
+        Ranging_Message_t ranging_msg;
 
-    // printf("Txcall, Txtimesatamp = %lu\n", timestamp.full);
-   
-    // reset TxTimestamp after callback
-    TxTimestamp.full = 0;
+        generateDSRMessage(&ranging_msg);
+        Timestamp_Tuple_t curTimeTuple = {
+            .timestamp = timestamp,
+            .seqNumber = ranging_msg.header.msgSequence
+        };
+        updateSendList(&rangingTableSet->sendList, curTimeTuple);
+
+        send_to_center(center_socket, localAddress, &ranging_msg);
+
+        // printf("Txcall, Txtimesatamp = %lu\n", timestamp.full);
+    
+        // reset TxTimestamp after callback
+        TxTimestamp.full = 0;
+    #endif
 }
 
 void RxCallBack(Ranging_Message_t *rangingMessage, dwTime_t timestamp) {
-    Ranging_Message_With_Additional_Info_t rangingMessageWithAdditionalInfo;
-    rangingMessageWithAdditionalInfo.rangingMessage = *rangingMessage;
-    rangingMessageWithAdditionalInfo.timestamp = timestamp;
+    #if defined(SWARM_RANGING_MODE)
+        
+    
+    #elif defined(DYNAMIC_SWARM_RANGING_MODE)
+        Ranging_Message_With_Additional_Info_t rangingMessageWithAdditionalInfo;
+        rangingMessageWithAdditionalInfo.rangingMessage = *rangingMessage;
+        rangingMessageWithAdditionalInfo.timestamp = timestamp;
 
-    processDSRMessage(&rangingMessageWithAdditionalInfo);
+        processDSRMessage(&rangingMessageWithAdditionalInfo);
 
-    // printf("Rxcall, Rx timestamp = %lu\n", timestamp.full);
+        // printf("Rxcall, Rx timestamp = %lu\n", timestamp.full);
 
-    // reset RxTimestamp after callback
-    RxTimestamp.full = 0;
+        // reset RxTimestamp after callback
+        RxTimestamp.full = 0;
+    #endif
 }
 
 void *receive_from_center(void *arg) {

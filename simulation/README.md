@@ -1,7 +1,7 @@
 # Drone Simulation System User Guide
 
 ## Overview
-This system simulates drone communication scenarios through a central controller (`center`) and drone nodes (`drone`). It processes sniffer data into a usable format, then coordinates communication between nodes by broadcasting flight logs and forwarding ranging messages.
+This system simulates drone communication scenarios through a central controller (`center`) and drone nodes (`drone`). It processes sniffer data into a usable format, then coordinates communication between nodes by broadcasting flight logs and forwarding ranging messages. It supports two ranging modes: `dynamic_swarm_ranging` and `swarm_ranging`, which can be configured according to actual needs.
 
 ## Process Steps
 
@@ -30,17 +30,22 @@ This system simulates drone communication scenarios through a central controller
    #define     NODES_NUM   <number of drones>
    const char *FILE_NAME = "path_to_processed_data_file"
    ```
-3. Other key configurable parameters in `frame.h`:
+3. Select the appropriate mode based on the protocol: `SWARM_RANGING_MODE` or `DYNAMIC_SWARM_RANGING_MODE`
+4. Other key configurable parameters in `frame.h`:
    - `CENTER_PORT`: Communication port (default: 8888)
    - `READ_PERIOD`: Interval between log broadcasts (default: 200ms)
    - `ADDR_SIZE`: Maximum length of node addresses (default: 20)
 
 ### 3. Compile the Program
-Execute the compilation command in the project root directory:
+1. Use `make mode` to check the current compilation mode:
+```bash
+make mode
+```
+2. Execute the compilation command in the project root directory:
 ```bash
 make
 ```
-Two executable files will be generated:
+3. Two executable files will be generated:
 - `center`: Central controller program
 - `drone`: Drone node simulation program
 

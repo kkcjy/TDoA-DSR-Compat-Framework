@@ -12,8 +12,15 @@
 #include <time.h>
 #include <unistd.h>
 
-#include "../Inc/adhocuwb_dynamic_swarm_ranging.h"
 
+#define SWARM_RANGING_MODE
+// #define DYNAMIC_SWARM_RANGING_MODE
+
+#if defined(SWARM_RANGING_MODE)
+#include "../Inc/adhocuwb_swarm_ranging.h"
+#elif defined(DYNAMIC_SWARM_RANGING_MODE)
+#include "../Inc/adhocuwb_dynamic_swarm_ranging.h"
+#endif
 
 #define     NODES_NUM       2
 #define     ADDR_SIZE       20
