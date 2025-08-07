@@ -29,14 +29,10 @@
 #define         STATE_MACHINE_ENABLE
 #define         OPTIMAL_RANGING_SCHEDULE_ENABLE
 
-/* Invalid Value */
-#define         NULL_ADDRESS                0xFFFF
-#define         NULL_ADDR                   0xFF
-#define         NULL_DIS                    -1.0f
-#define         NULL_INDEX                  0xFF
-#define         NULL_SEQ                    0x0
-#define         NULL_TIMESTAMP              0xFFFFFFFFFFU
-#define         NULL_TOF                    -1.0f
+/* Ranging Constants */
+#define         RANGING_PERIOD              50
+#define         RANGING_PERIOD_MIN          50   
+#define         RANGING_PERIOD_MAX          500  
 
 /* Index */
 #define         index_t                     uint16_t
@@ -55,11 +51,6 @@
 /* Effective Distance Range */
 #define         UPPER_BOUND_DISTANCE        1000
 #define         LOWER_BOUND_DISTANCE        0
-
-/* Ranging Constants */
-#define         RANGING_PERIOD              200
-#define         RANGING_PERIOD_MIN          50   
-#define         RANGING_PERIOD_MAX          500  
 
 /* Queue Constants */
 #define         RANGING_RX_QUEUE_SIZE       10
@@ -80,6 +71,16 @@
 #define         DEBUG_PRINT                 printf
 #define         ASSERT                      assert
 #endif
+
+/* Invalid Value */
+#define         NULL_ADDRESS                0xFFFF
+#define         NULL_ADDR                   0xFF
+#define         NULL_DIS                    -1.0f
+#define         NULL_INDEX                  0xFF
+#define         NULL_SEQ                    0x0
+#define         NULL_TIMESTAMP              0xFFFFFFFFFFU
+#define         NULL_TOF                    -1.0f
+
 
 
 /* -------------------- Base Struct -------------------- */
