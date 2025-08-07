@@ -21,11 +21,12 @@ This program uses a drone connected to a computer as a sniffer to collect UWB ra
 
 1. **Navigate to Program Directory**
    ```bash
-   cd /path/to/sniffer/folder
+   cd 'path_to_sniffer_folder'
    ```
 
 2. **Configure Makefile**
-   - Modify `CFLAGS` and `LDFLAGS` according to your operating system:
+   
+   Modify `CFLAGS` and `LDFLAGS` according to your operating system:
      - **Linux System**: Use the default configuration
      - **macOS System**: Comment out Linux-related configurations and uncomment macOS configurations
 
@@ -50,14 +51,16 @@ This program uses a drone connected to a computer as a sniffer to collect UWB ra
 
 1. **Mode Selection**
    - Select the ranging mode in `sniffer.c` via macro definitions:
-     - `#define SWARM_RANGING_MODE`: Enable fixed swarm ranging mode
-     - `#define DYNAMIC_SWARM_RANGING_MODE`: Enable dynamic swarm ranging mode
+     
+     `#define SWARM_RANGING_MODE`
+     
+     `#define DYNAMIC_SWARM_RANGING_MODE`
    - Note: Only one mode can be selected at a time; the other must be commented out
 
 2. **Listening Quantity Configuration**
    - Modify the `LISTENED_DRONES` macro definition in `sniffer.c` to match the actual number of drones to be monitored:
      ```c
-     #define LISTENED_DRONES 2  // Change to actual number of drones
+     #define LISTENED_DRONES ...
      ```
 
 ## Data File
@@ -84,6 +87,7 @@ make clean
   - Sufficient permissions for USB device access
 
 ## Notes
+- Ensure that all drone addresses are set to values other than 0
 - Ensure the `data` directory exists in the program folder before running, or the program may fail to create log files
 - The number of monitored drones must not exceed the maximum limits defined by `RANGING_MAX_BODY_UNIT` (for swarm mode) or `MESSAGE_BODYUNIT_SIZE` (for dynamic mode)
 - The CSV file format automatically adjusts based on the selected ranging mode

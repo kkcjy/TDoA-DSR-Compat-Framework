@@ -29,21 +29,19 @@ void send_to_center(int center_socket, const char* address, const Ranging_Messag
 void TxCallBack(int center_socket, dwTime_t timestamp) {
     Ranging_Message_t ranging_msg;
 
-    pthread_mutex_lock(&mutex);
     generateDSRMessage(&ranging_msg);
     Timestamp_Tuple_t curTimeTuple = {
         .timestamp = timestamp,
         .seqNumber = ranging_msg.header.msgSequence
     };
     updateSendList(&rangingTableSet->sendList, curTimeTuple);
-    pthread_mutex_unlock(&mutex);
 
     send_to_center(center_socket, localAddress, &ranging_msg);
 
     // printf("Txcall, Txtimesatamp = %lu\n", timestamp.full);
    
     // reset TxTimestamp after callback
-    TxTimestamp.full = NULL_TIMESTAMP;
+    TxTimestamp.full = 0;
 }
 
 void RxCallBack(Ranging_Message_t *rangingMessage, dwTime_t timestamp) {
@@ -51,14 +49,12 @@ void RxCallBack(Ranging_Message_t *rangingMessage, dwTime_t timestamp) {
     rangingMessageWithAdditionalInfo.rangingMessage = *rangingMessage;
     rangingMessageWithAdditionalInfo.timestamp = timestamp;
 
-    pthread_mutex_lock(&mutex);
     processDSRMessage(&rangingMessageWithAdditionalInfo);
-    pthread_mutex_unlock(&mutex);
 
     // printf("Rxcall, Rx timestamp = %lu\n", timestamp.full);
 
-    // reset TxTimestamp after callback
-    RxTimestamp.full = NULL_TIMESTAMP;
+    // reset RxTimestamp after callback
+    RxTimestamp.full = 0;
 }
 
 void *receive_from_center(void *arg) {
@@ -101,7 +97,9 @@ void *receive_from_center(void *arg) {
             // handle message of rangingMessage
             else if(simu_msg.size == sizeof(Ranging_Message_t)) {
                 // wait for flightLog
-                while(RxTimestamp.full == NULL_TIMESTAMP);
+                if(RxTimestamp.full == 0) {
+                    continue;
+                }
                 Ranging_Message_t *ranging_msg = (Ranging_Message_t*)simu_msg.payload;
                 RxCallBack(ranging_msg, RxTimestamp);
             }
@@ -123,8 +121,8 @@ int main(int argc, char *argv[]) {
     const char *center_ip = argv[1];
     localAddress = argv[2];
 
-    TxTimestamp.full = NULL_TIMESTAMP;
-    RxTimestamp.full = NULL_TIMESTAMP;
+    TxTimestamp.full = 0;
+    RxTimestamp.full = 0;
 
     rangingTableSetInit();
 

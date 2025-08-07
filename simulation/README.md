@@ -8,8 +8,9 @@ This system simulates drone communication scenarios through a central controller
 ### 1. Data Processing
 1. Open `data_process.py`
 2. Modify parameters according to your data:
-   - `file_name`: Name of the sniffer data file (located in `../sniffer/data/` directory)
-   - `drone_num`: Actual number of drones in the simulation
+   - `FILE_NAME`: Name of the sniffer data file (located in `../sniffer/data/` directory)
+   - `DRONE_NUM`: Actual number of drones in the simulation
+   - `INTEGRITY_FILTER`: Whether to perform integrity check
 3. Run the data processing script:
    ```bash
    python3 data_process.py
@@ -24,9 +25,10 @@ This system simulates drone communication scenarios through a central controller
 
 ### 2. Configuration Parameter Modification
 1. Open `frame.h`
-2. Modify the `NODES_NUM` macro to match `drone_num` from step 1:
+2. Modify the `NODES_NUM` macro to match `DRONE_NUM` from step 1, then modify the `FILE_NAME` macro to match `FILE_NAME` from step 1(Path to the processed data file)
    ```c
-   #define NODES_NUM       <number of drones>  // Example: #define NODES_NUM 2
+   #define     NODES_NUM   <number of drones>
+   const char *FILE_NAME = "path_to_processed_data_file"
    ```
 3. Other key configurable parameters in `frame.h`:
    - `CENTER_PORT`: Communication port (default: 8888)
@@ -56,17 +58,7 @@ Two executable files will be generated:
    ```
    - `<center_ip>`: IP address of the central controller (use `127.0.0.1` for local testing)
    - `<drone_address>`: Unique numeric address for the drone (e.g., 1, 2, etc.)
-   - `<attention>`: The actual address must be consistent with the setting on cfclient.
-
-   Example (with `NODES_NUM=2`):
-   ```bash
-   # First drone (terminal 1)
-   ./drone 127.0.0.1 1
-
-   # Second drone (terminal 2)
-   ./drone 127.0.0.1 2
-   ```
-   
+   - `<attention>`: The actual address must be consistent with the setting on cfclient.   
 
 3. **System operation**:
    - Once all drones connect, the controller starts broadcasting flight logs
@@ -97,6 +89,7 @@ Two executable files will be generated:
 5. Drones process received ranging messages with timestamps
 
 ## Notes
+- Ensure that all drone addresses are set to values other than 0
 - Ensure the original sniffer data file exists in `../sniffer/data/` before processing
 - Drone addresses must be unique and match those in the processed data file
 - The controller will exit if the number of drones doesn't match the data file's expected count

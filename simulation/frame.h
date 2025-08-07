@@ -26,6 +26,9 @@
 #define     REJECT_INFO     "REJECT"
 
 
+const char *FILE_NAME = "./data/2025-08-06-17-48-05_.csv";
+
+
 typedef enum {
     TX,                     // sender
     RX                      // receiver

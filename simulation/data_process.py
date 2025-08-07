@@ -2,6 +2,15 @@ import re
 import numpy as np
 import pandas as pd
 
+
+# Name of the sniffer data file.
+FILE_NAME = '2025-08-06-17-48-05_.csv'
+# Number of drones in the simulation.
+DRONE_NUM = 2
+# Determines whether to filter out incomplete communications.
+INTEGRITY_FILTER = False
+
+
 # get number of Txi and Rxi from the header of the sniffer data file by seq
 def count_tx_rx_from_header(file_path):
     with open(file_path, 'r') as f:
@@ -29,17 +38,15 @@ def count_tx_rx_from_header(file_path):
 
 
 if __name__ == '__main__':
-    # Needs to be replaced in a timely manner.
-    file_name = '2025-08-06-17-48-05.csv'
-    drone_num = 2
 
-    line_num = 3 * drone_num
+    line_num = 3 * DRONE_NUM
     table_pos = 0
 
     print("Starting to Read and Integrate Sniffer-Collected Data...")
-    
-    sniffer_data_path = '../sniffer/data/' + file_name
-    processed_data_path = './data/' + file_name
+    print("oi")
+
+    sniffer_data_path = '../sniffer/data/' + FILE_NAME
+    processed_data_path = './data/' + FILE_NAME
 
     tx_count, rx_count = count_tx_rx_from_header(sniffer_data_path)
     print(f"Detected {tx_count} Tx and {rx_count} Rx in the sniffer data.")
@@ -133,27 +140,39 @@ if __name__ == '__main__':
                                 break
 
             # write to file
-            if (table_pos + 1) % drone_num == 0 and src_addr[2 * drone_num - 1] != 0:
-                for i in range(drone_num):
+            if (table_pos + 1) % DRONE_NUM == 0 and src_addr[2 * DRONE_NUM - 1] != 0:
+                for i in range(DRONE_NUM):
                     current_pos = (table_pos + 1 + i) % line_num
 
-                    # check if all fields are valid
-                    all_valid = True
-                    if Tx_time[current_pos] == 0:
-                        all_valid = False
+                    # check if all fields are valid and write to file
+                    if INTEGRITY_FILTER:
+                        all_valid = True
+                        if Tx_time[current_pos] == 0:
+                            all_valid = False
 
-                    if all_valid:
-                        for j in range(rx_count):
-                            if Rx_time[current_pos, j] == 0:
-                                all_valid = False
-                                break
-
-                    if all_valid:
-                        with open(processed_data_path, 'a') as out_file:
-                            out_file.write(f"{src_addr[current_pos]},{msg_seq[current_pos]},{filter[current_pos]},{Tx_time[current_pos]}")
+                        if all_valid:
                             for j in range(rx_count):
-                                out_file.write(f",{Rx_addr[current_pos, j]},{Rx_time[current_pos, j]}")
-                            out_file.write('\n')
+                                if Rx_time[current_pos, j] == 0:
+                                    all_valid = False
+                                    break
+
+                        if all_valid:
+                            with open(processed_data_path, 'a') as out_file:
+                                out_file.write(f"{src_addr[current_pos]},{msg_seq[current_pos]},{filter[current_pos]},{Tx_time[current_pos]}")
+                                for j in range(rx_count):
+                                    out_file.write(f",{Rx_addr[current_pos, j]},{Rx_time[current_pos, j]}")
+                                out_file.write('\n')
+                            output_count += 1
+
+                    # directly write the collected data
+                    else:
+                        with open(processed_data_path, 'a') as outfile:
+                            if Tx_time[current_pos] == 0:
+                                continue
+                            outfile.write(f"{src_addr[current_pos]},{msg_seq[current_pos]},{filter[current_pos]},{Tx_time[current_pos]}")
+                            for j in range(rx_count):
+                                outfile.write(f",{Rx_addr[current_pos, j]},{Rx_time[current_pos, j]}")
+                            outfile.write('\n')
                         output_count += 1
 
                     # clean up

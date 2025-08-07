@@ -2,8 +2,9 @@
 
 
 Drone_Node_Set_t *droneNodeSet;
-const char *filename = "./data/2025-08-06-17-48-05.csv";
 long file_pos = 0;
+pthread_mutex_t broadcast_rangingMessage_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t task_allocation_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 
 void droneNodeSet_init() {
@@ -37,17 +38,15 @@ int count_rx_from_header(const char *header_line) {
 }
 
 void broadcast_rangingMessage(Simu_Message_t *simu_msg) {
-    pthread_mutex_lock(&droneNodeSet->mutex);
     for (int i = 0; i < droneNodeSet->count; i++) {
         if (send(droneNodeSet->node[i].socket, simu_msg, sizeof(Simu_Message_t), 0) < 0) {
             perror("Failed to broadcast message");
         }
     }
-    pthread_mutex_unlock(&droneNodeSet->mutex);
 }
 
 void *broadcast_flightLog(void *arg) {
-    FILE *fp = fopen(filename, "r");
+    FILE *fp = fopen(FILE_NAME, "r");
     if (!fp) {
         perror("Failed to open file");
         return NULL;
@@ -78,7 +77,11 @@ void *broadcast_flightLog(void *arg) {
             break;
         }
 
-        // Tx task
+        //wait for broadcast_rangingMessage
+        pthread_mutex_lock(&task_allocation_mutex);
+        pthread_mutex_lock(&broadcast_rangingMessage_mutex);
+
+        // Tx task allocation
         Line_Message_t Tx_line_message;
         char *token = strtok(line, ",");
         Tx_line_message.address = (uint16_t)strtoul(token, NULL, 10);
@@ -103,7 +106,7 @@ void *broadcast_flightLog(void *arg) {
             }
         }
 
-        // Rx task
+        // Rx task allocation
         for(int i = 0; i < rx_count; i++) {
             Line_Message_t Rx_line_message;
             token = strtok(NULL, ",");
@@ -111,6 +114,11 @@ void *broadcast_flightLog(void *arg) {
             Rx_line_message.status = RX;
             token = strtok(NULL, ",");
             Rx_line_message.timestamp.full = (uint64_t)strtoull(token, NULL, 10);
+
+            // Skip packet loss cases
+            if(Rx_line_message.timestamp.full == 0) {
+                continue;
+            }
 
             for(int j = 0; j < droneNodeSet->count; j++) {
                 if((uint16_t)strtoul(droneNodeSet->node[j].address, NULL, 10) == Rx_line_message.address) {
@@ -127,6 +135,7 @@ void *broadcast_flightLog(void *arg) {
                 }
             }
         }
+        pthread_mutex_unlock(&broadcast_rangingMessage_mutex);
     }
 
     printf("Flight log broadcast completed.\n");
@@ -172,9 +181,15 @@ void *handle_node_connection(void *arg) {
     while ((bytes_received = recv(node_socket, &simu_msg, sizeof(simu_msg), 0)) > 0) {
         Ranging_Message_t *ranging_msg = (Ranging_Message_t*)simu_msg.payload;
         printf("[Broadcast]: address = %d, msgSeq = %d\n", ranging_msg->header.srcAddress, ranging_msg->header.msgSequence);
+        
+        // wait for task allocation
+        pthread_mutex_lock(&broadcast_rangingMessage_mutex);
         broadcast_rangingMessage(&simu_msg);
+        pthread_mutex_unlock(&broadcast_rangingMessage_mutex);
+        pthread_mutex_unlock(&task_allocation_mutex);
     }
 
+    // Handle disconnection
     pthread_mutex_lock(&droneNodeSet->mutex);
     for (int i = 0; i < droneNodeSet->count; i++) {
         // Find the node that matches the disconnected socket
