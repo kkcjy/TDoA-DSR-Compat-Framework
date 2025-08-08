@@ -28,7 +28,6 @@
 // #define         COMPENSATE_ENABLE
 // #define         COORDINATE_SEND_ENABLE
 #define         PACKET_LOSS_ENABLE
-#define         STATE_MACHINE_ENABLE
 #define         OPTIMAL_RANGING_SCHEDULE_ENABLE
 
 /* Ranging Constants */
@@ -221,9 +220,7 @@ typedef struct {
     bool expirationSign;                // true: no recent access --> expired | recent access --> not expired
 
     TableState tableState;              // UNUSED / USING
-    #ifdef STATE_MACHINE_ENABLE
     RANGING_TABLE_STATE rangingState;   // used for state machine
-    #endif
 } __attribute__((packed)) Ranging_Table_t;
 
 typedef struct {

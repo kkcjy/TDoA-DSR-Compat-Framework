@@ -206,9 +206,7 @@ void rangingTableInit(Ranging_Table_t *rangingTable) {
     rangingTable->continuitySign = false;
     rangingTable->expirationSign = true;
     rangingTable->tableState = UNUSED;
-    #ifdef STATE_MACHINE_ENABLE
-        rangingTable->rangingState = RANGING_STATE_S1;
-    #endif
+    rangingTable->rangingState = RANGING_STATE_S1;
 }
 
 // register a new rangingTable and return the index of rangingTable
@@ -769,7 +767,6 @@ void printCalculateTuple(Timestamp_Tuple_t Tb, Timestamp_Tuple_t Rb, Timestamp_T
 
 
 /* -------------------- State Machine Operation -------------------- */
-#ifdef STATE_MACHINE_ENABLE
 static void RESERVED_STUB(Ranging_Table_t *rangingTable) {
     ASSERT(0 && "[RESERVED_STUB]: Should not be called\n");
 }
@@ -1376,7 +1373,6 @@ void RangingTableEventHandler(Ranging_Table_t *rangingTable, RANGING_TABLE_EVENT
     ASSERT((event < RANGING_TABLE_EVENT_COUNT) && "Warning: Should not be called\n");
     EVENT_HANDLER[rangingTable->rangingState][event](rangingTable);
 }
-#endif
 
 
 /* -------------------- Generate and Process -------------------- */

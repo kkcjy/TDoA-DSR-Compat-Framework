@@ -1,21 +1,20 @@
 #ifndef _SWARM_RANGING_H_
 #define _SWARM_RANGING_H_
 
-#ifdef SIMULATION_COMPILE
-#include <assert.h>
-#include <pthread.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#endif
 
 #include "dwTypes.h"
+
+#ifdef SIMULATION_COMPILE
+#include "../simulation/support.h"
+#else
 #include "adhocuwb_init.h"
+#endif
 
 #if !defined(SNIFFER_COMPILE) && !defined(SIMULATION_COMPILE)
 #include "adhocuwb_platform.h"
 #include "dwm3000_init.h"
 #endif
+
 
 
 #define RANGING_DEBUG_ENABLE
@@ -55,16 +54,7 @@
 #define RangingTableSize
 #define NEIGHBOR_SET_HOLD_TIME (6 * RANGING_PERIOD_MAX)
 
-/* simulation */
-#ifdef SIMULATION_COMPILE
-#define ASSERT assert
-#define DEBUG_PRINT printf
-#define M2T(X) ((unsigned int)(X))
-#define UWB_MAX_TIMESTAMP 1099511627776
-#endif
-
 typedef short set_index_t;
-
 
 #ifdef CONFIG_UWB_LOCALIZATION_ENABLE
 #define RESET_INIT_STAGE 123 
@@ -72,6 +62,7 @@ typedef short set_index_t;
 #define FIRST_STAGE 125 //
 #define SECOND_STAGE 126
 #define LAND_STAGE 127
+
 
 /*--2添加--*/
 typedef struct
@@ -247,11 +238,7 @@ typedef struct {
 /* Ranging Table Set */
 typedef struct {
   int size;
-  #ifndef SIMULATION_COMPILE
   SemaphoreHandle_t mu;
-  #else
-  pthread_mutex_t mu;
-  #endif
   Ranging_Table_t tables[RANGING_TABLE_SIZE_MAX];
 } Ranging_Table_Set_t;
 
@@ -271,11 +258,7 @@ typedef struct Neighbor_Set_Hook {
 
 typedef struct {
   uint8_t size;
-  #ifndef SIMULATION_COMPILE
   SemaphoreHandle_t mu;
-  #else
-  pthread_mutex_t mu;
-  #endif
   Neighbor_Bit_Set_t oneHop;
   Neighbor_Bit_Set_t twoHop;
   /* one hop neighbors can be used to reach the corresponding two hop neighbor */

@@ -158,7 +158,7 @@ int main(int argc, char *argv[]) {
     RxTimestamp.full = 0;
 
     #if defined(SWARM_RANGING_MODE)
-
+        rangingTableSetInit(rangingTableSet);
     #elif defined(DYNAMIC_SWARM_RANGING_MODE)
         rangingTableSetInit();
     #endif

@@ -13,8 +13,8 @@
 #include <unistd.h>
 
 
-// #define SWARM_RANGING_MODE
-#define DYNAMIC_SWARM_RANGING_MODE
+#define SWARM_RANGING_MODE
+// #define DYNAMIC_SWARM_RANGING_MODE
 
 #if defined(SWARM_RANGING_MODE)
 #include "../Inc/adhocuwb_swarm_ranging.h"
