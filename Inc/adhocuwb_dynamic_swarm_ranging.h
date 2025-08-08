@@ -279,7 +279,7 @@ void updatePriorityQueue(Ranging_Table_Set_t *rangingTableSet, int8_t shiftCount
 
 void rangingTableSetInit();
 
-void checkExpiration(Ranging_Table_Set_t *rangingTableSet);
+void checkExpirationCallback(Ranging_Table_Set_t *rangingTableSet);
 
 int getCurrentSubstate(Ranging_Table_t *rangingTable);
 

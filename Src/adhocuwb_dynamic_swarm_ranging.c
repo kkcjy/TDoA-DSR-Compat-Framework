@@ -424,7 +424,7 @@ void rangingTableSetInit() {
 }
 
 // check expirationSign of rangingTables and deregister rangingTable expired
-void checkExpiration(Ranging_Table_Set_t *rangingTableSet) {
+void checkExpirationCallback(Ranging_Table_Set_t *rangingTableSet) {
     for(table_index_t i = rangingTableSet->size; i > 0; i--) {
         table_index_t idx = rangingTableSet->priorityQueue[i - 1];
         if(rangingTableSet->rangingTable[idx].expirationSign == true) {
@@ -1392,9 +1392,7 @@ void generateDSRMessage(Ranging_Message_t *rangingMessage) {
 
         rangingMessage->header.filter |= 1 << (rangingTableSet->rangingTable[index].neighborAddress % 16);
         
-        #ifdef STATE_MACHINE_ENABLE
-            RangingTableEventHandler(&rangingTableSet->rangingTable[index], RANGING_EVENT_TX);
-        #endif
+        RangingTableEventHandler(&rangingTableSet->rangingTable[index], RANGING_EVENT_TX);
 
         bodyUnitCount++;
     }
@@ -1431,7 +1429,7 @@ void generateDSRMessage(Ranging_Message_t *rangingMessage) {
 
     // clear expired rangingTable
     if(rangingTableSet->localSeqNumber % CHECK_PERIOD == 0) {
-        checkExpiration(rangingTableSet);
+        checkExpirationCallback(rangingTableSet);
     }
 
     // DEBUG_PRINT("[generate]\n");
