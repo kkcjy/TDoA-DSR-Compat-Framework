@@ -1,14 +1,14 @@
 CC = gcc
 
 SR_CFLAGS  = -Wall -g -I../../../../../vendor/libdw3000/include -I../../../../../vendor/FreeRTOS/include -I../Inc -I../platform/Inc -DSIMULATION_COMPILE
-DSR_CFLAGS = -Wall -g -I../../../../../vendor/libdw3000/include -I../../../../../vendor/FreeRTOS/include -I../Inc -I../platform/Inc -DSIMULATION_COMPILE -Wno-format -Wno-unused-variable -I...
+DSR_CFLAGS = -Wall -g -I../Inc -I../../../../../vendor/libdw3000/include -DSIMULATION_COMPILE -Wno-format -Wno-unused-variable -I...
 
 FRAME_SRC = frame.h
 CENTER_SRC = center.c
 DRONE_SRC = drone.c
 
 SR_SRC = ../Src/adhocuwb_swarm_ranging.c
-DSR_SRC = ../Src/adhocuwb_dynamic_swarm_ranging.c
+DSR_SRC = ../Src/adhocuwb_dynamic_swarm_ranging.c support.c
 
 CENTER_OUT = center
 DRONE_OUT = drone

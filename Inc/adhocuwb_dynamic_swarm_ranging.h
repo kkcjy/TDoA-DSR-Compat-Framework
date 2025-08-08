@@ -11,7 +11,9 @@
 #include <string.h>
 #include "dwTypes.h"
 
-#ifndef SIMULATION_COMPILE
+#ifdef SIMULATION_COMPILE
+#include "../simulation/support.h"
+#else
 #include "adhocuwb_init.h"
 #endif
 
@@ -31,12 +33,8 @@
 
 /* Ranging Constants */
 #define         RANGING_PERIOD              50
-#define         RANGING_PERIOD_MIN          50   
-#define         RANGING_PERIOD_MAX          500  
-
-/* Index */
-#define         index_t                     uint16_t
-#define         table_index_t               uint8_t
+#define         RANGING_PERIOD_MIN          50
+#define         RANGING_PERIOD_MAX          500
 
 /* Ranging Message */
 #define         MESSAGE_TX_POOL_SIZE        3
@@ -66,11 +64,9 @@
 #define         UWB_MAX_TIMESTAMP           1099511627776
 #define         VELOCITY                    0.4691763978616f
 
-/* Simulation */
-#ifdef SIMULATION_COMPILE
-#define         DEBUG_PRINT                 printf
-#define         ASSERT                      assert
-#endif
+/* Index */
+#define         index_t                     uint16_t
+#define         table_index_t               uint8_t
 
 /* Invalid Value */
 #define         NULL_ADDRESS                0xFFFF
@@ -80,7 +76,6 @@
 #define         NULL_SEQ                    0x0
 #define         NULL_TIMESTAMP              0xFFFFFFFFFFU
 #define         NULL_TOF                    -1.0f
-
 
 
 /* -------------------- Base Struct -------------------- */
@@ -241,7 +236,7 @@ typedef struct {
     Ranging_Table_t rangingTable[RANGING_TABLE_SIZE];
     Timestamp_Tuple_t lastRxtimestamp[RANGING_TABLE_SIZE];  // timestamps of last received messages from neighbors
     index_t priorityQueue[RANGING_TABLE_SIZE];              // circular priority queue used for choosing neighbors to send messages
-    #if !defined(SNIFFER_COMPILE) && !defined(SIMULATION_COMPILE)
+    #ifndef SNIFFER_COMPILE
     SemaphoreHandle_t mutex;
     #endif
 } __attribute__((packed)) Ranging_Table_Set_t;

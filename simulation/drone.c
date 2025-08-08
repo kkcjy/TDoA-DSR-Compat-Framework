@@ -146,13 +146,13 @@ void *receive_from_center(void *arg) {
 }
 
 int main(int argc, char *argv[]) {
-    if (argc < 3) {
-        printf("Usage: %s <center_ip> <localAddress>\n", argv[0]);
+    if (argc < 2) {
+        printf("Usage: ./drone <localAddress>\n");
         return 1;
     }
 
-    const char *center_ip = argv[1];
-    localAddress = argv[2];
+    const char *center_ip = CENTER_IP;
+    localAddress = argv[1];
 
     TxTimestamp.full = 0;
     RxTimestamp.full = 0;

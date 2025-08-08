@@ -397,6 +397,10 @@ void updatePriorityQueue(Ranging_Table_Set_t *rangingTableSet, int8_t shiftCount
 
 // init rangingTableSet
 void rangingTableSetInit() {
+    #ifdef SIMULATION_COMPILE
+        MY_UWB_ADDRESS = (uint16_t)strtoul(localAddress, NULL, 10);
+    #endif
+
     rangingTableSet = (Ranging_Table_Set_t*)malloc(sizeof(Ranging_Table_Set_t));
     rangingTableSet->size = 0;
     rangingTableSet->localSeqNumber = NULL_SEQ;
@@ -418,11 +422,7 @@ void rangingTableSetInit() {
         rangingTableSet->lastRxtimestamp[i] = nullTimestampTuple;
         rangingTableSet->priorityQueue[i] = NULL_INDEX;
     }
-    #ifndef SIMULATION_COMPILE
-        rangingTableSet->mutex = xSemaphoreCreateMutex();
-    #else
-        MY_UWB_ADDRESS = (uint16_t)strtoul(localAddress, NULL, 10);
-    #endif
+    rangingTableSet->mutex = xSemaphoreCreateMutex();
 }
 
 // check expirationSign of rangingTables and deregister rangingTable expired
