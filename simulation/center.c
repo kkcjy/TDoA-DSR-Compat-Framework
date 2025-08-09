@@ -2,7 +2,6 @@
 
 
 Drone_Node_Set_t *droneNodeSet;
-long file_pos = 0;
 pthread_mutex_t broadcast_rangingMessage_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t task_allocation_mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -17,7 +16,7 @@ void droneNodeSet_init() {
         perror("Mutex init failed");
         free(droneNodeSet);
         droneNodeSet = NULL;
-        exit(1);
+        exit(EXIT_FAILURE);
     }
 }
 
@@ -140,6 +139,8 @@ void *broadcast_flightLog(void *arg) {
 
     printf("Flight log broadcast completed.\n");
     fclose(fp);
+
+    exit(EXIT_SUCCESS);
     return NULL;
 }
 
@@ -163,13 +164,6 @@ void *handle_node_connection(void *arg) {
     }
     else {
         printf("Max nodes reached (%d), rejecting %s\n", NODES_NUM, node_address);
-
-        Simu_Message_t reject_msg;
-        strcpy(reject_msg.srcAddress, CENTER_ADDRESS);
-        strcpy(reject_msg.payload, REJECT_INFO);
-        reject_msg.size = strlen(reject_msg.payload);
-
-        send(node_socket, &reject_msg, sizeof(reject_msg), 0);
         close(node_socket);
         pthread_mutex_unlock(&droneNodeSet->mutex);
         return NULL;

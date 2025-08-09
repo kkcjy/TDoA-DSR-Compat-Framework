@@ -22,6 +22,7 @@
 #include "../Inc/adhocuwb_dynamic_swarm_ranging.h"
 #endif
 
+
 #define     NODES_NUM       2
 #define     ADDR_SIZE       20
 #define     CENTER_ADDRESS  "CENTER"
@@ -31,7 +32,6 @@
 #define     MESSAGE_SIZE    512
 #define     PAYLOAD_SIZE    MESSAGE_SIZE - ADDR_SIZE - sizeof(size_t)
 #define     READ_PERIOD     200
-#define     REJECT_INFO     "REJECT"
 
 
 const char *FILE_NAME = "./data/2025-08-06-17-48-05_.csv";

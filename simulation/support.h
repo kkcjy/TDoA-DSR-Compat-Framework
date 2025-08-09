@@ -4,22 +4,17 @@
 
 #include <assert.h>
 #include <pthread.h>
-// #include <signal.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-// #include <sys/time.h>
-// #include <time.h>
 #include "dwTypes.h"
 
 
 typedef         uint16_t                    UWB_Address_t;
 typedef         uint32_t                    TickType_t;
 typedef         long                        BaseType_t;
-// typedef         unsigned long               UBaseType_t;
-
 #define         ASSERT                      assert
 #define         DEBUG_PRINT                 printf
 #define         DWT_TIME_UNITS              (1.0/499.2e6/128.0) 
@@ -35,18 +30,7 @@ typedef         long                        BaseType_t;
 #define         UWB_MAX_TIMESTAMP           1099511627776
 typedef         pthread_mutex_t             *SemaphoreHandle_t;
 typedef         portTickType                Time_t;
-// typedef         void*                       TimerHandle_t;
-// typedef void    (*TimerCallbackFunction_t)  (void*);
 
-
-// typedef struct Timer_t {
-//     timer_t posixTimerID;
-//     char name[32];
-//     TickType_t periodTicks;
-//     UBaseType_t autoReload;
-//     void* id;
-//     TimerCallbackFunction_t callback;
-// } Timer_t;
 
 typedef enum {
     UWB_REVERSED_MESSAGE = 0,
@@ -79,7 +63,5 @@ int xSemaphoreTake(SemaphoreHandle_t mutex, TickType_t xTicksToWait);
 int xSemaphoreGive(SemaphoreHandle_t mutex);
 
 /* TimerHandle_t */
-// TimerHandle_t xTimerCreate(const char* pcTimerName, TickType_t xTimerPeriodInTicks, UBaseType_t uxAutoReload, void* pvTimerID, TimerCallbackFunction_t pxCallbackFunction);
-// int xTimerStart(TimerHandle_t xTimer, TickType_t xTicksToWait);
-// TickType_t xTaskGetTickCount();
+TickType_t xTaskGetTickCount();
 #endif

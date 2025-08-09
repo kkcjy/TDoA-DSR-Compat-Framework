@@ -8,6 +8,7 @@
 
 #include "dwTypes.h"
 
+
 #ifdef SIMULATION_COMPILE
 #include "../simulation/support.h"
 #else
@@ -48,6 +49,7 @@
 #define     RANGING_TABLE_SIZE 32               // default up to 20 one-hop neighbors
 #define     RANGING_TABLE_SIZE_MAX              32
 #define     RANGING_TABLE_HOLD_TIME             (6 * RANGING_PERIOD_MAX)
+#define     RANGING_TABLE_SET_CLEAR_PERIOD      (RANGING_TABLE_HOLD_TIME / RANGING_PERIOD)
 #define     Tr_Rr_BUFFER_POOL_SIZE              6
 // #define     Tf_BUFFER_POOL_SIZE                 (2 * RANGING_PERIOD_MAX / RANGING_PERIOD_MIN)
 #define     Tf_BUFFER_POOL_SIZE                 6
@@ -55,6 +57,7 @@
 /* Topology Sensing */
 #define     NEIGHBOR_ADDRESS_MAX                32
 #define     NEIGHBOR_SET_HOLD_TIME              (6 * RANGING_PERIOD_MAX)
+#define     NEIGHBOR_SET_CLEAR_PERIOD           (NEIGHBOR_SET_HOLD_TIME / RANGING_PERIOD)
 
 typedef     short                               set_index_t;
 
@@ -246,6 +249,8 @@ typedef void (*RangingTableEventHandler)(Ranging_Table_t *);
 
 
 /* Neighbor Set */
+typedef void (*neighborSetHook)(UWB_Address_t);
+
 typedef struct {
     uint64_t bits;
     uint8_t size;
@@ -269,8 +274,6 @@ typedef struct {
     Neighbor_Set_Hooks_t neighborTopologyChangeHooks;
     Time_t expirationTime[NEIGHBOR_ADDRESS_MAX + 1];
 } Neighbor_Set_t;
-
-typedef void (*neighborSetHook)(UWB_Address_t);
 
 
 #ifdef CONFIG_UWB_LOCALIZATION_ENABLE

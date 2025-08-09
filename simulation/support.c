@@ -1,5 +1,12 @@
-// #define _POSIX_C_SOURCE 199309L
 #include "support.h"
+
+
+uint16_t TxCount = 0;
+uint16_t RxCount = 0;
+dwTime_t lastTxTimestamp;                               
+dwTime_t lastRxTimestamp;                               
+dwTime_t TxTimestamp;                                   
+dwTime_t RxTimestamp;                                   
 
 
 /* SemaphoreHandle_t */
@@ -36,76 +43,27 @@ int xSemaphoreGive(SemaphoreHandle_t mutex) {
 }
 
 /* SemaphoreHandle_t */
-// static void timer_signal_handler(union sigval sv) {
-//     Timer_t* timer = (Timer_t*) sv.sival_ptr;
-//     if (timer && timer->callback) {
-//         timer->callback(timer->id);
-//     }
-// }
-
-// TimerHandle_t xTimerCreate(const char* pcTimerName,
-//                            TickType_t xTimerPeriodInTicks,
-//                            UBaseType_t uxAutoReload,
-//                            void* pvTimerID,
-//                            TimerCallbackFunction_t pxCallbackFunction) {
-//     Timer_t* newTimer = (Timer_t*) malloc(sizeof(Timer_t));
-//     if (!newTimer) {
-//         perror("malloc");
-//         return NULL;
-//     }
-//     memset(newTimer, 0, sizeof(Timer_t));
-
-//     strncpy(newTimer->name, pcTimerName, sizeof(newTimer->name) - 1);
-//     newTimer->periodTicks = xTimerPeriodInTicks;
-//     newTimer->autoReload = uxAutoReload;
-//     newTimer->id = pvTimerID;
-//     newTimer->callback = pxCallbackFunction;
-
-//     struct sigevent sev;
-//     memset(&sev, 0, sizeof(sev));
-//     sev.sigev_notify = SIGEV_THREAD;
-//     sev.sigev_value.sival_ptr = newTimer;
-//     sev.sigev_notify_function = timer_signal_handler;
-
-//     if (timer_create(CLOCK_REALTIME, &sev, &newTimer->posixTimerID) == -1) {
-//         perror("timer_create");
-//         free(newTimer);
-//         return NULL;
-//     }
-//     return newTimer;
-// }
-
-// int xTimerStart(TimerHandle_t xTimer, TickType_t xTicksToWait) {
-//     Timer_t* timer = (Timer_t*) xTimer;
-//     if (!timer) return 0;
-
-//     struct itimerspec its;
-//     memset(&its, 0, sizeof(its));
-
-//     its.it_value.tv_sec = timer->periodTicks / TICKS_PER_SECOND;
-//     its.it_value.tv_nsec = (timer->periodTicks % TICKS_PER_SECOND) * (1000000000 / TICKS_PER_SECOND);
-
-//     if (timer->autoReload) {
-//         its.it_interval.tv_sec = its.it_value.tv_sec;
-//         its.it_interval.tv_nsec = its.it_value.tv_nsec;
-//     } else {
-//         its.it_interval.tv_sec = 0;
-//         its.it_interval.tv_nsec = 0;
-//     }
-
-//     if (timer_settime(timer->posixTimerID, 0, &its, NULL) == -1) {
-//         perror("timer_settime");
-//         return 0;
-//     }
-
-//     return 1;
-// }
-
-// TickType_t xTaskGetTickCount() {
-//     struct timespec ts;
-//     if (clock_gettime(CLOCK_MONOTONIC, &ts) == -1) {
-//         perror("clock_gettime");
-//         return 0;
-//     }
-//     return (TickType_t)(ts.tv_sec * TICKS_PER_SECOND + ts.tv_nsec / (1000000000 / TICKS_PER_SECOND));
-// }
+TickType_t xTaskGetTickCount() {
+    TickType_t curTicks;
+    if(TxTimestamp.full != 0) {
+        if(lastTxTimestamp.full == 0) {
+            lastTxTimestamp.full = TxTimestamp.full;
+        }
+        else {
+            TxCount += TxTimestamp.full < lastTxTimestamp.full ? 1 : 0;
+        }
+        curTicks = (TxCount << 16) + (TxTimestamp.full >> 24);
+        TxTimestamp.full = 0;
+    }
+    else if(RxTimestamp.full != 0) {
+        if(lastRxTimestamp.full == 0) {
+            lastRxTimestamp.full = RxTimestamp.full;
+        }
+        else {
+            RxCount += RxTimestamp.full < lastRxTimestamp.full ? 1 : 0;
+        }
+        curTicks = (RxCount << 16) + (RxTimestamp.full >> 24);
+        RxTimestamp.full = 0;
+    }
+    return curTicks;
+}

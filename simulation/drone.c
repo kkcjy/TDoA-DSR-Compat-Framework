@@ -3,11 +3,16 @@
 
 
 const char* localAddress;
+#if defined(SWARM_RANGING_MODE)
+extern Ranging_Table_Set_t rangingTableSet;
+#elif defined(DYNAMIC_SWARM_RANGING_MODE)
 extern Ranging_Table_Set_t *rangingTableSet;
+#endif
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;      // mutex for synchronizing access to the rangingTableSet
-dwTime_t TxTimestamp;                                   // store timestamp from flightLog
-dwTime_t RxTimestamp;                                   // store timestamp from flightLog
-volatile bool has_response = false;                     // flag to indicate if response has been received
+extern dwTime_t lastTxTimestamp;                              
+extern dwTime_t lastRxTimestamp;                              
+extern dwTime_t TxTimestamp;                            // store timestamp from flightLog
+extern dwTime_t RxTimestamp;                            // store timestamp from flightLog
 
 
 void send_to_center(int center_socket, const char* address, const Ranging_Message_t *ranging_msg) {
@@ -30,6 +35,7 @@ void TxCallBack(int center_socket, dwTime_t timestamp) {
     #if defined(SWARM_RANGING_MODE)
         Ranging_Message_t ranging_msg;
 
+        // reset of TxTimestamp in other place
         generateRangingMessage(&ranging_msg);
         Timestamp_Tuple_t curTimeTuple = {
             .timestamp = timestamp,
@@ -40,10 +46,6 @@ void TxCallBack(int center_socket, dwTime_t timestamp) {
         send_to_center(center_socket, localAddress, &ranging_msg);
 
         // printf("Txcall, Txtimesatamp = %lu\n", timestamp.full);
-    
-        // reset TxTimestamp after callback
-        TxTimestamp.full = 0;
-
     #elif defined(DYNAMIC_SWARM_RANGING_MODE)
         Ranging_Message_t ranging_msg;
 
@@ -69,13 +71,10 @@ void RxCallBack(Ranging_Message_t *rangingMessage, dwTime_t timestamp) {
         rangingMessageWithTimestamp.rangingMessage = *rangingMessage;
         rangingMessageWithTimestamp.rxTime = timestamp;
         
+        // reset of RxTimestamp in other place
         processRangingMessage(&rangingMessageWithTimestamp);
 
         // printf("Rxcall, Rx timestamp = %lu\n", timestamp.full);
-
-        // reset RxTimestamp after callback
-        RxTimestamp.full = 0;
-    
     #elif defined(DYNAMIC_SWARM_RANGING_MODE)
         Ranging_Message_With_Additional_Info_t rangingMessageWithAdditionalInfo;
         rangingMessageWithAdditionalInfo.rangingMessage = *rangingMessage;
@@ -99,14 +98,8 @@ void *receive_from_center(void *arg) {
 
         if(bytes_received <= 0) {
             printf("Disconnected from Control Center\n");
+            exit(EXIT_SUCCESS);
             break;
-        }
-
-        has_response = true;
-
-        if (strcmp(simu_msg.payload, REJECT_INFO) == 0) {
-            printf("Connection rejected: Maximum drones reached (%d)\n", NODES_NUM);
-            exit(1);
         }
 
         // ignore the message from itself
@@ -154,11 +147,13 @@ int main(int argc, char *argv[]) {
     const char *center_ip = CENTER_IP;
     localAddress = argv[1];
 
+    lastTxTimestamp.full = 0;
+    lastRxTimestamp.full = 0;
     TxTimestamp.full = 0;
     RxTimestamp.full = 0;
 
     #if defined(SWARM_RANGING_MODE)
-        rangingTableSetInit(rangingTableSet);
+        rangingTableSetInit(&rangingTableSet);
     #elif defined(DYNAMIC_SWARM_RANGING_MODE)
         rangingTableSetInit();
     #endif
@@ -198,30 +193,6 @@ int main(int argc, char *argv[]) {
     }
 
     printf("Node %s connected to center\n", localAddress);
-
-    struct timespec timeout;
-    clock_gettime(CLOCK_REALTIME, &timeout);
-    timeout.tv_sec += 10;
-
-    while (1) {
-        struct timespec now;
-        clock_gettime(CLOCK_REALTIME, &now);
-        
-        if (now.tv_sec > timeout.tv_sec || 
-            (now.tv_sec == timeout.tv_sec && now.tv_nsec >= timeout.tv_nsec)) {
-            printf("Timeout: No response from center within 10 seconds\n");
-            close(center_socket);
-            return 1;
-        }
-
-        if (has_response) {
-            has_response = 0;
-            clock_gettime(CLOCK_REALTIME, &timeout);
-            timeout.tv_sec += 10;
-        }
-        
-        sleep(10);
-    }
 
     pthread_join(receive_thread, NULL);
     close(center_socket);

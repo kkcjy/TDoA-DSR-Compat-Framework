@@ -11,6 +11,7 @@
 #include <string.h>
 #include "dwTypes.h"
 
+
 #ifdef SIMULATION_COMPILE
 #include "../simulation/support.h"
 #else
