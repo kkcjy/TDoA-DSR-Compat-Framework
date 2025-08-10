@@ -611,8 +611,6 @@ static int rangingTableSetClearExpire(Ranging_Table_Set_t *set) {
 }
 
 static void rangingTableSetClearExpireTimerCallback() {
-    xSemaphoreTake(rangingTableSet.mu, portMAX_DELAY);
-
     Time_t curTime = xTaskGetTickCount();
     // DEBUG_PRINT("rangingTableSetClearExpireTimerCallback: Trigger expiration timer at %lu.\n", curTime);
 
@@ -623,8 +621,6 @@ static void rangingTableSetClearExpireTimerCallback() {
     else {
         // DEBUG_PRINT("rangingTableSetClearExpireTimerCallback: Evict none.\n");
     }
-
-    xSemaphoreGive(rangingTableSet.mu);
 }
 
 bool rangingTableSetAddTable(Ranging_Table_Set_t *set, Ranging_Table_t table) {
