@@ -621,7 +621,7 @@ static void rangingTableSetClearExpireTimerCallback() {
         DEBUG_PRINT("rangingTableSetClearExpireTimerCallback: Evict total %d ranging tables.\n", evictionCount);
     }
     else {
-        DEBUG_PRINT("rangingTableSetClearExpireTimerCallback: Evict none.\n");
+        // DEBUG_PRINT("rangingTableSetClearExpireTimerCallback: Evict none.\n");
     }
 
     xSemaphoreGive(rangingTableSet.mu);
@@ -1084,7 +1084,7 @@ static int16_t computeDistance(Timestamp_Tuple_t Tp, Timestamp_Tuple_t Rp,
         }
     }
 
-    DEBUG_PRINT("compute dist:\t%d\n", distance);
+    // DEBUG_PRINT("compute dist:\t%d\n", distance);
     
     if (distance < 0) {
         DEBUG_PRINT("Ranging Error: distance < 0\n");
@@ -1154,7 +1154,7 @@ static int16_t computeDistance2(Timestamp_Tuple_t Tx, Timestamp_Tuple_t Rx,
         }
     }
 
-    DEBUG_PRINT("compute dist 2:%d\n", distance);
+    // DEBUG_PRINT("compute dist 2:%d\n", distance);
     if (distance < 0) {
         DEBUG_PRINT("Ranging Error: distance < 0\n");
         isErrorOccurred = true;
@@ -1266,6 +1266,9 @@ static void S3_RX_NO_Rf(Ranging_Table_t *rangingTable) {
     int16_t distance = computeDistance2(rangingTable->TxRxHistory.Tx, rangingTable->TxRxHistory.Rx,
                                         rangingTable->Tp, rangingTable->Rp,
                                         Tr_Rr_Candidate.Tr, Tr_Rr_Candidate.Rr,rangingTable);
+
+    DEBUG_PRINT("[local_%u <- neighbor_%u]: SR dist = %d, time = %llu\n", MY_UWB_ADDRESS, rangingTable->neighborAddress, distance, rangingTable->Re.timestamp.full % UWB_MAX_TIMESTAMP);
+
     if (distance > 0) {
         rangingTable->distance = distance;
         setDistance(rangingTable->neighborAddress, distance, 2);
@@ -1297,6 +1300,9 @@ static void S3_RX_Rf(Ranging_Table_t *rangingTable) {
     int16_t distance = computeDistance2(rangingTable->TxRxHistory.Tx, rangingTable->TxRxHistory.Rx,
                                         rangingTable->Tp, rangingTable->Rp,
                                         Tr_Rr_Candidate.Tr, Tr_Rr_Candidate.Rr,rangingTable);
+
+    DEBUG_PRINT("[local_%u <- neighbor_%u]: SR dist = %d, time = %llu\n", MY_UWB_ADDRESS, rangingTable->neighborAddress, distance, rangingTable->Re.timestamp.full % UWB_MAX_TIMESTAMP);
+    
     if (distance > 0) {
         rangingTable->distance = distance;
         setDistance(rangingTable->neighborAddress, distance, 2);
@@ -1331,12 +1337,14 @@ static void S4_Tf(Ranging_Table_t *rangingTable) {
 }
 
 static void S4_RX_NO_Rf(Ranging_Table_t *rangingTable) {
-    DEBUG_PRINT("T2-");
     /*use history tx,rx to compute distance*/
     Ranging_Table_Tr_Rr_Candidate_t Tr_Rr_Candidate = rangingTableBufferGetLatest(&rangingTable->TrRrBuffer);
     int16_t distance = computeDistance2(rangingTable->TxRxHistory.Tx, rangingTable->TxRxHistory.Rx,
                                         rangingTable->Tp, rangingTable->Rp,
                                         Tr_Rr_Candidate.Tr, Tr_Rr_Candidate.Rr,rangingTable);
+
+    DEBUG_PRINT("[local_%u <- neighbor_%u]: SR dist = %d, time = %llu\n", MY_UWB_ADDRESS, rangingTable->neighborAddress, distance, rangingTable->Re.timestamp.full % UWB_MAX_TIMESTAMP);
+    
     if (distance > 0) {
         rangingTable->distance = distance;
         setDistance(rangingTable->neighborAddress, distance, 2);
@@ -1379,6 +1387,9 @@ static void S4_RX_Rf(Ranging_Table_t *rangingTable) {
     int16_t distance = computeDistance(rangingTable->Tp, rangingTable->Rp,
                                       Tr_Rr_Candidate.Tr, Tr_Rr_Candidate.Rr,
                                       rangingTable->Tf, rangingTable->Rf);
+    
+    DEBUG_PRINT("[local_%u <- neighbor_%u]: SR dist = %d, time = %llu\n", MY_UWB_ADDRESS, rangingTable->neighborAddress, distance, rangingTable->Re.timestamp.full % UWB_MAX_TIMESTAMP);
+    
     if (distance > 0) {
         rangingTable->distance = distance;
         setDistance(rangingTable->neighborAddress, distance, 1);

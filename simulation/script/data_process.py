@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 
 
-# This script processes the data collected by the sniffer, formats it to meet the simulation requirements, and saves it into the `data/` directory.
+# This script reads data collected by the sniffer and organizes it into a format suitable for simulation, saving the results in the simulation/data directory.
 
 
 # Name of the sniffer data file.
@@ -48,8 +48,8 @@ if __name__ == '__main__':
     print("Starting to Read and Integrate Sniffer-Collected Data...")
     print("oi")
 
-    sniffer_data_path = '../sniffer/data/' + FILE_NAME
-    processed_data_path = './data/' + FILE_NAME
+    sniffer_data_path = '../../sniffer/data/' + FILE_NAME
+    processed_data_path = '../data/' + FILE_NAME
 
     tx_count, rx_count = count_tx_rx_from_header(sniffer_data_path)
     print(f"Detected {tx_count} Tx and {rx_count} Rx in the sniffer data.")

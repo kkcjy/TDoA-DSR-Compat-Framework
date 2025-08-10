@@ -1,11 +1,12 @@
 CC = gcc
 
-SR_CFLAGS  = -Wall -g -I../Inc -I../../../../../vendor/libdw3000/include -DSIMULATION_COMPILE -Wno-format -Wno-unused-variable -I...
-DSR_CFLAGS = -Wall -g -I../Inc -I../../../../../vendor/libdw3000/include -DSIMULATION_COMPILE -Wno-format -Wno-unused-variable -I...
+SR_CFLAGS  = -Wall -g -I../Inc -I../../../../../vendor/libdw3000/include -DSIMULATION_COMPILE -Wno-format -Wno-unused-variable
+DSR_CFLAGS = -Wall -g -I../Inc -I../../../../../vendor/libdw3000/include -DSIMULATION_COMPILE -Wno-format -Wno-unused-variable
 
 FRAME_SRC = frame.h
 CENTER_SRC = center.c
 DRONE_SRC = drone.c
+SUPPORT_SRC = support.h
 
 SR_SRC = ../Src/adhocuwb_swarm_ranging.c support.c
 DSR_SRC = ../Src/adhocuwb_dynamic_swarm_ranging.c support.c
@@ -15,8 +16,8 @@ DRONE_OUT = drone
 
 all: $(CENTER_OUT) $(DRONE_OUT)
 
-SWARM_MODE_DEFINED = $(shell grep -v '^[[:space:]]*//' $(FRAME_SRC) | grep -v '^[[:space:]]*$$' | grep -q '^[[:space:]]*#define[[:space:]]*SWARM_RANGING_MODE[[:space:]]*$$' && echo 1)
-DYNAMIC_MODE_DEFINED = $(shell grep -v '^[[:space:]]*//' $(FRAME_SRC) | grep -v '^[[:space:]]*$$' | grep -q '^[[:space:]]*#define[[:space:]]*DYNAMIC_SWARM_RANGING_MODE[[:space:]]*$$' && echo 1)
+SWARM_MODE_DEFINED = $(shell grep -v '^[[:space:]]*//' $(SUPPORT_SRC) | grep -v '^[[:space:]]*$$' | grep -q '^[[:space:]]*#define[[:space:]]*SWARM_RANGING_MODE[[:space:]]*$$' && echo 1)
+DYNAMIC_MODE_DEFINED = $(shell grep -v '^[[:space:]]*//' $(SUPPORT_SRC) | grep -v '^[[:space:]]*$$' | grep -q '^[[:space:]]*#define[[:space:]]*DYNAMIC_SWARM_RANGING_MODE[[:space:]]*$$' && echo 1)
 
 ifeq ($(SWARM_MODE_DEFINED)$(DYNAMIC_MODE_DEFINED),11)
 $(error "Error: Both modes are defined! Please define only one mode")

@@ -5,13 +5,13 @@ import numpy as np
 matplotlib.use('TkAgg')
 
 
-# This script reads data from `ranging log.csv`, evaluates the ranging results, and generates plots.
+# This script reads data from ranging log.csv, evaluates the ranging results, and generates plots.
 
 
-FILE_NAME = './data/ranging_Log.csv'
+FILE_PATH = '../data/output/ranging_Log.csv'
 
 def ranging_plot():
-    df = pd.read_csv(FILE_NAME)
+    df = pd.read_csv(FILE_PATH)
 
     plt.figure(figsize=(12, 6))
     plt.plot(df['DSR'], label='DSR', marker='o')
@@ -37,7 +37,7 @@ def compute_error_metrics(predicted, ground_truth):
 
 
 if __name__ == '__main__':
-    df = pd.read_csv(FILE_NAME)
+    df = pd.read_csv(FILE_PATH)
     df = df.dropna(subset=['DSR', 'SR', 'VICON'])
 
     mean_ae_dsr, max_ae_dsr, rmse_dsr, mre_dsr = compute_error_metrics(df['DSR'].values, df['VICON'].values)

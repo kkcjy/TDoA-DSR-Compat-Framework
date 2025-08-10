@@ -4,6 +4,7 @@
 
 #include <assert.h>
 #include <pthread.h>
+#include <stdarg.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -12,11 +13,14 @@
 #include "dwTypes.h"
 
 
+#define SWARM_RANGING_MODE
+// #define DYNAMIC_SWARM_RANGING_MODE
+
+
 typedef         uint16_t                    UWB_Address_t;
 typedef         uint32_t                    TickType_t;
 typedef         long                        BaseType_t;
 #define         ASSERT                      assert
-#define         DEBUG_PRINT                 printf
 #define         DWT_TIME_UNITS              (1.0/499.2e6/128.0) 
 #define         M2T(X)                      ((unsigned int)(X))
 #define         pdTRUE                      ((BaseType_t)1)
@@ -55,6 +59,9 @@ typedef struct {
     } __attribute__((packed));
 } __attribute__((packed)) UWB_Packet_Header_t;
 
+
+/* DEBUG_PRINT */
+void DEBUG_PRINT(const char *format, ...);
 
 /* SemaphoreHandle_t */
 SemaphoreHandle_t xSemaphoreCreateMutex();

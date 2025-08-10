@@ -30,11 +30,13 @@ This system simulates drone communication scenarios through a central controller
    #define     NODES_NUM   <number of drones>
    const char *FILE_NAME = "path_to_processed_data_file"
    ```
-3. Select the appropriate mode based on the protocol: `SWARM_RANGING_MODE` or `DYNAMIC_SWARM_RANGING_MODE`
 4. Other key configurable parameters in `frame.h`(No changes are necessary generally):
    - `CENTER_PORT`: Communication port (default: 8888)
    - `READ_PERIOD`: Interval between log broadcasts (default: 200ms)
    - `ADDR_SIZE`: Maximum length of node addresses (default: 20)
+---
+5. Open `support`
+6. Select the appropriate mode based on the protocol: `SWARM_RANGING_MODE` or `DYNAMIC_SWARM_RANGING_MODE`
 
 ### 3. Compile the Program
 1. Use `make mode` to check whether the current compilation mode matches the expected one:
@@ -68,13 +70,18 @@ make
    - Drones receive log data and exchange ranging messages through the controller
    - The controller forwards ranging messages between all connected drones
 
-### 5. Result Analysis
+### 5. Script
    Two Python scripts are provided for analyzing the results:
+1. **data_process.py**
+   This script reads data collected by the sniffer and organizes it into a format suitable for simulation, saving the results in the simulation/data directory.
 
-1. **evaluation.py**
+2. **format.py**
+   This script integrates the DSR and SR data generated in the simulation along with the original VICON data, and formats them for use in evaluation and optimization.
+
+3. **evaluation.py**
    This script reads data from ranging log.csv, evaluates the ranging results, and generates plots.
 
-2. **optimize.py**
+4. **optimize.py**
    This script reads data from ranging log.csv and adjusts the compensation coefficient appropriately to optimize ranging accuracy, make sure COMPENSATE_ENABLE is closed.
 
 ## Key Components

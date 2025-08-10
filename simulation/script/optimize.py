@@ -5,11 +5,11 @@ import numpy as np
 matplotlib.use('TkAgg')
 
 
-# This script reads data from `ranging log.csv`, dynamically adjust the coefficients to obtain the optimal compensate_rate and jitter_threshold, make sure COMPENSATE_ENABLE is closed.
+# This script reads data from ranging log.csv and adjusts the compensation coefficient appropriately to optimize ranging accuracy, make sure COMPENSATE_ENABLE is closed.
 
 
 def read_log():
-    data_path = './data/ranging_Log.csv'
+    data_path = '../data/output/ranging_Log.csv'
     data = pd.read_csv(data_path)
 
     data['DSR'] = pd.to_numeric(data['DSR'], errors='coerce')

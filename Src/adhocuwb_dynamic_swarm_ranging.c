@@ -1622,7 +1622,7 @@ void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
                 last_dis_Calculate[rangingTable->neighborAddress] = dis_Calculate[rangingTable->neighborAddress];
                 last_Seq[rangingTable->neighborAddress] = rangingMessage->header.msgSequence;
                 double distance = (double)dis_Calculate[rangingTable->neighborAddress];
-                DEBUG_PRINT("[local_%u<-neighbor_%u]: DSR dist = %f", MY_UWB_ADDRESS, rangingTable->neighborAddress, distance);
+                DEBUG_PRINT("[local_%u <- neighbor_%u]: DSR dist = %f", MY_UWB_ADDRESS, rangingTable->neighborAddress, distance);
             }
             else if(dis_unit[rangingTable->neighborAddress] == NULL_DIS) {
                 uint16_t seqGap = rangingMessage->header.msgSequence - last_Seq[rangingTable->neighborAddress];
@@ -1630,7 +1630,7 @@ void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
                 last_dis_Calculate[rangingTable->neighborAddress] = dis_Calculate[rangingTable->neighborAddress];
                 last_Seq[rangingTable->neighborAddress] = rangingMessage->header.msgSequence;
                 double distance = (double)dis_Calculate[rangingTable->neighborAddress];
-                DEBUG_PRINT("[local_%u<-neighbor_%u]: DSR dist = %f", MY_UWB_ADDRESS, rangingTable->neighborAddress, distance);
+                DEBUG_PRINT("[local_%u <- neighbor_%u]: DSR dist = %f", MY_UWB_ADDRESS, rangingTable->neighborAddress, distance);
             }
             else {
                 uint16_t seqGap = rangingMessage->header.msgSequence - last_Seq[rangingTable->neighborAddress];
@@ -1653,10 +1653,10 @@ void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
                 else {
                     distance = dis_Calculate[rangingTable->neighborAddress] + dis_Compensate * COMPENSATE_RATE;                    
                 }
-                DEBUG_PRINT("[local_%u<-neighbor_%u]: DSR dist = %f", MY_UWB_ADDRESS, rangingTable->neighborAddress, distance);
+                DEBUG_PRINT("[local_%u <- neighbor_%u]: DSR dist = %f", MY_UWB_ADDRESS, rangingTable->neighborAddress, distance);
             }
         #else
-            DEBUG_PRINT("[local_%u<-neighbor_%u]: DSR dist = %f", MY_UWB_ADDRESS, rangingTable->neighborAddress, (double)dis_Calculate[rangingTable->neighborAddress]);
+            DEBUG_PRINT("[local_%u <- neighbor_%u]: DSR dist = %f", MY_UWB_ADDRESS, rangingTable->neighborAddress, (double)dis_Calculate[rangingTable->neighborAddress]);
         #endif
 
         #ifdef COORDINATE_SEND_ENABLE

@@ -92,7 +92,7 @@ void *broadcast_flightLog(void *arg) {
 
         for(int i = 0; i < droneNodeSet->count; i++) {
             if((uint16_t)strtoul(droneNodeSet->node[i].address, NULL, 10) == Tx_line_message.address) {
-                printf("Tx address = %d, Tx timestamp = %lu\n", Tx_line_message.address, Tx_line_message.timestamp.full);
+                printf("[broadcast_flightLog]: Tx address = %d, Tx timestamp = %lu\n", Tx_line_message.address, Tx_line_message.timestamp.full);
 
                 Simu_Message_t simu_msg;
                 strncpy(simu_msg.srcAddress, CENTER_ADDRESS, ADDR_SIZE);
@@ -121,7 +121,7 @@ void *broadcast_flightLog(void *arg) {
 
             for(int j = 0; j < droneNodeSet->count; j++) {
                 if((uint16_t)strtoul(droneNodeSet->node[j].address, NULL, 10) == Rx_line_message.address) {
-                    printf("Rx address = %d, Rx timestamp = %lu\n", Rx_line_message.address, Rx_line_message.timestamp.full);
+                    printf("[broadcast_flightLog]: Rx address = %d, Rx timestamp = %lu\n", Rx_line_message.address, Rx_line_message.timestamp.full);
 
                     Simu_Message_t simu_msg;
                     strncpy(simu_msg.srcAddress, CENTER_ADDRESS, ADDR_SIZE);
@@ -174,7 +174,7 @@ void *handle_node_connection(void *arg) {
     Simu_Message_t simu_msg;
     while ((bytes_received = recv(node_socket, &simu_msg, sizeof(simu_msg), 0)) > 0) {
         Ranging_Message_t *ranging_msg = (Ranging_Message_t*)simu_msg.payload;
-        printf("[Broadcast]: address = %d, msgSeq = %d\n", ranging_msg->header.srcAddress, ranging_msg->header.msgSequence);
+        // printf("[broadcast_rangingMessage]: address = %d, msgSeq = %d\n", ranging_msg->header.srcAddress, ranging_msg->header.msgSequence);
         
         // wait for task allocation
         pthread_mutex_lock(&broadcast_rangingMessage_mutex);

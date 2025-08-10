@@ -35,7 +35,6 @@ void TxCallBack(int center_socket, dwTime_t timestamp) {
     #if defined(SWARM_RANGING_MODE)
         Ranging_Message_t ranging_msg;
 
-        // reset of TxTimestamp in other place
         generateRangingMessage(&ranging_msg);
         Timestamp_Tuple_t curTimeTuple = {
             .timestamp = timestamp,
@@ -44,8 +43,10 @@ void TxCallBack(int center_socket, dwTime_t timestamp) {
         updateTfBuffer(curTimeTuple);
 
         send_to_center(center_socket, localAddress, &ranging_msg);
-
+        
         // printf("Txcall, Txtimesatamp = %lu\n", timestamp.full);
+
+        // reset of TxTimestamp in other place
     #elif defined(DYNAMIC_SWARM_RANGING_MODE)
         Ranging_Message_t ranging_msg;
 
@@ -71,10 +72,11 @@ void RxCallBack(Ranging_Message_t *rangingMessage, dwTime_t timestamp) {
         rangingMessageWithTimestamp.rangingMessage = *rangingMessage;
         rangingMessageWithTimestamp.rxTime = timestamp;
         
-        // reset of RxTimestamp in other place
         processRangingMessage(&rangingMessageWithTimestamp);
 
         // printf("Rxcall, Rx timestamp = %lu\n", timestamp.full);
+
+        // reset of RxTimestamp in other place
     #elif defined(DYNAMIC_SWARM_RANGING_MODE)
         Ranging_Message_With_Additional_Info_t rangingMessageWithAdditionalInfo;
         rangingMessageWithAdditionalInfo.rangingMessage = *rangingMessage;
@@ -110,12 +112,12 @@ void *receive_from_center(void *arg) {
                 if(line_message->address == (uint16_t)strtoul(localAddress, NULL, 10)) {
                     // sender
                     if(line_message->status == TX) {
-                        TxTimestamp = line_message->timestamp % UWB_MAX_TIMESTAMP;
+                        TxTimestamp.full = line_message->timestamp.full % UWB_MAX_TIMESTAMP;
                         TxCallBack(center_socket, TxTimestamp);
                     }
                     // receiver
                     else if(line_message->status == RX) {
-                        RxTimestamp = line_message->timestamp % UWB_MAX_TIMESTAMP;
+                        RxTimestamp.full = line_message->timestamp.full % UWB_MAX_TIMESTAMP;
                     }
                 }
             }
