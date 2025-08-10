@@ -5,9 +5,12 @@
 #include "queue.h"
 #include "task.h"
 #include "timers.h"
-#include "log.h"
 #include "adhocuwb_init.h"
 #include "adhocuwb_platform.h"
+#endif
+
+#ifdef  CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE
+#include "log.h"
 #endif
 
 #ifdef CONFIG_ADHOCUWB_PLATFORM_ADHOCUWBH7
@@ -1793,7 +1796,7 @@ void rangingInit() {
                 ADHOC_UWB_TASK_PRI, &uwbRangingRxTaskHandle);
 }
 
-
+#ifdef  CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE)
 LOG_GROUP_START(Ranging)
 LOG_ADD(LOG_INT16, distTo00, dis_Calculate + 0)
 LOG_ADD(LOG_INT16, distTo01, dis_Calculate + 1)
@@ -1826,4 +1829,5 @@ LOG_ADD(LOG_INT16, distTo27, dis_Calculate + 27)
 LOG_ADD(LOG_INT16, distTo28, dis_Calculate + 28)
 LOG_ADD(LOG_INT16, distTo29, dis_Calculate + 29)
 LOG_GROUP_STOP(Ranging)
+#endif
 #endif
