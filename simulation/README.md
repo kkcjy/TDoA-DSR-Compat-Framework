@@ -75,7 +75,7 @@ make
    This script reads data from ranging log.csv, evaluates the ranging results, and generates plots.
 
 2. **optimize.py**
-   This script reads data from ranging log.csv and adjusts the compensation coefficient appropriately to optimize ranging accuracy.
+   This script reads data from ranging log.csv and adjusts the compensation coefficient appropriately to optimize ranging accuracy, make sure COMPENSATE_ENABLE is closed.
 
 ## Key Components
 
@@ -102,6 +102,7 @@ make
 
 ## Notes
 - Ensure that all drone addresses are set to values other than 0
+- Ensure COMPENSATE_ENABLE is closed while using optimize.py
 - Ensure the original sniffer data file exists in `../sniffer/data/` before processing
 - Drone addresses must be unique and match those in the processed data file
 - Use `Ctrl+C` to terminate any running component
