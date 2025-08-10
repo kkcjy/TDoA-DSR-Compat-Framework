@@ -156,16 +156,6 @@ typedef struct {
 
 typedef Timestamp_Tuple_t_2 Body_Unit_t;
 
-typedef union{
-    struct {
-        uint8_t rawtime[5];
-        uint8_t address;
-        uint16_t seqNumber;
-    }__attribute__((packed));
-    dwTime_t timestamp;                                   // 8 byte, 时间戳(低5字节)+地址+序列号, 赋值时先写时间戳再写其他字段防覆盖
-} Timestamp_Tuple_t_2;
-
-
 typedef struct {
     Ranging_Message_Header_t header;
     Body_Unit_t bodyUnits[RANGING_MAX_BODY_UNIT];
