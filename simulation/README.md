@@ -31,13 +31,13 @@ This system simulates drone communication scenarios through a central controller
    const char *FILE_NAME = "path_to_processed_data_file"
    ```
 3. Select the appropriate mode based on the protocol: `SWARM_RANGING_MODE` or `DYNAMIC_SWARM_RANGING_MODE`
-4. Other key configurable parameters in `frame.h`:
+4. Other key configurable parameters in `frame.h`(No changes are necessary generally):
    - `CENTER_PORT`: Communication port (default: 8888)
    - `READ_PERIOD`: Interval between log broadcasts (default: 200ms)
    - `ADDR_SIZE`: Maximum length of node addresses (default: 20)
 
 ### 3. Compile the Program
-1. Use `make mode` to check the current compilation mode:
+1. Use `make mode` to check whether the current compilation mode matches the expected one:
 ```bash
 make mode
 ```
@@ -59,16 +59,23 @@ make
 
 2. **Start drone nodes** (open a new terminal for each node):
    ```bash
-   ./drone <center_ip> <drone_address>
+   ./drone <drone_address>
    ```
-   - `<center_ip>`: IP address of the central controller (use `127.0.0.1` for local testing)
-   - `<drone_address>`: Unique numeric address for the drone (e.g., 1, 2, etc.)
-   - `<attention>`: The actual address must be consistent with the setting on cfclient.   
+   - `<drone_address>`: Unique numeric address for the drone (e.g., 1, 2, etc.), the address must be consistent with the setting on cfclient.
 
 3. **System operation**:
    - Once all drones connect, the controller starts broadcasting flight logs
    - Drones receive log data and exchange ranging messages through the controller
    - The controller forwards ranging messages between all connected drones
+
+### 5. Result Analysis
+   Two Python scripts are provided for analyzing the results:
+
+1. **evaluation.py**
+   This script reads data from ranging log.csv, evaluates the ranging results, and generates plots.
+
+2. **optimize.py**
+   This script reads data from ranging log.csv and adjusts the compensation coefficient appropriately to optimize ranging accuracy.
 
 ## Key Components
 
@@ -97,13 +104,10 @@ make
 - Ensure that all drone addresses are set to values other than 0
 - Ensure the original sniffer data file exists in `../sniffer/data/` before processing
 - Drone addresses must be unique and match those in the processed data file
-- The controller will exit if the number of drones doesn't match the data file's expected count
 - Use `Ctrl+C` to terminate any running component
-- Drones will timeout after 10 seconds of inactivity from the controller
-- Maximum message size is defined by `MESSAGE_SIZE` (512 bytes by default)
 
 ## Troubleshooting
 - **Connection Issues**: Verify `CENTER_PORT` is not blocked and controller is running before starting drones
 - **Data Mismatch**: Check that `NODES_NUM` matches `drone_num` and addresses match data file
-- **Compilation Errors**: Ensure all dependencies are installed and `frame.h` is properly included
+- **Compilation Errors**: Ensure all dependencies are installed
 - **Timeout Errors**: Verify controller is broadcasting data and network connectivity is working

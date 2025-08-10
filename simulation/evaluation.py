@@ -4,6 +4,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 matplotlib.use('TkAgg')
 
+
+# This script reads data from `ranging log.csv`, evaluates the ranging results, and generates plots.
+
+
 FILE_NAME = './data/ranging_Log.csv'
 
 def ranging_plot():

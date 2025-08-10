@@ -50,17 +50,20 @@
 #define         UPPER_BOUND_DISTANCE        1000
 #define         LOWER_BOUND_DISTANCE        0
 
+/* Compensation Coefficient */
+#define         COMPENSATE_RATE             0.5f
+#define         JITTER_THRESHOLD            3
+#define         SEQGAP_THRESHOLD            3
+
 /* Queue Constants */
 #define         RANGING_RX_QUEUE_SIZE       10
 #define         RANGING_RX_QUEUE_ITEM_SIZE  sizeof(Ranging_Message_With_Additional_Info_t)
 
 /* Else */
 #define         CHECK_PERIOD                15
-#define         COMPENSATE_RATE             0.5f
 #define         CONVERGENCE_THRESHOLD       0.989f
 #define         NEIGHBOR_ADDRESS_MAX        32
 #define         PACKET_LOSS_RATE            0.1f
-#define         SEQGAP_THRESHOLD            3
 #define         UWB_MAX_TIMESTAMP           1099511627776
 #define         VELOCITY                    0.4691763978616f
 

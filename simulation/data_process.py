@@ -3,6 +3,9 @@ import numpy as np
 import pandas as pd
 
 
+# This script processes the data collected by the sniffer, formats it to meet the simulation requirements, and saves it into the `data/` directory.
+
+
 # Name of the sniffer data file.
 FILE_NAME = '2025-08-06-17-48-05_.csv'
 # Number of drones in the simulation.

@@ -110,12 +110,12 @@ void *receive_from_center(void *arg) {
                 if(line_message->address == (uint16_t)strtoul(localAddress, NULL, 10)) {
                     // sender
                     if(line_message->status == TX) {
-                        TxTimestamp = line_message->timestamp;
+                        TxTimestamp = line_message->timestamp % UWB_MAX_TIMESTAMP;
                         TxCallBack(center_socket, TxTimestamp);
                     }
                     // receiver
                     else if(line_message->status == RX) {
-                        RxTimestamp = line_message->timestamp;
+                        RxTimestamp = line_message->timestamp % UWB_MAX_TIMESTAMP;
                     }
                 }
             }
