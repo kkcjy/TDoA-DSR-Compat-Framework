@@ -49,6 +49,9 @@ void Midpoint_Adjustment(dwTime_t curTxDwtime, ReceiveList_t *receiveList) {
     uint64_t minRxLast = UWB_MAX_TIMESTAMP;
     uint64_t minRxNext = UWB_MAX_TIMESTAMP;
     
+    if (rangingTableSet->size ==0)
+    	return;
+
     uint64_t TicksPerPeriod = (uint64_t)RANGING_PERIOD / (DWT_TIME_UNITS * 1000);
     uint64_t minRxExpected = TicksPerPeriod / rangingTableSet->size;
     uint64_t minRxError = (uint64_t)ErrorAllowedinMs / (DWT_TIME_UNITS * 1000);
@@ -58,7 +61,7 @@ void Midpoint_Adjustment(dwTime_t curTxDwtime, ReceiveList_t *receiveList) {
                 i = (i - 1 + RECEIVE_LIST_SIZE) % RECEIVE_LIST_SIZE) {
 
         if(receiveList->Rxtimestamps[i].full == NULL_TIMESTAMP) {
-            continue;
+            break;
         }
         
         /*
