@@ -1,4 +1,5 @@
 import re
+import csv
 import matplotlib
 import matplotlib.pyplot as plt
 matplotlib.use('TkAgg')
@@ -7,13 +8,38 @@ matplotlib.use('TkAgg')
 # This script integrates the DSR and SR data generated in the simulation along with the original VICON data, and formats them for use in evaluation and optimization.
 
 
-local_address = 1
-neighbor_address = 4
+# Set to the required address
+local_address = 2
+neighbor_address = 3
 
 vicon_path = "../data/output/vicon.txt"
 dsr_path = "../data/output/dynamic_swarm_ranging.txt"
 sr_path = "../data/output/swarm_ranging.txt"
+sys_path = "../data/2025-08-11-11-19-59.csv"
 
+
+def align_time_with_sys(time_list):
+    sys_time = []
+    rx_time = []
+    align_sys_time = []
+
+    with open(sys_path, 'r', encoding='utf-8') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            sys_time.append(int(row['computer_time']))
+            rx_time.append(int(row['Rx0_time']))
+
+    index = 0
+    length = len(time_list)
+
+    for i in range(len(rx_time)):
+        if index >= length:
+            break
+        if rx_time[i] == time_list[index]:
+            align_sys_time.append(sys_time[i])
+            index += 1
+        
+    return align_sys_time
 
 def read_dsr_Log():
     dsr_value = []
@@ -32,7 +58,9 @@ def read_dsr_Log():
                 dsr_value.append(dsr_val)
                 dsr_time.append(ts_val)      
 
-    return dsr_value, dsr_time
+    dsr_sys_time = align_time_with_sys(dsr_time)
+
+    return dsr_value, dsr_time, dsr_sys_time
 
 
 def read_sr_Log():
@@ -52,26 +80,32 @@ def read_sr_Log():
                 sr_value.append(sr_val)
                 sr_time.append(ts_val)
 
-    return sr_value, sr_time
+    sr_sys_time = align_time_with_sys(sr_time)
 
-def filter_common_time(sr, sr_time, dsr, dsr_time):
+    return sr_value, sr_time, sr_sys_time
+
+def filter_common_time(sr, sr_time, sr_sys_time, dsr, dsr_time, dsr_sys_time):
     common_times = set(sr_time) & set(dsr_time)
     
     sr_filtered = []
     sr_time_filtered = []
-    for s, t in zip(sr, sr_time):
+    sr_sys_time_filtered = []
+    for s, t, sys_t in zip(sr, sr_time, sr_sys_time):
         if t in common_times:
             sr_filtered.append(s)
             sr_time_filtered.append(t)
+            sr_sys_time_filtered.append(sys_t)
 
     dsr_filtered = []
     dsr_time_filtered = []
-    for d, t in zip(dsr, dsr_time):
+    dsr_sys_time_filtered = []
+    for d, t, sys_t in zip(dsr, dsr_time, dsr_sys_time):
         if t in common_times:
             dsr_filtered.append(d)
             dsr_time_filtered.append(t)
+            dsr_sys_time_filtered.append(sys_t)
 
-    return sr_filtered, sr_time_filtered, dsr_filtered, dsr_time_filtered
+    return sr_filtered, sr_time_filtered, sr_sys_time_filtered, dsr_filtered, dsr_time_filtered, dsr_sys_time_filtered
 
 def plot_sr_dsr(sr, sr_time, dsr, dsr_time):
     max_timestamp = max(max(sr_time), max(dsr_time)) + 1
@@ -102,10 +136,11 @@ def plot_sr_dsr(sr, sr_time, dsr, dsr_time):
     plt.tight_layout()
     plt.show()
 
-if __name__ == '__main__':
-    sr, sr_time = read_sr_Log()
-    dsr, dsr_time = read_dsr_Log()
 
-    sr, sr_time, dsr, dsr_time = filter_common_time(sr, sr_time, dsr, dsr_time)
+if __name__ == '__main__':
+    sr, sr_time, sr_sys_time = read_sr_Log()
+    dsr, dsr_time, dsr_sys_time = read_dsr_Log()
+
+    sr, sr_time, sr_sys_time, dsr, dsr_time, dsr_sys_time = filter_common_time(sr, sr_time, sr_sys_time, dsr, dsr_time, dsr_sys_time)
 
     plot_sr_dsr(sr, sr_time, dsr, dsr_time)

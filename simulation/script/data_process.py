@@ -7,7 +7,8 @@ import pandas as pd
 
 
 # Name of the sniffer data file.
-FILE_NAME = '2025-08-06-17-48-05_.csv'
+FILE_NAME = '2025-08-11-11-19-59.csv'
+
 # Number of drones in the simulation.
 DRONE_NUM = 2
 # Determines whether to filter out incomplete communications.
@@ -54,6 +55,7 @@ if __name__ == '__main__':
     tx_count, rx_count = count_tx_rx_from_header(sniffer_data_path)
     print(f"Detected {tx_count} Tx and {rx_count} Rx in the sniffer data.")
 
+    computer_time = np.zeros(line_num, dtype = np.uint64)
     src_addr = np.zeros(line_num, dtype = np.uint16)
     msg_seq = np.zeros(line_num, dtype = np.uint16)
     filter = np.zeros(line_num, dtype = np.uint16)
@@ -62,7 +64,7 @@ if __name__ == '__main__':
     Rx_time = np.zeros((line_num, rx_count), dtype = np.uint64)
 
     with open(processed_data_path, 'w') as out_file:
-        out_file.write("src_addr,msg_seq,filter,Tx_time")
+        out_file.write("computer_time, src_addr,msg_seq,filter,Tx_time")
         for i in range(rx_count):
             out_file.write(f",Rx{i}_addr,Rx{i}_time")
         out_file.write('\n')
@@ -81,7 +83,8 @@ if __name__ == '__main__':
             parts = line.split(',')
             processed_count += 1
 
-            # src_addr,msg_seq,filter
+            # computer_time, src_addr,msg_seq,filter
+            computer_time[table_pos] = int(parts[0])
             src_addr[table_pos] = int(parts[1])
             msg_seq[table_pos] = int(parts[2])
             filter[table_pos] = int(parts[4])
@@ -161,7 +164,7 @@ if __name__ == '__main__':
 
                         if all_valid:
                             with open(processed_data_path, 'a') as out_file:
-                                out_file.write(f"{src_addr[current_pos]},{msg_seq[current_pos]},{filter[current_pos]},{Tx_time[current_pos]}")
+                                out_file.write(f"{computer_time[current_pos]},{src_addr[current_pos]},{msg_seq[current_pos]},{filter[current_pos]},{Tx_time[current_pos]}")
                                 for j in range(rx_count):
                                     out_file.write(f",{Rx_addr[current_pos, j]},{Rx_time[current_pos, j]}")
                                 out_file.write('\n')
@@ -172,13 +175,14 @@ if __name__ == '__main__':
                         with open(processed_data_path, 'a') as outfile:
                             if Tx_time[current_pos] == 0:
                                 continue
-                            outfile.write(f"{src_addr[current_pos]},{msg_seq[current_pos]},{filter[current_pos]},{Tx_time[current_pos]}")
+                            outfile.write(f"{computer_time[current_pos]},{src_addr[current_pos]},{msg_seq[current_pos]},{filter[current_pos]},{Tx_time[current_pos]}")
                             for j in range(rx_count):
                                 outfile.write(f",{Rx_addr[current_pos, j]},{Rx_time[current_pos, j]}")
                             outfile.write('\n')
                         output_count += 1
 
                     # clean up
+                    computer_time[current_pos] = 0
                     src_addr[current_pos] = 0
                     msg_seq[current_pos] = 0
                     filter[current_pos] = 0

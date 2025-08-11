@@ -488,13 +488,13 @@ float rangingAlgorithm(Timestamp_Tuple_t T1, Timestamp_Tuple_t R1, Timestamp_Tup
         // abnormal result
         float D = (ToF23 * VELOCITY) / 2;
         if(D < LOWER_BOUND_DISTANCE || D > UPPER_BOUND_DISTANCE) {
-            DEBUG_PRINT("[rangingAlgorithm]: result is out of range.\n");
+            // DEBUG_PRINT("[rangingAlgorithm]: result is out of range.\n");
             return NULL_TOF;
         }
     }
     else {
         #ifdef CLASSIC_SUPPORT_ENABLE
-            DEBUG_PRINT("[rangingAlgorithm]: not meet the convergence condition, use classic algorithm.\n");
+            // DEBUG_PRINT("[rangingAlgorithm]: not meet the convergence condition, use classic algorithm.\n");
             ToF23 = classicCalculatePToF(T1, R1, T2, R2, T3, R3);
         #else
             DEBUG_PRINT("[rangingAlgorithm]: not meet the convergence condition.\n");
@@ -560,7 +560,7 @@ float calculatePToF(Ranging_Table_t *rangingTable, Ranging_Table_Tr_Rr_Candidate
             +------+------+------+------+           +------+------+------+------+
         */ 
         if(Tr.seqNumber != NULL_SEQ && Rr.seqNumber != NULL_SEQ) {
-            DEBUG_PRINT("[calculatePToF]: Data calculation is not complete, pair of Tf-Rf is losed\n");
+            // DEBUG_PRINT("[calculatePToF]: Data calculation is not complete, pair of Tf-Rf is losed\n");
             tmpPToF = rangingAlgorithm(rangingTable->ETp, rangingTable->ERp, 
                                              rangingTable->Tb, rangingTable->Rb, 
                                              rangingTable->Tp, rangingTable->Rp, (rangingTable->EPToF + rangingTable->PToF) / 2);
@@ -584,7 +584,7 @@ float calculatePToF(Ranging_Table_t *rangingTable, Ranging_Table_Tr_Rr_Candidate
             +------+------+------+------+           +------+------+------+------+
         */
         else if(Tf.seqNumber != NULL_SEQ && Rf.seqNumber != NULL_SEQ) {
-            DEBUG_PRINT("[calculatePToF]: Data calculation is not complete, pair of Tr-Rr is losed\n");
+            // DEBUG_PRINT("[calculatePToF]: Data calculation is not complete, pair of Tr-Rr is losed\n");
             tmpPToF = rangingAlgorithm(rangingTable->ETb, rangingTable->ERb, 
                                              rangingTable->ETp, rangingTable->ERp, 
                                              rangingTable->Tb, rangingTable->Rb, (rangingTable->EPToF + rangingTable->PToF) / 2);
@@ -611,7 +611,7 @@ float calculatePToF(Ranging_Table_t *rangingTable, Ranging_Table_Tr_Rr_Candidate
             +------+------+------+------+  
         */
         else {
-            DEBUG_PRINT("[calculatePToF]: Data calculation is not complete, pair of Tf-Rf and Tr-Rr are losed\n");
+            // DEBUG_PRINT("[calculatePToF]: Data calculation is not complete, pair of Tf-Rf and Tr-Rr are losed\n");
             return NULL_TOF;
         }
     }
@@ -645,7 +645,7 @@ float calculatePToF(Ranging_Table_t *rangingTable, Ranging_Table_Tr_Rr_Candidate
 }
 
 void continuousPacketLossHandler(Ranging_Table_t *rangingTable, Ranging_Table_Tr_Rr_Candidate_t candidate) {
-    DEBUG_PRINT("[continuousPacketLossHandler]: A long-term continuous packet loss event occurred.\n");
+    // DEBUG_PRINT("[continuousPacketLossHandler]: A long-term continuous packet loss event occurred.\n");
     
     float curPToF_avg = (classicCalculatePToF(rangingTable->Tb, rangingTable->Rb, rangingTable->Tp, rangingTable->Rp, candidate.Tr, candidate.Rr) 
                        + classicCalculatePToF(rangingTable->Tp, rangingTable->Rp, candidate.Tr, candidate.Rr, rangingTable->Tf, rangingTable->Rf)) / 2;

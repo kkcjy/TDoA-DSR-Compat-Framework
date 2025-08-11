@@ -83,6 +83,7 @@ void *broadcast_flightLog(void *arg) {
         // Tx task allocation
         Line_Message_t Tx_line_message;
         char *token = strtok(line, ",");
+        token = strtok(NULL, ",");
         Tx_line_message.address = (uint16_t)strtoul(token, NULL, 10);
         Tx_line_message.status = TX;
         for (int i = 0; i < 3; i++) {
