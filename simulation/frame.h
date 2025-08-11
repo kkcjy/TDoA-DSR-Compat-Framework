@@ -29,10 +29,10 @@
 #define     MAX_LINE_LEN    256
 #define     MESSAGE_SIZE    512
 #define     PAYLOAD_SIZE    MESSAGE_SIZE - ADDR_SIZE - sizeof(size_t)
-#define     READ_PERIOD     200
+#define     READ_PERIOD     50
 
 
-const char *FILE_NAME = "./data/2025-08-11-11-19-59.csv";
+const char *FILE_NAME = "./data/2025-08-11-18-44-42.csv";
 
 
 typedef enum {

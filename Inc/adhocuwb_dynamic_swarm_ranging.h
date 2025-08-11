@@ -28,11 +28,11 @@
 #define         CLASSIC_SUPPORT_ENABLE
 // #define         COMPENSATE_ENABLE
 // #define         COORDINATE_SEND_ENABLE
-#define         PACKET_LOSS_ENABLE
+// #define         PACKET_LOSS_ENABLE
 #define         OPTIMAL_RANGING_SCHEDULE_ENABLE
 
 /* Ranging Constants */
-#define         RANGING_PERIOD              50
+#define         RANGING_PERIOD              200
 #define         RANGING_PERIOD_MIN          50
 #define         RANGING_PERIOD_MAX          500
 

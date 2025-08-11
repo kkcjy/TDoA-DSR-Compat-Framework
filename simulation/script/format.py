@@ -12,10 +12,10 @@ matplotlib.use('TkAgg')
 local_address = 2
 neighbor_address = 3
 
-vicon_path = "../data/output/vicon.txt"
+sys_path = "../data/2025-08-11-18-44-42.csv"
 dsr_path = "../data/output/dynamic_swarm_ranging.txt"
 sr_path = "../data/output/swarm_ranging.txt"
-sys_path = "../data/2025-08-11-11-19-59.csv"
+vicon_path = "../data/output/vicon.txt"
 
 
 def align_time_with_sys(time_list):
@@ -40,6 +40,38 @@ def align_time_with_sys(time_list):
             index += 1
         
     return align_sys_time
+
+def time_to_milliseconds(full_time_str):
+    time_str = str(full_time_str)
+    time_part = time_str[8:] 
+    
+    HH = int(time_part[0:2]) 
+    MM = int(time_part[2:4]) 
+    SS = int(time_part[4:6]) 
+    sss = int(time_part[6:9]) if len(time_part) >= 9 else 0 
+    
+    total_ms = HH * 3600 * 1000 + MM * 60 * 1000 + SS * 1000 + sss
+    return total_ms
+
+def read_vicon_Log():
+    vicon_value = []
+    vicon_time = []
+
+    pattern = re.compile(
+        rf"\[local_(?:{local_address}|{neighbor_address}) <- neighbor_(?:{neighbor_address}|{local_address})\]: vicon dist = (-?\d+\.\d+), time = (\d+)"
+    )
+
+    with open(vicon_path, "r", encoding="utf-8") as f:
+        for line in f:
+            match = pattern.search(line)
+            if match:
+                vicon_val = float(match.group(1)) 
+                ts_val = int(match.group(2))   
+                vicon_value.append(vicon_val)
+                vicon_time.append(ts_val)      
+
+
+    return vicon_value, vicon_time
 
 def read_dsr_Log():
     dsr_value = []
@@ -136,11 +168,30 @@ def plot_sr_dsr(sr, sr_time, dsr, dsr_time):
     plt.tight_layout()
     plt.show()
 
+def plot_sr_dsr_vicon(sr, sr_sys_time, dsr, dsr_sys_time, vicon, vicon_sys_time):
+    sr_ms = [time_to_milliseconds(t) for t in sr_sys_time]
+    dsr_ms = [time_to_milliseconds(t) for t in dsr_sys_time]
+    vicon_ms = [time_to_milliseconds(t) for t in vicon_sys_time]
+    
+    plt.figure(figsize=(10, 6))
+    plt.plot(sr_ms, sr, 'b-', label='SR', alpha=0.7, marker='o', markersize=4)
+    plt.plot(dsr_ms, dsr, 'g-', label='DSR', alpha=0.7, marker='s', markersize=4)
+    plt.plot(vicon_ms, [v*100 for v in vicon], 'r^-', label='VICON (×100)', alpha=0.7, markersize=4)
+
+    plt.xlabel('Time (ms)') 
+    plt.ylabel('Distance Measurement')
+    plt.title('SR vs DSR vs VICON Distance Measurements Over Absolute Time')
+    plt.legend()
+    plt.grid(True, linestyle='--', alpha=0.7)
+    plt.tight_layout()
+    plt.show()
+
 
 if __name__ == '__main__':
     sr, sr_time, sr_sys_time = read_sr_Log()
     dsr, dsr_time, dsr_sys_time = read_dsr_Log()
+    vicon, vicon_sys_time = read_vicon_Log()
 
     sr, sr_time, sr_sys_time, dsr, dsr_time, dsr_sys_time = filter_common_time(sr, sr_time, sr_sys_time, dsr, dsr_time, dsr_sys_time)
 
-    plot_sr_dsr(sr, sr_time, dsr, dsr_time)
+    plot_sr_dsr_vicon(sr, sr_sys_time, dsr, dsr_sys_time, vicon, vicon_sys_time)

@@ -515,7 +515,7 @@ float classicCalculatePToF(Timestamp_Tuple_t Tp, Timestamp_Tuple_t Rp, Timestamp
     // check completeness
     if(Tp.seqNumber == NULL_SEQ || Rp.seqNumber == NULL_SEQ || Tr.seqNumber == NULL_SEQ
         || Rr.seqNumber == NULL_SEQ || Tf.seqNumber == NULL_SEQ || Rf.seqNumber == NULL_SEQ) {
-        DEBUG_PRINT("Warning: Data calculation is not complete\n");
+        // DEBUG_PRINT("Warning: Data calculation is not complete\n");
         return NULL_TOF;
     }
 
