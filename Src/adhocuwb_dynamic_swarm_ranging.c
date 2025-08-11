@@ -1799,7 +1799,7 @@ void rangingInit() {
                 ADHOC_UWB_TASK_PRI, &uwbRangingRxTaskHandle);
 }
 
-#ifdef  CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE)
+#ifdef  CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE
 LOG_GROUP_START(Ranging)
 LOG_ADD(LOG_INT16, distTo00, dis_Calculate + 0)
 LOG_ADD(LOG_INT16, distTo01, dis_Calculate + 1)

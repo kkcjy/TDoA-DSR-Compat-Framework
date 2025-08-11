@@ -4,8 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include "../Inc/dwm3000_init.h"
-
 
 // #define SWARM_RANGING_MODE
 #define DYNAMIC_SWARM_RANGING_MODE
@@ -18,7 +18,7 @@
 
 #define     LISTENED_DRONES 2
 #define     FILENAME_SIZE   32
-#define     MAX_PACKET_SIZE 64
+#define     MAX_PACKET_SIZE 256
 #define     MAGIC_MATCH     0xBB88
 #define     VENDOR_ID       0x0483
 #define     PRODUCT_ID      0x5740
@@ -27,6 +27,7 @@
 char filename[FILENAME_SIZE];
 volatile sig_atomic_t keep_running = 1;     // used for the interruption caused by Ctrl+C
 int ignore_lines = 30;
+int listen_lines = 0;
 
 
 typedef union {
@@ -55,6 +56,27 @@ void generate_filename(char *buffer, size_t buffer_size) {
     strftime(buffer, buffer_size, "data/%Y-%m-%d-%H-%M-%S.csv", curtime);
 }
 
+uint64_t get_computer_time(void) {
+    struct timespec ts;
+    struct tm tm_time;
+
+    clock_gettime(CLOCK_REALTIME, &ts);
+    localtime_r(&ts.tv_sec, &tm_time);
+
+    uint64_t milliseconds = ts.tv_nsec / 1000000;
+
+    uint64_t timestamp =
+        (uint64_t)(tm_time.tm_year + 1900) * 10000000000000ULL +
+        (uint64_t)(tm_time.tm_mon + 1) * 100000000000ULL +
+        (uint64_t)tm_time.tm_mday * 1000000000ULL +
+        (uint64_t)tm_time.tm_hour * 10000000ULL +
+        (uint64_t)tm_time.tm_min * 100000ULL +
+        (uint64_t)tm_time.tm_sec * 1000ULL +
+        milliseconds;
+
+    return timestamp;
+}
+
 #if defined(SWARM_RANGING_MODE)
 void fprintSwarmRangingMessaage(FILE* file, libusb_device_handle *device_handle) {
     uint8_t buffer[MAX_PACKET_SIZE];
@@ -62,7 +84,7 @@ void fprintSwarmRangingMessaage(FILE* file, libusb_device_handle *device_handle)
     uint8_t endpoint = 0x81;
     int transferred;
 
-    fprintf(file, "sniffer_rx_time,src_addr,msg_seq,msg_len,filter,");
+    fprintf(file, "computer_time,src_addr,msg_seq,msg_len,filter,");
     for(int i = 0; i < RANGING_MAX_Tr_UNIT; i++) {
         fprintf(file, "Tx%d_time,Tx%d_seq,", i, i);
     }
@@ -77,12 +99,17 @@ void fprintSwarmRangingMessaage(FILE* file, libusb_device_handle *device_handle)
         
         // success
         if(response == 0 && transferred <= MAX_PACKET_SIZE) {
-            if(--ignore_lines < 0) {
+            listen_lines++;
+            if(listen_lines < ignore_lines) {
                 continue;
+            }
+            else if((listen_lines - ignore_lines) % 10 == 0) {
+                printf("listen %d lines...\n", listen_lines - ignore_lines);
             }
             
             Sniffer_Meta_t *meta = (Sniffer_Meta_t *)buffer;
-            fprintf(file, "%lu,", meta->rxTime);
+            uint64_t computer_time = get_computer_time();
+            fprintf(file, "%lu,", computer_time);
 
             if(meta->magic == MAGIC_MATCH && meta->msgLength <= 256) {
                 response = libusb_bulk_transfer(device_handle, endpoint, payload, meta->msgLength, &transferred, 1000);
@@ -124,7 +151,7 @@ void fprintDynamicSwarmRangingMessaage(FILE* file, libusb_device_handle *device_
     uint8_t endpoint = 0x81; 
     int transferred;
 
-    fprintf(file, "sniffer_rx_time,src_addr,msg_seq,msg_len,filter,");
+    fprintf(file, "computer_time,src_addr,msg_seq,msg_len,filter,");
     for(int i = 0; i < MESSAGE_TX_POOL_SIZE; i++) {
         fprintf(file, "Tx%d_time,Tx%d_seq,", i, i);
     }
@@ -139,12 +166,17 @@ void fprintDynamicSwarmRangingMessaage(FILE* file, libusb_device_handle *device_
         
         // success
         if(response == 0 && transferred <= MAX_PACKET_SIZE) {
-            if(--ignore_lines < 0) {
+            listen_lines++;
+            if(listen_lines < ignore_lines) {
                 continue;
+            }
+            else if((listen_lines - ignore_lines) % 10 == 0) {
+                printf("listen %d lines...\n", listen_lines - ignore_lines);
             }
 
             Sniffer_Meta_t *meta = (Sniffer_Meta_t *)buffer;
-            fprintf(file, "%lu,", meta->rxTime);
+            uint64_t computer_time = get_computer_time();
+            fprintf(file, "%lu,", computer_time);
 
             if(meta->magic == MAGIC_MATCH && meta->msgLength <= 256) {
                 response = libusb_bulk_transfer(device_handle, endpoint, payload, meta->msgLength, &transferred, 1000);
@@ -165,16 +197,25 @@ void fprintDynamicSwarmRangingMessaage(FILE* file, libusb_device_handle *device_
                     }
                     fprintf(file, "\n");
                 }
+                // fail
+                else if(transferred > MAX_PACKET_SIZE) {
+                    printf("MAX_PACKET_SIZE is small\n");
+                    exit(EXIT_FAILURE);
+                }
                 else {
                     printf("Bulk transfer failed: %s\n", libusb_strerror(response));
-                    exit(1);
+                    exit(EXIT_FAILURE);
                 }
             }
         }
         // fail
+        else if(transferred > MAX_PACKET_SIZE) {
+            printf("MAX_PACKET_SIZE is small\n");
+            exit(EXIT_FAILURE);
+        }
         else {
             printf("Bulk transfer failed: %s\n", libusb_strerror(response));
-            exit(1);
+            exit(EXIT_FAILURE);
         }
     }
 }
