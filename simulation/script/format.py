@@ -1,5 +1,6 @@
 import re
 import csv
+import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 matplotlib.use('TkAgg')
@@ -103,61 +104,10 @@ def read_sr_Log():
 
     return sr_value, sr_time, sr_sys_time
 
-def plot_sr_dsr(sr, sr_time, sr_sys_time, dsr, dsr_time, dsr_sys_time):
-    def filter_common_time(sr, sr_time, sr_sys_time, dsr, dsr_time, dsr_sys_time):
-        common_times = set(sr_time) & set(dsr_time)
-        
-        sr_filtered = []
-        sr_time_filtered = []
-        sr_sys_time_filtered = []
-        for s, t, sys_t in zip(sr, sr_time, sr_sys_time):
-            if t in common_times:
-                sr_filtered.append(s)
-                sr_time_filtered.append(t)
-                sr_sys_time_filtered.append(sys_t)
-
-        dsr_filtered = []
-        dsr_time_filtered = []
-        dsr_sys_time_filtered = []
-        for d, t, sys_t in zip(dsr, dsr_time, dsr_sys_time):
-            if t in common_times:
-                dsr_filtered.append(d)
-                dsr_time_filtered.append(t)
-                dsr_sys_time_filtered.append(sys_t)
-
-        return sr_filtered, sr_time_filtered, sr_sys_time_filtered, dsr_filtered, dsr_time_filtered, dsr_sys_time_filtered
-
-    def correct_timestamps(timestamps, max_timestamp):
-        corrected = []
-        prev = timestamps[0]
-        offset = 0
-        for t in timestamps:
-            if t < prev:
-                offset += max_timestamp
-            corrected.append(t + offset)
-            prev = t
-        return corrected
-    
-    max_timestamp = max(max(sr_time), max(dsr_time)) + 1    
-    
-    sr_time_corrected = correct_timestamps(sr_time, max_timestamp)
-    dsr_time_corrected = correct_timestamps(dsr_time, max_timestamp)
-
-    plt.figure(figsize=(12, 6))
-    plt.plot(sr_time_corrected, sr, label='SR', marker='o')
-    plt.plot(dsr_time_corrected, dsr, label='DSR', marker='s')
-    plt.xlabel('Corrected Timestamp')
-    plt.ylabel('Distance')
-    plt.title('SR and DSR over Time')
-    plt.legend()
-    plt.grid(True)
-    plt.tight_layout()
-    plt.show()
-
 def plot_sr_dsr_vicon(sr, sr_sys_time, dsr, dsr_sys_time, vicon, vicon_sys_time):
-    plt.plot(sr_sys_time, sr, color='#4A90E2', label='SR', alpha=0.8, linestyle='-', marker='o', markersize=5, linewidth=2)
-    plt.plot(dsr_sys_time, dsr, color='#F5A623', label='DSR', alpha=0.8, linestyle='-', marker='s', markersize=5, linewidth=2)
-    plt.plot(vicon_sys_time, vicon, color='#27AE60', label='VICON', alpha=0.8, linestyle='-', marker='^', markersize=5, linewidth=2)
+    plt.plot(sr_sys_time, sr, color='#4A90E2', label='SR', linestyle='--', marker='x', markersize=4, linewidth=1.5)
+    plt.plot(dsr_sys_time, dsr, color='#F5A623', label='DSR Midpoints', linestyle='--', marker='x', markersize=4, linewidth=1.5)
+    plt.plot(vicon_sys_time, vicon, color='#27AE60', label='VICON', alpha=0.8, linestyle='-', marker='o', markersize=4, linewidth=2)
 
     plt.xlabel('Time (ms)') 
     plt.ylabel('Distance Measurement')
@@ -167,12 +117,30 @@ def plot_sr_dsr_vicon(sr, sr_sys_time, dsr, dsr_sys_time, vicon, vicon_sys_time)
     plt.tight_layout()
     plt.show()
 
+def plot_sr_dsr_mid_vicon(sr, sr_sys_time, dsr, dsr_sys_time, vicon, vicon_sys_time):
+    dsr_sys_time = np.array(dsr_sys_time)
+    dsr = np.array(dsr)
+
+    dsr_mid_x = (dsr_sys_time[:-1] + dsr_sys_time[1:]) / 2
+    dsr_mid_y = (dsr[:-1] + dsr[1:]) / 2
+
+    plt.plot(sr_sys_time, sr, color='#4A90E2', label='SR', linestyle='--', marker='x', markersize=4, linewidth=1.5)
+    plt.plot(dsr_mid_x, dsr_mid_y, color='#F5A623', label='DSR Midpoints', linestyle='--', marker='x', markersize=4, linewidth=1.5)
+    plt.plot(vicon_sys_time, vicon, color='#27AE60', label='VICON', alpha=0.8, linestyle='-', marker='o', markersize=4, linewidth=2)
+
+    plt.xlabel('Time (ms)') 
+    plt.ylabel('Distance Measurement')
+    plt.title('SR vs Mid-Point DSR vs VICON Distance Measurements Over Absolute Time')
+    plt.legend()
+    plt.grid(True, linestyle='--', alpha=0.7)
+    plt.tight_layout()
+    plt.show()
 
 if __name__ == '__main__':
     sr, sr_time, sr_sys_time = read_sr_Log()
     dsr, dsr_time, dsr_sys_time = read_dsr_Log()
     vicon, vicon_sys_time = read_vicon_Log()
 
-    # plot_sr_dsr(sr, sr_time, sr_sys_time, dsr, dsr_time, dsr_sys_time)
-
-    plot_sr_dsr_vicon(sr, sr_sys_time, dsr, dsr_sys_time, vicon, vicon_sys_time)
+    # plot_sr_dsr_vicon(sr, sr_sys_time, dsr, dsr_sys_time, vicon, vicon_sys_time)
+    
+    plot_sr_dsr_mid_vicon(sr, sr_sys_time, dsr, dsr_sys_time, vicon, vicon_sys_time)
