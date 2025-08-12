@@ -16,7 +16,7 @@
 #include "../Inc/adhocuwb_dynamic_swarm_ranging.h"
 #endif
 
-#define     LISTENED_DRONES 2
+#define     LISTENED_DRONES 3
 #define     FILENAME_SIZE   32
 #define     MAX_PACKET_SIZE 256
 #define     MAGIC_MATCH     0xBB88
@@ -69,15 +69,6 @@ void fprintSwarmRangingMessaage(FILE* file, libusb_device_handle *device_handle)
     uint8_t endpoint = 0x81;
     int transferred;
 
-    fprintf(file, "system_time,src_addr,msg_seq,msg_len,filter,");
-    for(int i = 0; i < RANGING_MAX_Tr_UNIT; i++) {
-        fprintf(file, "Tx%d_time,Tx%d_seq,", i, i);
-    }
-    for(int i = 0; i < RANGING_MAX_BODY_UNIT && i < LISTENED_DRONES - 1; i++) {
-        fprintf(file, "Rx%d_addr,Rx%d_time,Rx%d_seq,", i, i, i);
-    }
-    fprintf(file, "\n");
-
     while (keep_running) {
         // first reception
         int response = libusb_bulk_transfer(device_handle, endpoint, buffer, MAX_PACKET_SIZE, &transferred, 1000);
@@ -85,13 +76,29 @@ void fprintSwarmRangingMessaage(FILE* file, libusb_device_handle *device_handle)
         // success
         if(response == 0 && transferred <= MAX_PACKET_SIZE) {
             listen_lines++;
-            if(listen_lines < ignore_lines) {
-                continue;
+            if(listen_lines == ignore_lines) {
+                fclose(file);
+                file = fopen(filename, "w");
+                if (file == NULL) {
+                    perror("Open file error");
+                    return;
+                }
+
+                fprintf(file, "system_time,src_addr,msg_seq,msg_len,filter,");
+                for(int i = 0; i < MESSAGE_TX_POOL_SIZE; i++) {
+                    fprintf(file, "Tx%d_time,Tx%d_seq,", i, i);
+                }
+                for(int i = 0; i < MESSAGE_BODYUNIT_SIZE && i < LISTENED_DRONES - 1; i++) {
+                    fprintf(file, "Rx%d_addr,Rx%d_time,Rx%d_seq,", i, i, i);
+                }
+                fprintf(file, "\n");
+
+                printf("ignore %d lines...\n", listen_lines);
             }
-            else if((listen_lines - ignore_lines) % 10 == 0) {
+            else if(listen_lines > ignore_lines && (listen_lines - ignore_lines) % 10 == 0) {
                 printf("listen %d lines...\n", listen_lines - ignore_lines);
             }
-            
+
             Sniffer_Meta_t *meta = (Sniffer_Meta_t *)buffer;
             uint64_t system_time = get_system_time();
             fprintf(file, "%lu,", system_time);
@@ -111,7 +118,7 @@ void fprintSwarmRangingMessaage(FILE* file, libusb_device_handle *device_handle)
 
                     // bodyunit
                     for(int i = 0; i < RANGING_MAX_BODY_UNIT && i < LISTENED_DRONES - 1; i++) {
-                        fprintf(file, "%u,%lu,%u", rangingMessage.bodyUnits[i].address, rangingMessage.bodyUnits[i].timestamp.full % UWB_MAX_TIMESTAMP, rangingMessage.bodyUnits[i].seqNumber);
+                        fprintf(file, "%u,%lu,%u,", rangingMessage.bodyUnits[i].address, rangingMessage.bodyUnits[i].timestamp.full % UWB_MAX_TIMESTAMP, rangingMessage.bodyUnits[i].seqNumber);
                     }
                     fprintf(file, "\n");
                 }
@@ -136,15 +143,6 @@ void fprintDynamicSwarmRangingMessaage(FILE* file, libusb_device_handle *device_
     uint8_t endpoint = 0x81; 
     int transferred;
 
-    fprintf(file, "system_time,src_addr,msg_seq,msg_len,filter,");
-    for(int i = 0; i < MESSAGE_TX_POOL_SIZE; i++) {
-        fprintf(file, "Tx%d_time,Tx%d_seq,", i, i);
-    }
-    for(int i = 0; i < MESSAGE_BODYUNIT_SIZE && i < LISTENED_DRONES - 1; i++) {
-        fprintf(file, "Rx%d_addr,Rx%d_time,Rx%d_seq,", i, i, i);
-    }
-    fprintf(file, "\n");
-
     while (keep_running) {
         // first reception
         int response = libusb_bulk_transfer(device_handle, endpoint, buffer, MAX_PACKET_SIZE, &transferred, 1000);
@@ -152,10 +150,26 @@ void fprintDynamicSwarmRangingMessaage(FILE* file, libusb_device_handle *device_
         // success
         if(response == 0 && transferred <= MAX_PACKET_SIZE) {
             listen_lines++;
-            if(listen_lines < ignore_lines) {
-                continue;
+            if(listen_lines == ignore_lines) {
+                fclose(file);
+                file = fopen(filename, "w");
+                if (file == NULL) {
+                    perror("Open file error");
+                    return;
+                }
+
+                fprintf(file, "system_time,src_addr,msg_seq,msg_len,filter,");
+                for(int i = 0; i < MESSAGE_TX_POOL_SIZE; i++) {
+                    fprintf(file, "Tx%d_time,Tx%d_seq,", i, i);
+                }
+                for(int i = 0; i < MESSAGE_BODYUNIT_SIZE && i < LISTENED_DRONES - 1; i++) {
+                    fprintf(file, "Rx%d_addr,Rx%d_time,Rx%d_seq,", i, i, i);
+                }
+                fprintf(file, "\n");
+
+                printf("ignore %d lines...\n", listen_lines);
             }
-            else if((listen_lines - ignore_lines) % 10 == 0) {
+            else if(listen_lines > ignore_lines && (listen_lines - ignore_lines) % 10 == 0) {
                 printf("listen %d lines...\n", listen_lines - ignore_lines);
             }
 
@@ -178,7 +192,7 @@ void fprintDynamicSwarmRangingMessaage(FILE* file, libusb_device_handle *device_
 
                     // bodyunit
                     for(int i = 0; i < MESSAGE_BODYUNIT_SIZE && i < LISTENED_DRONES - 1; i++) {
-                        fprintf(file, "%u,%lu,%u", rangingMessage.bodyUnits[i].address, rangingMessage.bodyUnits[i].timestamp.full % UWB_MAX_TIMESTAMP, rangingMessage.bodyUnits[i].seqNumber);
+                        fprintf(file, "%u,%lu,%u,", rangingMessage.bodyUnits[i].address, rangingMessage.bodyUnits[i].timestamp.full % UWB_MAX_TIMESTAMP, rangingMessage.bodyUnits[i].seqNumber);
                     }
                     fprintf(file, "\n");
                 }

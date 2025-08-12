@@ -7,10 +7,10 @@ import pandas as pd
 
 
 # Name of the sniffer data file.
-FILE_NAME = '2025-08-11-18-44-42.csv'
+FILE_NAME = '2025-08-12-15-00-11.csv'
 
 # Number of drones in the simulation.
-DRONE_NUM = 2
+DRONE_NUM = 3
 # Determines whether to filter out incomplete communications.
 INTEGRITY_FILTER = False
 
@@ -42,12 +42,10 @@ def count_tx_rx_from_header(file_path):
 
 
 if __name__ == '__main__':
-
     line_num = 3 * DRONE_NUM
     table_pos = 0
 
     print("Starting to Read and Integrate Sniffer-Collected Data...")
-    print("oi")
 
     sniffer_data_path = '../../sniffer/data/' + FILE_NAME
     processed_data_path = '../data/' + FILE_NAME
