@@ -6,9 +6,6 @@ import pandas as pd
 # This script reads data collected by the sniffer and organizes it into a format suitable for simulation, saving the results in the simulation/data directory.
 
 
-# Name of the sniffer data file.
-FILE_NAME = '2025-08-12-15-00-11.csv'
-
 # Number of drones in the simulation.
 DRONE_NUM = 3
 # Determines whether to filter out incomplete communications.
@@ -47,8 +44,8 @@ if __name__ == '__main__':
 
     print("Starting to Read and Integrate Sniffer-Collected Data...")
 
-    sniffer_data_path = '../../sniffer/data/' + FILE_NAME
-    processed_data_path = '../data/' + FILE_NAME
+    sniffer_data_path = '../../sniffer/data/sniffer_Log.csv'
+    processed_data_path = '../data/processed_Log.csv'
 
     tx_count, rx_count = count_tx_rx_from_header(sniffer_data_path)
     print(f"Detected {tx_count} Tx and {rx_count} Rx in the sniffer data.")

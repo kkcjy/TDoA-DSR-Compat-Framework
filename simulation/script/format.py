@@ -12,7 +12,7 @@ matplotlib.use('TkAgg')
 local_address = 2
 neighbor_address = 3
 
-sys_path = "../data/2025-08-11-18-44-42.csv"
+sys_path = "../data/processed_Log.csv"
 dsr_path = "../data/output/dynamic_swarm_ranging.txt"
 sr_path = "../data/output/swarm_ranging.txt"
 vicon_path = "../data/output/vicon.txt"

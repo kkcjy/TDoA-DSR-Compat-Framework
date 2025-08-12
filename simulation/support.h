@@ -13,8 +13,8 @@
 #include "dwTypes.h"
 
 
-#define SWARM_RANGING_MODE
-// #define DYNAMIC_SWARM_RANGING_MODE
+// #define SWARM_RANGING_MODE
+#define DYNAMIC_SWARM_RANGING_MODE
 
 
 typedef         uint16_t                    UWB_Address_t;

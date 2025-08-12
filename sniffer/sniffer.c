@@ -16,7 +16,7 @@
 #include "../Inc/adhocuwb_dynamic_swarm_ranging.h"
 #endif
 
-#define     LISTENED_DRONES 3
+#define     LISTENED_DRONES 2
 #define     FILENAME_SIZE   32
 #define     MAX_PACKET_SIZE 256
 #define     MAGIC_MATCH     0xBB88
@@ -53,7 +53,7 @@ void generate_filename(char *buffer, size_t buffer_size) {
     time(&rawtime);
     curtime = localtime(&rawtime);
 
-    strftime(buffer, buffer_size, "data/%Y-%m-%d-%H-%M-%S.csv", curtime);
+    strftime(buffer, buffer_size, "data/sniffer_Log.csv", curtime);
 }
 
 uint64_t get_system_time() {
