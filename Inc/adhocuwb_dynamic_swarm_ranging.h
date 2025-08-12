@@ -51,8 +51,8 @@
 #define         LOWER_BOUND_DISTANCE        0
 
 /* Compensation Coefficient */
-#define         COMPENSATE_RATE             0.5f
-#define         JITTER_THRESHOLD            3
+#define         COMPENSATE_RATE             0.0f
+#define         JITTER_THRESHOLD            5
 #define         SEQGAP_THRESHOLD            3
 
 /* Queue Constants */

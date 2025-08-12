@@ -25,10 +25,9 @@ This system simulates drone communication scenarios through a central controller
 
 ### 2. Configuration Parameter Modification
 1. Open `frame.h`
-2. Modify the `NODES_NUM` macro to match `DRONE_NUM` from step 1, then modify the `FILE_NAME` macro to match `FILE_NAME` from step 1(Path to the processed data file)
+2. Modify the `NODES_NUM` macro to match `DRONE_NUM` from step 1
    ```c
    #define     NODES_NUM   <number of drones>
-   const char *FILE_NAME = "path_to_processed_data_file"
    ```
 4. Other key configurable parameters in `frame.h`(No changes are necessary generally):
    - `CENTER_PORT`: Communication port (default: 8888)
@@ -75,14 +74,14 @@ make
 1. **data_process.py**
    This script reads data collected by the sniffer and organizes it into a format suitable for simulation, saving the results in the simulation/data directory.
 
-2. **format.py**
-   This script integrates the DSR and SR data generated in the simulation along with the original VICON data, and formats them for use in evaluation and optimization.
+2. **evaluation.py**
+   This script integrates the processed SR and DSR data, aligns them with the VICON timestamps, and then evaluates the data.
 
-3. **evaluation.py**
-   This script reads data from ranging log.csv, evaluates the ranging results, and generates plots.
-
-4. **optimize.py**
+3. **optimize.py**
    This script reads data from ranging log.csv and adjusts the compensation coefficient appropriately to optimize ranging accuracy, make sure COMPENSATE_ENABLE is closed.
+
+4. **vicon.py**
+   This script receives rigid body motion data in real-time from the host of the Vicon motion capture system via a network connection. 
 
 ## Key Components
 

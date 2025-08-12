@@ -19,18 +19,13 @@ This program uses a drone connected to a computer as a sniffer to collect UWB ra
 
 ## Computer-Side Program Compilation
 
-1. **Navigate to Program Directory**
-   ```bash
-   cd 'path_to_sniffer_folder'
-   ```
-
-2. **Configure Makefile**
+1. **Configure Makefile**
    
    Modify `CFLAGS` and `LDFLAGS` according to your operating system:
      - **Linux System**: Use the default configuration
      - **macOS System**: Comment out Linux-related configurations and uncomment macOS configurations
 
-3. **Compile the Program**
+2. **Compile the Program**
    ```bash
    make
    ```
@@ -43,7 +38,7 @@ This program uses a drone connected to a computer as a sniffer to collect UWB ra
    ```
 
 2. **Program Operation Description**
-   - After startup, the program automatically creates a CSV file named with the current timestamp (storage path: `data/YYYY-MM-DD-HH-MM-SS.csv`)
+   - After startup, the program automatically creates a CSV file named `sniffer_Log.csv`
    - Data is written to the CSV file in real-time, including timestamp, source address, sequence number, ranging time, etc.
    - Press `Ctrl+C` to terminate the program, which will automatically save data before exiting
 
@@ -87,6 +82,7 @@ make clean
   - Sufficient permissions for USB device access
 
 ## Notes
+- If real-time actual data is needed, the `vicon.py` script should be used.
 - Ensure that all drone addresses are set to values other than 0
 - Ensure the `data` directory exists in the program folder before running, or the program may fail to create log files
 - The number of monitored drones must not exceed the maximum limits defined by `RANGING_MAX_BODY_UNIT` (for swarm mode) or `MESSAGE_BODYUNIT_SIZE` (for dynamic mode)

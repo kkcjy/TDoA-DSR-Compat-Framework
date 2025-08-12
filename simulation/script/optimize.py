@@ -1,7 +1,10 @@
 import pandas as pd
+from tqdm import tqdm
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
+from fastdtw import fastdtw
+from scipy.spatial.distance import euclidean
 matplotlib.use('TkAgg')
 
 
@@ -24,22 +27,19 @@ def read_log():
 
     return dsr, sr, vicon
 
-def compensation_algorithm(distance_List, compensate_rate, jitter_threshold):
-    NULL_DIS = None
 
-    last_dis_Calculate = NULL_DIS
-    dis_unit = NULL_DIS
+def compensation_algorithm(distance_List, compensate_rate, jitter_threshold):
+    last_dis_Calculate = None
+    dis_unit = None
     distance_List_Processed = []
 
     for i in range(len(distance_List)):
         dis_Calculate = distance_List[i]
-        distance = NULL_DIS
 
-        # Compensation Algorithm (Not necessary to consider SEQGAP_THRESHOLD)
-        if last_dis_Calculate == NULL_DIS:
+        if last_dis_Calculate is None:
             last_dis_Calculate = dis_Calculate
             distance = dis_Calculate
-        elif dis_unit == NULL_DIS:
+        elif dis_unit is None:
             dis_unit = dis_Calculate - last_dis_Calculate
             last_dis_Calculate = dis_Calculate
             distance = dis_Calculate
@@ -47,6 +47,7 @@ def compensation_algorithm(distance_List, compensate_rate, jitter_threshold):
             dis_Compensate = dis_unit
             dis_unit = dis_Calculate - last_dis_Calculate
             last_dis_Calculate = dis_Calculate
+
             if abs(dis_unit) < jitter_threshold or dis_Compensate * dis_unit <= 0:
                 distance = dis_Calculate
             else:
@@ -55,13 +56,14 @@ def compensation_algorithm(distance_List, compensate_rate, jitter_threshold):
 
     return np.array(distance_List_Processed)
 
+
 def ranging_plot(cdsr, dsr, sr, vicon):
     plt.figure(figsize=(12, 6))
 
-    plt.plot(cdsr, label='CDSR', marker='x')
-    plt.plot(dsr, label='DSR', marker='o')
-    plt.plot(sr, label='SR', marker='s')
-    plt.plot(vicon, label='VICON', marker='^')
+    plt.plot(sr, color="#3787E1", label='SR', linestyle='--', marker='x', markersize=4, linewidth=1.5)
+    plt.plot(dsr, color="#E9950F", label='DSR', linestyle='--', marker='x', markersize=4, linewidth=1.5)
+    plt.plot(cdsr, color="#DA6055", label='CDSR', linestyle='--', marker='x', markersize=4, linewidth=1.5)
+    plt.plot(vicon, color="#1DA556", label='VICON', alpha=0.8, linestyle='-', marker='o', markersize=4, linewidth=2)
 
     plt.title('Ranging Comparison Over Time')
     plt.xlabel('Sample Index')
@@ -76,22 +78,31 @@ if __name__ == '__main__':
     dsr, sr, vicon = read_log()
     cdsr = []
 
-    best_mae = float('inf')
+    best_dtw = float('inf')
     best_params = (None, None)
 
     compensate_rate_range = np.arange(0, 1.01, 0.01)
     jitter_threshold_range = np.arange(0, 10.1, 0.1)
 
-    for param_compensate in compensate_rate_range:
-        for param_jitter in jitter_threshold_range:
-            curcdsr = compensation_algorithm(dsr, param_compensate, param_jitter)
+    total_iterations = len(compensate_rate_range) * len(jitter_threshold_range)
 
-            mae = np.mean(np.abs(curcdsr - vicon))
+    with tqdm(total=total_iterations, desc="Searching best parameters") as pbar:
+        for param_compensate in compensate_rate_range:
+            for param_jitter in jitter_threshold_range:
+                curcdsr = compensation_algorithm(dsr, param_compensate, param_jitter)
 
-            if mae < best_mae:
-                best_mae = mae
-                best_params = (param_compensate, param_jitter)
-                cdsr = curcdsr
+                curcdsr_vec = np.array([[x] for x in curcdsr])
+                vicon_vec = np.array([[x] for x in vicon])
 
-    print(f"COMPENSATE_RATE = {best_params[0]:.2f}, JITTER_THRESHOLD = {best_params[1]:.2f}")
+                dist, path = fastdtw(curcdsr_vec, vicon_vec, dist=euclidean)
+
+                if dist < best_dtw:
+                    best_dtw = dist
+                    best_params = (param_compensate, param_jitter)
+                    cdsr = curcdsr
+
+                pbar.update(1)  # 每次迭代更新进度条
+
+    print(f"Best parameters found: COMPENSATE_RATE = {best_params[0]:.2f}, JITTER_THRESHOLD = {best_params[1]:.2f}")
+    print(f"Minimum DTW distance = {best_dtw:.4f}")
     ranging_plot(cdsr, dsr, sr, vicon)

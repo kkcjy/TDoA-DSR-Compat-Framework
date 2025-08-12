@@ -13,8 +13,8 @@
 #include "dwTypes.h"
 
 
-// #define SWARM_RANGING_MODE
-#define DYNAMIC_SWARM_RANGING_MODE
+#define SWARM_RANGING_MODE
+// #define DYNAMIC_SWARM_RANGING_MODE
 
 
 typedef         uint16_t                    UWB_Address_t;
@@ -26,7 +26,6 @@ typedef         long                        BaseType_t;
 #define         pdTRUE                      ((BaseType_t)1)
 #define         portTickType                TickType_t
 #define         portMAX_DELAY               (TickType_t)0xffffffffUL
-// #define         TICKS_PER_SECOND            63897599999
 #define         UWB_DEST_EMPTY              65534
 #define         UWB_FRAME_LEN_MAX           256
 #define         UWB_PACKET_SIZE_MAX         UWB_FRAME_LEN_MAX
