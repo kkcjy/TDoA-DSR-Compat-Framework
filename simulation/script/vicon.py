@@ -9,31 +9,10 @@ import math
 
 
 def calculate_distance(pos1, pos2):
-    return math.sqrt(
-        (pos1[0] - pos2[0])**2 +
-        (pos1[1] - pos2[1])**2 +
-        (pos1[2] - pos2[2])**2
-    )
+    return math.sqrt((pos1[0] - pos2[0])**2 + (pos1[1] - pos2[1])**2 + (pos1[2] - pos2[2])**2) * 100    # m -> cm
 
-def get_computer_time():
-    current_time = time.time()
-    seconds = int(current_time)
-    microseconds = int((current_time - seconds) * 1e6)
-    
-    local_time = time.localtime(seconds)
-    
-    milliseconds = microseconds // 1000
-    
-    timestamp = (
-        (local_time.tm_year) * 10000000000000 +
-        (local_time.tm_mon) * 100000000000 +
-        (local_time.tm_mday) * 1000000000 +
-        (local_time.tm_hour) * 10000000 +
-        (local_time.tm_min) * 100000 +
-        (local_time.tm_sec) * 1000 +
-        milliseconds
-    )
-    return timestamp
+def get_system_time():
+    return int(time.time() * 1000)
 
 
 if __name__ == "__main__":
@@ -63,7 +42,7 @@ if __name__ == "__main__":
         
         while True:
             current_run_time = time.time() - start_time
-            current_time = get_computer_time()
+            current_time = get_system_time()
             
             # 1. Initial detection phase: Collect all detected rigid body names
             if detection_phase:

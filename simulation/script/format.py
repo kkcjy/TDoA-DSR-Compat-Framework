@@ -26,7 +26,7 @@ def align_time_with_sys(time_list):
     with open(sys_path, 'r', encoding='utf-8') as f:
         reader = csv.DictReader(f)
         for row in reader:
-            sys_time.append(int(row['computer_time']))
+            sys_time.append(int(row['system_time']))
             rx_time.append(int(row['Rx0_time']))
 
     index = 0
@@ -40,18 +40,6 @@ def align_time_with_sys(time_list):
             index += 1
         
     return align_sys_time
-
-def time_to_milliseconds(full_time_str):
-    time_str = str(full_time_str)
-    time_part = time_str[8:] 
-    
-    HH = int(time_part[0:2]) 
-    MM = int(time_part[2:4]) 
-    SS = int(time_part[4:6]) 
-    sss = int(time_part[6:9]) if len(time_part) >= 9 else 0 
-    
-    total_ms = HH * 3600 * 1000 + MM * 60 * 1000 + SS * 1000 + sss
-    return total_ms
 
 def read_vicon_Log():
     vicon_value = []
@@ -94,7 +82,6 @@ def read_dsr_Log():
 
     return dsr_value, dsr_time, dsr_sys_time
 
-
 def read_sr_Log():
     sr_value = []
     sr_time = []
@@ -116,32 +103,30 @@ def read_sr_Log():
 
     return sr_value, sr_time, sr_sys_time
 
-def filter_common_time(sr, sr_time, sr_sys_time, dsr, dsr_time, dsr_sys_time):
-    common_times = set(sr_time) & set(dsr_time)
-    
-    sr_filtered = []
-    sr_time_filtered = []
-    sr_sys_time_filtered = []
-    for s, t, sys_t in zip(sr, sr_time, sr_sys_time):
-        if t in common_times:
-            sr_filtered.append(s)
-            sr_time_filtered.append(t)
-            sr_sys_time_filtered.append(sys_t)
+def plot_sr_dsr(sr, sr_time, sr_sys_time, dsr, dsr_time, dsr_sys_time):
+    def filter_common_time(sr, sr_time, sr_sys_time, dsr, dsr_time, dsr_sys_time):
+        common_times = set(sr_time) & set(dsr_time)
+        
+        sr_filtered = []
+        sr_time_filtered = []
+        sr_sys_time_filtered = []
+        for s, t, sys_t in zip(sr, sr_time, sr_sys_time):
+            if t in common_times:
+                sr_filtered.append(s)
+                sr_time_filtered.append(t)
+                sr_sys_time_filtered.append(sys_t)
 
-    dsr_filtered = []
-    dsr_time_filtered = []
-    dsr_sys_time_filtered = []
-    for d, t, sys_t in zip(dsr, dsr_time, dsr_sys_time):
-        if t in common_times:
-            dsr_filtered.append(d)
-            dsr_time_filtered.append(t)
-            dsr_sys_time_filtered.append(sys_t)
+        dsr_filtered = []
+        dsr_time_filtered = []
+        dsr_sys_time_filtered = []
+        for d, t, sys_t in zip(dsr, dsr_time, dsr_sys_time):
+            if t in common_times:
+                dsr_filtered.append(d)
+                dsr_time_filtered.append(t)
+                dsr_sys_time_filtered.append(sys_t)
 
-    return sr_filtered, sr_time_filtered, sr_sys_time_filtered, dsr_filtered, dsr_time_filtered, dsr_sys_time_filtered
+        return sr_filtered, sr_time_filtered, sr_sys_time_filtered, dsr_filtered, dsr_time_filtered, dsr_sys_time_filtered
 
-def plot_sr_dsr(sr, sr_time, dsr, dsr_time):
-    max_timestamp = max(max(sr_time), max(dsr_time)) + 1
-    
     def correct_timestamps(timestamps, max_timestamp):
         corrected = []
         prev = timestamps[0]
@@ -152,11 +137,12 @@ def plot_sr_dsr(sr, sr_time, dsr, dsr_time):
             corrected.append(t + offset)
             prev = t
         return corrected
-
+    
+    max_timestamp = max(max(sr_time), max(dsr_time)) + 1    
+    
     sr_time_corrected = correct_timestamps(sr_time, max_timestamp)
     dsr_time_corrected = correct_timestamps(dsr_time, max_timestamp)
 
-    import matplotlib.pyplot as plt
     plt.figure(figsize=(12, 6))
     plt.plot(sr_time_corrected, sr, label='SR', marker='o')
     plt.plot(dsr_time_corrected, dsr, label='DSR', marker='s')
@@ -169,14 +155,9 @@ def plot_sr_dsr(sr, sr_time, dsr, dsr_time):
     plt.show()
 
 def plot_sr_dsr_vicon(sr, sr_sys_time, dsr, dsr_sys_time, vicon, vicon_sys_time):
-    sr_ms = [time_to_milliseconds(t) for t in sr_sys_time]
-    dsr_ms = [time_to_milliseconds(t) for t in dsr_sys_time]
-    vicon_ms = [time_to_milliseconds(t) for t in vicon_sys_time]
-    
-    plt.figure(figsize=(10, 6))
-    plt.plot(sr_ms, sr, 'b-', label='SR', alpha=0.7, marker='o', markersize=4)
-    plt.plot(dsr_ms, dsr, 'g-', label='DSR', alpha=0.7, marker='s', markersize=4)
-    plt.plot(vicon_ms, [v*100 for v in vicon], 'r^-', label='VICON (×100)', alpha=0.7, markersize=4)
+    plt.plot(sr_sys_time, sr, color='#4A90E2', label='SR', alpha=0.8, linestyle='-', marker='o', markersize=5, linewidth=2)
+    plt.plot(dsr_sys_time, dsr, color='#F5A623', label='DSR', alpha=0.8, linestyle='-', marker='s', markersize=5, linewidth=2)
+    plt.plot(vicon_sys_time, vicon, color='#27AE60', label='VICON', alpha=0.8, linestyle='-', marker='^', markersize=5, linewidth=2)
 
     plt.xlabel('Time (ms)') 
     plt.ylabel('Distance Measurement')
@@ -192,6 +173,6 @@ if __name__ == '__main__':
     dsr, dsr_time, dsr_sys_time = read_dsr_Log()
     vicon, vicon_sys_time = read_vicon_Log()
 
-    sr, sr_time, sr_sys_time, dsr, dsr_time, dsr_sys_time = filter_common_time(sr, sr_time, sr_sys_time, dsr, dsr_time, dsr_sys_time)
+    # plot_sr_dsr(sr, sr_time, sr_sys_time, dsr, dsr_time, dsr_sys_time)
 
     plot_sr_dsr_vicon(sr, sr_sys_time, dsr, dsr_sys_time, vicon, vicon_sys_time)
