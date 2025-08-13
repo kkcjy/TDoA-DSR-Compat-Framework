@@ -14,6 +14,8 @@ matplotlib.use('TkAgg')
 local_address = 2
 neighbor_address = 3
 time_threshold = 10
+leftbound = 1754985620248
+rightbound = 1754985621988
 
 sys_path = "../data/processed_Log.csv"
 dsr_path = "../data/output/dynamic_swarm_ranging.txt"
@@ -22,7 +24,7 @@ vicon_path = "../data/output/vicon.txt"
 ranging_Log_path = "../data/output/ranging_Log.csv"
 
 
-def align_time_with_sys(time_list):
+def align_sys_time(time_list):
     sys_time = []
     rx_time = []
     align_sys_time = []
@@ -49,9 +51,7 @@ def read_vicon_Log():
     vicon_value = []
     vicon_time = []
 
-    pattern = re.compile(
-        rf"\[local_(?:{local_address}) <- neighbor_(?:{neighbor_address})\]: vicon dist = (-?\d+\.\d+), time = (\d+)"
-    )
+    pattern = re.compile(rf"\[local_(?:{local_address}) <- neighbor_(?:{neighbor_address})\]: vicon dist = (-?\d+\.\d+), time = (\d+)")
 
     with open(vicon_path, "r", encoding="utf-8") as f:
         for line in f:
@@ -62,16 +62,13 @@ def read_vicon_Log():
                 vicon_value.append(vicon_val)
                 vicon_time.append(ts_val)      
 
-
     return vicon_value, vicon_time
 
 def read_dsr_Log():
     dsr_value = []
     dsr_time = []
 
-    pattern = re.compile(
-        rf"\[local_(?:{local_address}) <- neighbor_(?:{neighbor_address})\]: DSR dist = (-?\d+\.\d+), time = (\d+)"
-    )
+    pattern = re.compile(rf"\[local_(?:{local_address}) <- neighbor_(?:{neighbor_address})\]: DSR dist = (-?\d+\.\d+), time = (\d+)")
 
     with open(dsr_path, "r", encoding="utf-8") as f:
         for line in f:
@@ -82,7 +79,7 @@ def read_dsr_Log():
                 dsr_value.append(dsr_val)
                 dsr_time.append(ts_val)      
 
-    dsr_sys_time = align_time_with_sys(dsr_time)
+    dsr_sys_time = align_sys_time(dsr_time)
 
     return dsr_value, dsr_time, dsr_sys_time
 
@@ -90,9 +87,7 @@ def read_sr_Log():
     sr_value = []
     sr_time = []
 
-    pattern = re.compile(
-        rf"\[local_(?:{local_address}) <- neighbor_(?:{neighbor_address})\]: SR dist = (-?\d+), time = (\d+)"
-    )
+    pattern = re.compile(rf"\[local_(?:{local_address}) <- neighbor_(?:{neighbor_address})\]: SR dist = (-?\d+), time = (\d+)")
 
     with open(sr_path, "r", encoding="utf-8") as f:
         for line in f:
@@ -103,22 +98,49 @@ def read_sr_Log():
                 sr_value.append(sr_val)
                 sr_time.append(ts_val)
 
-    sr_sys_time = align_time_with_sys(sr_time)
+    sr_sys_time = align_sys_time(sr_time)
 
     return sr_value, sr_time, sr_sys_time
 
 def write_ranging_Log(sr, sr_sys_time, dsr, dsr_sys_time, vicon, vicon_sys_time):
+    def get_diff_dis(sr, sr_sys_time, dsr, dsr_sys_time, vicon, vicon_sys_time):
+        left_idx_sr = np.searchsorted(sr_sys_time, leftbound, side='left')
+        right_idx_sr = np.searchsorted(sr_sys_time, rightbound, side='right') - 1
+        sr_slice = sr[left_idx_sr : right_idx_sr]
+        sr_mean = np.mean(sr_slice)
+
+        left_idx_dsr = np.searchsorted(dsr_sys_time, leftbound, side='left')
+        right_idx_dsr = np.searchsorted(dsr_sys_time, rightbound, side='right') - 1
+        dsr_slice = dsr[left_idx_dsr : right_idx_dsr]
+        dsr_mean = np.mean(dsr_slice)
+
+        left_idx_vicon = np.searchsorted(vicon_sys_time, leftbound, side='left')
+        right_idx_vicon = np.searchsorted(vicon_sys_time, rightbound, side='right') - 1
+        vicon_slice = vicon[left_idx_vicon : right_idx_vicon]
+        vicon_mean = np.mean(vicon_slice)
+
+        sr_diff = vicon_mean - sr_mean
+        dsr_diff = vicon_mean - dsr_mean
+
+        return sr_diff, dsr_diff
+
     sr_sys_time = np.array(sr_sys_time)
-    dsr_sys_time = np.array(dsr_sys_time)
     sr = np.array(sr)
+    dsr_sys_time = np.array(dsr_sys_time)
     dsr = np.array(dsr)
     vicon_sys_time = np.array(vicon_sys_time)
     vicon = np.array(vicon)
 
+    sr_diff, dsr_diff = get_diff_dis(sr, sr_sys_time, dsr, dsr_sys_time, vicon, vicon_sys_time)
+
+    align_sr = sr + sr_diff
+    align_dsr = dsr + dsr_diff
+    align_vicon = vicon
+
     if len(sr_sys_time) == len(dsr_sys_time) and np.all(sr_sys_time == dsr_sys_time):
         with open(ranging_Log_path, mode='w', newline='') as f:
             writer = csv.writer(f)
-            writer.writerow(["DSR", "SR", "VICON"])
+            writer.writerow(["DSR", "SR", "VICON", "TIME"])
 
             count = 0
             for i in range(len(sr_sys_time)):
@@ -129,12 +151,14 @@ def write_ranging_Log(sr, sr_sys_time, dsr, dsr_sys_time, vicon, vicon_sys_time)
                 if time_diff > time_threshold:
                     continue 
                 
-                writer.writerow([dsr[i], sr[i], vicon[idx]])
+                writer.writerow([align_dsr[i], align_sr[i], align_vicon[idx], sr_sys_time[i]])
                 count += 1
 
         print(f"Ranging log saved to {ranging_Log_path}, total {count} records.")
     else:
         print("Error: sr_sys_time and dsr_sys_time are not identical. Cannot write log.")
+
+    return align_sr, align_dsr, align_vicon
 
 def plot_sr_dsr_vicon(sr, sr_sys_time, dsr, dsr_sys_time, vicon, vicon_sys_time):
     plt.plot(sr_sys_time, sr, color='#4A90E2', label='SR', linestyle='--', marker='x', markersize=4, linewidth=1.5)
@@ -194,10 +218,10 @@ if __name__ == '__main__':
     dsr, dsr_time, dsr_sys_time = read_dsr_Log()
     vicon, vicon_sys_time = read_vicon_Log()
 
-    write_ranging_Log(sr, sr_sys_time, dsr, dsr_sys_time, vicon, vicon_sys_time)
+    align_sr, align_dsr, align_vicon = write_ranging_Log(sr, sr_sys_time, dsr, dsr_sys_time, vicon, vicon_sys_time)
 
     evaluation_data()
 
-    plot_sr_dsr_vicon(sr, sr_sys_time, dsr, dsr_sys_time, vicon, vicon_sys_time)
+    plot_sr_dsr_vicon(align_sr, sr_sys_time, align_dsr, dsr_sys_time, align_vicon, vicon_sys_time)
     
-    # plot_sr_dsr_mid_vicon(sr, sr_sys_time, dsr, dsr_sys_time, vicon, vicon_sys_time)
+    # plot_sr_dsr_mid_vicon(align_sr, sr_sys_time, align_dsr, dsr_sys_time, align_vicon, vicon_sys_time)

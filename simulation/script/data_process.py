@@ -7,7 +7,7 @@ import pandas as pd
 
 
 # Number of drones in the simulation.
-DRONE_NUM = 3
+DRONE_NUM = 2
 # Determines whether to filter out incomplete communications.
 INTEGRITY_FILTER = False
 

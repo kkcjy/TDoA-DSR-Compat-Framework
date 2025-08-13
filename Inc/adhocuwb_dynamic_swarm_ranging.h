@@ -52,7 +52,7 @@
 
 /* Compensation Coefficient */
 #define         COMPENSATE_RATE             0.0f
-#define         JITTER_THRESHOLD            5
+#define         JITTER_THRESHOLD            50
 #define         SEQGAP_THRESHOLD            3
 
 /* Queue Constants */

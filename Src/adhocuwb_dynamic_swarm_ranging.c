@@ -1581,7 +1581,7 @@ void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
                     can introduce significant errors. Therefore, the compensation mechanism should be disabled to avoid inaccurate results.
             2. Relative Stationary and Jitter Handling:
                     During relative stationary phases or relative displacement reversal phases, ranging data may become unstable, causing jitter.
-                    To prevent noise amplification and overcompensation, compensation should be disabled if the compensation amount is below the
+                    To prevent noise amplification and overcompensation, compensation should be disabled if the compensation amount is above the
                     jitter threshold (JITTER_THRESHOLD) or if the compensation direction is opposite to the actual distance change.
             3. Partial Compensation for Uncertainty:
                     In high-uncertainty scenarios, applying full compensation may lead to oscillations or overshoot. To mitigate this, a compensation
@@ -1613,7 +1613,7 @@ void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
                         distance = dis_Calculate;
                     }
                     // Optimize 2
-                    else if(abs(dis_unit * seqGap) < JITTER_THRESHOLD || dis_Compensate * dis_unit <= 0) {
+                    else if(abs(dis_unit * seqGap) > JITTER_THRESHOLD || dis_Compensate * dis_unit <= 0) {
                         distance = dis_Calculate;
                     }
                     // Optimize 3
@@ -1652,7 +1652,7 @@ void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
                     distance = dis_Calculate[rangingTable->neighborAddress];
                 }
                 // Optimize 2
-                else if(abs(dis_unit[rangingTable->neighborAddress] * seqGap) < JITTER_THRESHOLD || dis_Compensate * dis_unit[rangingTable->neighborAddress] <= 0) {
+                else if(abs(dis_unit[rangingTable->neighborAddress] * seqGap) > JITTER_THRESHOLD || dis_Compensate * dis_unit[rangingTable->neighborAddress] <= 0) {
                     distance = dis_Calculate[rangingTable->neighborAddress];
                 }
                 // Optimize 3
