@@ -11,30 +11,25 @@ ms_per_tick=ms_per_meter * meter_per_tick
 # Read the CSV file into a DataFrame
 #df = pd.read_csv('data/2025-08-07-10-45-43.csv')
 #interval = 50.0
-df = pd.read_csv('data/2025-08-08-07-43-34.csv')
-interval = 50.90
+df = pd.read_csv('src/deck/drivers/AdHocUWB/sniffer/data/sniffer_Log.csv')
 
+interval = 216.5
 # df = pd.read_csv('/Users/twinhorse/Career/project/aerialswarm/gitprojects/crazyflie-firmware-adhocuwb/src/deck/drivers/AdHocUWB/sniffer/data/data.csv')
 
 # Extract columns into arrays (as lists)
-sniffer_rx_times = df['sniffer_rx_time']
+sniffer_rx_ms = df['system_time']
 src_addrs = df['src_addr']
-sniffer_rx_ms = sniffer_rx_times * ms_per_tick
-rx_mod_ms = uwb_max_timestamp * ms_per_tick
 
 base = sniffer_rx_ms[0]
 
-# Print results
-print("sniffer_rx_ms:", rx_mod_ms)
-
 x = np.array([0])
 y = np.array([0])
-newx=0
+basey=sniffer_rx_ms[0]
 newy=0
-for i in range(len(sniffer_rx_times)-1):
-    diff = math.fmod(sniffer_rx_ms[i+1]-sniffer_rx_ms[i]+rx_mod_ms, rx_mod_ms)
-    newy = newy + math.floor((newx+diff)/interval)
-    newx = math.fmod((newx+diff), interval)
+for i in range(len(sniffer_rx_ms)-1):
+    diff = sniffer_rx_ms[i+1]-sniffer_rx_ms[0]
+    newy = math.floor((diff)/interval)
+    newx = math.fmod((diff), interval)
     x=np.append(x,newx)
     y=np.append(y,newy)
 
