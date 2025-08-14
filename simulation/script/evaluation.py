@@ -162,8 +162,8 @@ def write_ranging_Log(sr, sr_sys_time, dsr, dsr_sys_time, vicon, vicon_sys_time)
 
 def plot_sr_dsr_vicon(sr, sr_sys_time, dsr, dsr_sys_time, vicon, vicon_sys_time):
     plt.plot(sr_sys_time, sr, color='#4A90E2', label='SR', linestyle='--', marker='x', markersize=4, linewidth=1.5)
-    plt.plot(dsr_sys_time, dsr, color='#F5A623', label='DSR Midpoints', linestyle='--', marker='x', markersize=4, linewidth=1.5)
-    plt.plot(vicon_sys_time, vicon, color='#27AE60', label='VICON', alpha=0.8, linestyle='-', marker='o', markersize=4, linewidth=2)
+    plt.plot(dsr_sys_time, dsr, color="#E4491E", label='DSR Midpoints', linestyle='--', marker='x', markersize=4, linewidth=1.5)
+    plt.plot(vicon_sys_time, vicon, color="#9DF423", label='VICON', alpha=0.8, linestyle='-', marker='o', markersize=4, linewidth=2)
 
     plt.xlabel('Time (ms)') 
     plt.ylabel('Distance Measurement')
@@ -181,8 +181,8 @@ def plot_sr_dsr_mid_vicon(sr, sr_sys_time, dsr, dsr_sys_time, vicon, vicon_sys_t
     dsr_mid_y = (dsr[:-1] + dsr[1:]) / 2
 
     plt.plot(sr_sys_time, sr, color='#4A90E2', label='SR', linestyle='--', marker='x', markersize=4, linewidth=1.5)
-    plt.plot(dsr_mid_x, dsr_mid_y, color='#F5A623', label='DSR Midpoints', linestyle='--', marker='x', markersize=4, linewidth=1.5)
-    plt.plot(vicon_sys_time, vicon, color='#27AE60', label='VICON', alpha=0.8, linestyle='-', marker='o', markersize=4, linewidth=2)
+    plt.plot(dsr_mid_x, dsr_mid_y, color="#E4491E", label='DSR Midpoints', linestyle='--', marker='x', markersize=4, linewidth=1.5)
+    plt.plot(vicon_sys_time, vicon, color="#9DF423", label='VICON', alpha=0.8, linestyle='-', marker='o', markersize=4, linewidth=2)
 
     plt.xlabel('Time (ms)') 
     plt.ylabel('Distance Measurement')
@@ -205,12 +205,12 @@ def evaluation_data():
     df = pd.read_csv(ranging_Log_path)
     df = df.dropna(subset=['DSR', 'SR', 'VICON'])
 
-    mean_ae_dsr, max_ae_dsr, rmse_dsr, mre_dsr = compute_error_metrics(df['DSR'].values, df['VICON'].values)
     mean_ae_sr, max_ae_sr, rmse_sr, mre_sr = compute_error_metrics(df['SR'].values, df['VICON'].values)
+    mean_ae_dsr, max_ae_dsr, rmse_dsr, mre_dsr = compute_error_metrics(df['DSR'].values, df['VICON'].values)
 
     print("==== Error Metrics ====")
-    print(f"DSR: Mean AE(平均绝对误差) = {mean_ae_dsr:.3f} cm, Max AE(最大绝对误差) = {max_ae_dsr:.3f} cm, RMSE(均方根误差) = {rmse_dsr:.3f} cm, MRE(平均相对误差) = {mre_dsr:.3f}%")
     print(f"SR : Mean AE(平均绝对误差) = {mean_ae_sr:.3f} cm, Max AE(最大绝对误差) = {max_ae_sr:.3f} cm, RMSE(均方根误差) = {rmse_sr:.3f} cm, MRE(平均相对误差) = {mre_sr:.3f}%")
+    print(f"DSR: Mean AE(平均绝对误差) = {mean_ae_dsr:.3f} cm, Max AE(最大绝对误差) = {max_ae_dsr:.3f} cm, RMSE(均方根误差) = {rmse_dsr:.3f} cm, MRE(平均相对误差) = {mre_dsr:.3f}%")
 
 
 if __name__ == '__main__':

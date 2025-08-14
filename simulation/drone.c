@@ -67,6 +67,11 @@ void TxCallBack(int center_socket, dwTime_t timestamp) {
 }
 
 void RxCallBack(Ranging_Message_t *rangingMessage, dwTime_t timestamp) {
+    int randnum = rand() % 100;
+    if(randnum < (int)(PACKET_LOSS_RATE * 100)) {
+        return;
+    }
+
     #if defined(SWARM_RANGING_MODE)
         Ranging_Message_With_Timestamp_t rangingMessageWithTimestamp;
         rangingMessageWithTimestamp.rangingMessage = *rangingMessage;
@@ -148,6 +153,8 @@ int main(int argc, char *argv[]) {
 
     const char *center_ip = CENTER_IP;
     localAddress = argv[1];
+
+    srand((unsigned int)time(NULL));
 
     lastTxTimestamp.full = 0;
     lastRxTimestamp.full = 0;
