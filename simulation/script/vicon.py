@@ -12,7 +12,7 @@ def calculate_distance(pos1, pos2):
     return math.sqrt((pos1[0] - pos2[0])**2 + (pos1[1] - pos2[1])**2 + (pos1[2] - pos2[2])**2) * 100    # m -> cm
 
 def get_system_time():
-    return int(time.time() * 1000)
+    return int(time.monotonic() * 1000)
 
 
 if __name__ == "__main__":

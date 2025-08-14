@@ -58,7 +58,7 @@ void generate_filename(char *buffer, size_t buffer_size) {
 
 uint64_t get_system_time() {
     struct timespec ts;
-    clock_gettime(CLOCK_REALTIME, &ts);
+    clock_gettime(CLOCK_MONOTONIC, &ts);
     return (uint64_t)ts.tv_sec * 1000ULL + ts.tv_nsec / 1000000ULL;
 }
 
