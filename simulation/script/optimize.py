@@ -55,7 +55,7 @@ def read_log():
 
     return dsr, sr, vicon_sample, time, vicon, vicon_sys_time
 
-def compensation_algorithm(distance_List, compensate_rate, jitter_threshold):
+def compensation_algorithm(distance_List, compensate_rate, deceleration_bound):
     last_dis_Calculate = None
     dis_unit = None
     distance_List_Processed = []
@@ -75,7 +75,7 @@ def compensation_algorithm(distance_List, compensate_rate, jitter_threshold):
             dis_unit = dis_Calculate - last_dis_Calculate
             last_dis_Calculate = dis_Calculate
 
-            if abs(dis_unit) > jitter_threshold or dis_Compensate * dis_unit <= 0:
+            if abs(dis_Compensate) - abs(dis_unit) > deceleration_bound or dis_Compensate * dis_unit <= 0:
                 distance = dis_Calculate
             else:
                 distance = dis_Calculate + dis_Compensate * compensate_rate
@@ -90,11 +90,11 @@ def evaluate_params_mae(dsr, sr, vicon_sample, time, vicon, vicon_sys_time):
     best_params = (None, None)
 
     compensate_rate_range = np.arange(0, 1.01, 0.01)
-    jitter_threshold_range = np.arange(0, 10.1, 0.1)
+    deceleration_bound_range = np.arange(0, 10.1, 0.1)
 
     for param_compensate in compensate_rate_range:
-        for param_jitter in jitter_threshold_range:
-            curcdsr = compensation_algorithm(dsr, param_compensate, param_jitter)
+        for param_deceleration in deceleration_bound_range:
+            curcdsr = compensation_algorithm(dsr, param_compensate, param_deceleration)
 
             curcdsr_filter = []
             vicon_filter = []
@@ -112,15 +112,15 @@ def evaluate_params_mae(dsr, sr, vicon_sample, time, vicon, vicon_sys_time):
             
             if cur_mae < best_mae:
                 cdsr = curcdsr
-                best_params = (param_compensate, param_jitter)
+                best_params = (param_compensate, param_deceleration)
                 best_mae = cur_mae
 
-    print(f"Best parameters found: COMPENSATE_RATE = {best_params[0]:.2f}, JITTER_THRESHOLD = {best_params[1]:.2f}")
+    print(f"Best parameters found: COMPENSATE_RATE = {best_params[0]:.2f}, DECELERATION_BOUND = {best_params[1]:.2f}")
 
     ranging_plot(cdsr, dsr, sr, time, vicon, vicon_sys_time)
 
-def set_param(COMPENSATE_RATE, JITTER_THRESHOLD, dsr, sr, time, vicon, vicon_sys_time):
-    cdsr = compensation_algorithm(dsr, COMPENSATE_RATE, JITTER_THRESHOLD)
+def set_param(COMPENSATE_RATE, DECELERATION_BOUND, dsr, sr, time, vicon, vicon_sys_time):
+    cdsr = compensation_algorithm(dsr, COMPENSATE_RATE, DECELERATION_BOUND)
     
     ranging_plot(cdsr, dsr, sr, time, vicon, vicon_sys_time)
 
@@ -145,8 +145,8 @@ if __name__ == '__main__':
     dsr, sr, vicon_sample, time, vicon, vicon_sys_time = read_log()
 
     COMPENSATE_RATE = 0.2
-    JITTER_THRESHOLD = 100
+    DECELERATION_BOUND = 5
 
     evaluate_params_mae(dsr, sr, vicon_sample, time, vicon, vicon_sys_time)
 
-    # set_param(COMPENSATE_RATE, JITTER_THRESHOLD, dsr, sr, time, vicon, vicon_sys_time)
+    # set_param(COMPENSATE_RATE, DECELERATION_BOUND, dsr, sr, time, vicon, vicon_sys_time)

@@ -1579,10 +1579,9 @@ void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
             1. Sequence Gap Threshold:
                     When the gap between consecutive sequence numbers (seqGap) exceeds a preset threshold (SEQGAP_THRESHOLD), linear extrapolation
                     can introduce significant errors. Therefore, the compensation mechanism should be disabled to avoid inaccurate results.
-            2. Relative Stationary and Jitter Handling:
-                    During relative stationary phases or relative displacement reversal phases, ranging data may become unstable, causing jitter.
-                    To prevent noise amplification and overcompensation, compensation should be disabled if the compensation amount is above the
-                    jitter threshold (JITTER_THRESHOLD) or if the compensation direction is opposite to the actual distance change.
+            2. Deceleration and Turning Compensation Overflow:
+                    When the drone is decelerating or changing direction, its motion trend changes significantly. In such cases, continuing to apply
+                    full compensation may cause overcompensation, resulting in overflow in position or distance estimation.
             3. Partial Compensation for Uncertainty:
                     In high-uncertainty scenarios, applying full compensation may lead to oscillations or overshoot. To mitigate this, a compensation
                     coefficient (COMPENSATE_RATE) less than 1 is recommended to apply partial compensation, balancing responsiveness and stability.
@@ -1613,14 +1612,13 @@ void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
                         distance = dis_Calculate;
                     }
                     // Optimize 2
-                    else if(abs(dis_unit * seqGap) > JITTER_THRESHOLD || dis_Compensate * dis_unit <= 0) {
+                    else if(abs(dis_Compensate / seqGap) - abs(dis_unit) > DECELERATION_BOUND || dis_Compensate * dis_unit <= 0) {
                         distance = dis_Calculate;
                     }
                     // Optimize 3
                     else {
                         distance = dis_Calculate + dis_Compensate * COMPENSATE_RATE;
                     }
-                        
                 }
             return distance;
         */
@@ -1652,7 +1650,7 @@ void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
                     distance = dis_Calculate[rangingTable->neighborAddress];
                 }
                 // Optimize 2
-                else if(abs(dis_unit[rangingTable->neighborAddress] * seqGap) > JITTER_THRESHOLD || dis_Compensate * dis_unit[rangingTable->neighborAddress] <= 0) {
+                else if((abs(dis_Compensate / seqGap) - abs(dis_unit[rangingTable->neighborAddress]) > DECELERATION_BOUND) || dis_Compensate * dis_unit[rangingTable->neighborAddress] <= 0) {
                     distance = dis_Calculate[rangingTable->neighborAddress];
                 }
                 // Optimize 3
