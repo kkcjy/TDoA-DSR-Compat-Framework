@@ -1257,7 +1257,6 @@ static void S3_Tf(Ranging_Table_t *rangingTable) {
 }
 
 static void S3_RX_NO_Rf(Ranging_Table_t *rangingTable) {
-    DEBUG_PRINT("T1-");
     Ranging_Table_Tr_Rr_Candidate_t Tr_Rr_Candidate = rangingTableBufferGetLatest(&rangingTable->TrRrBuffer);
     int16_t distance = computeDistance2(rangingTable->TxRxHistory.Tx, rangingTable->TxRxHistory.Rx,
                                         rangingTable->Tp, rangingTable->Rp,

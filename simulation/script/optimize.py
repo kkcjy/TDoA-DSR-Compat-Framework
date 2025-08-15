@@ -92,33 +92,37 @@ def evaluate_params_mae(dsr, sr, vicon_sample, time, vicon, vicon_sys_time):
     compensate_rate_range = np.arange(0, 1.01, 0.01)
     deceleration_bound_range = np.arange(0, 10.1, 0.1)
 
-    for param_compensate in compensate_rate_range:
-        for param_deceleration in deceleration_bound_range:
-            curcdsr = compensation_algorithm(dsr, param_compensate, param_deceleration)
+    total_iterations = len(compensate_rate_range) * len(deceleration_bound_range)
 
-            curcdsr_filter = []
-            vicon_filter = []
+    with tqdm(total=total_iterations, desc="Evaluating parameters", ncols=100) as pbar:
+        for param_compensate in compensate_rate_range:
+            for param_deceleration in deceleration_bound_range:
+                curcdsr = compensation_algorithm(dsr, param_compensate, param_deceleration)
 
-            if len(curcdsr) == len(vicon_sample):
-                for i in range(len(curcdsr)):
-                    if abs(curcdsr[i] - vicon_sample[i]) < threshold:
-                        curcdsr_filter.append(curcdsr[i])
-                        vicon_filter.append(vicon_sample[i])
-            else:
-                print(f"Length mismatch: curcdsr={len(curcdsr)}, vicon={len(vicon_sample)}")  
-                continue
+                curcdsr_filter = []
+                vicon_filter = []
 
-            cur_mae = np.mean(np.abs(np.array(curcdsr_filter) - np.array(vicon_filter)))
-            
-            if cur_mae < best_mae:
-                cdsr = curcdsr
-                best_params = (param_compensate, param_deceleration)
-                best_mae = cur_mae
+                if len(curcdsr) == len(vicon_sample):
+                    for i in range(len(curcdsr)):
+                        if abs(curcdsr[i] - vicon_sample[i]) < threshold:
+                            curcdsr_filter.append(curcdsr[i])
+                            vicon_filter.append(vicon_sample[i])
+                else:
+                    pbar.update(1)
+                    continue
 
-    print(f"Best parameters found: COMPENSATE_RATE = {best_params[0]:.2f}, DECELERATION_BOUND = {best_params[1]:.2f}")
+                cur_mae = np.mean(np.abs(np.array(curcdsr_filter) - np.array(vicon_filter)))
+
+                if cur_mae < best_mae:
+                    cdsr = curcdsr
+                    best_params = (param_compensate, param_deceleration)
+                    best_mae = cur_mae
+
+                pbar.update(1)  
+
+    print(f"\nBest parameters found: COMPENSATE_RATE = {best_params[0]:.2f}, DECELERATION_BOUND = {best_params[1]:.2f}")
 
     evaluation_data(cdsr)
-
     ranging_plot(cdsr, dsr, sr, time, vicon, vicon_sys_time)
 
 def set_param(COMPENSATE_RATE, DECELERATION_BOUND, dsr, sr, time, vicon, vicon_sys_time):

@@ -14,8 +14,8 @@ matplotlib.use('TkAgg')
 local_address = 2
 neighbor_address = 3
 time_threshold = 10
-leftbound = 1754985620248
-rightbound = 1754985621988
+leftbound = 1410370
+rightbound = 1422430
 
 sys_path = "../data/processed_Log.csv"
 dsr_path = "../data/output/dynamic_swarm_ranging.txt"

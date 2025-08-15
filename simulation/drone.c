@@ -68,7 +68,7 @@ void TxCallBack(int center_socket, dwTime_t timestamp) {
 
 void RxCallBack(Ranging_Message_t *rangingMessage, dwTime_t timestamp) {
     int randnum = rand() % 100;
-    if(randnum < (int)(PACKET_LOSS_RATE * 100)) {
+    if(randnum < (int)(PACKET_LOSS * 100)) {
         return;
     }
 

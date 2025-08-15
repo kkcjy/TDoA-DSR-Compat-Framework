@@ -22,7 +22,7 @@
 
 
 #define     NODES_NUM           2
-#define     PACKET_LOSS_RATE    0
+#define     PACKET_LOSS         0
 #define     ADDR_SIZE           20
 #define     CENTER_ADDRESS      "CENTER"
 #define     CENTER_IP           "127.0.0.1"
