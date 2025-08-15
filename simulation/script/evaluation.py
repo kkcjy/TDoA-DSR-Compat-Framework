@@ -162,31 +162,12 @@ def write_ranging_Log(sr, sr_sys_time, dsr, dsr_sys_time, vicon, vicon_sys_time)
 
 def plot_sr_dsr_vicon(sr, sr_sys_time, dsr, dsr_sys_time, vicon, vicon_sys_time):
     plt.plot(sr_sys_time, sr, color='#4A90E2', label='SR', linestyle='--', marker='x', markersize=4, linewidth=1.5)
-    plt.plot(dsr_sys_time, dsr, color="#E4491E", label='DSR Midpoints', linestyle='--', marker='x', markersize=4, linewidth=1.5)
+    plt.plot(dsr_sys_time, dsr, color="#E4491E", label='DSR', linestyle='--', marker='x', markersize=4, linewidth=1.5)
     plt.plot(vicon_sys_time, vicon, color="#9DF423", label='VICON', alpha=0.8, linestyle='-', marker='o', markersize=4, linewidth=2)
 
     plt.xlabel('Time (ms)') 
     plt.ylabel('Distance Measurement')
     plt.title('SR vs DSR vs VICON Distance Measurements Over Absolute Time')
-    plt.legend()
-    plt.grid(True, linestyle='--', alpha=0.7)
-    plt.tight_layout()
-    plt.show()
-
-def plot_sr_dsr_mid_vicon(sr, sr_sys_time, dsr, dsr_sys_time, vicon, vicon_sys_time):
-    dsr_sys_time = np.array(dsr_sys_time)
-    dsr = np.array(dsr)
-
-    dsr_mid_x = (dsr_sys_time[:-1] + dsr_sys_time[1:]) / 2
-    dsr_mid_y = (dsr[:-1] + dsr[1:]) / 2
-
-    plt.plot(sr_sys_time, sr, color='#4A90E2', label='SR', linestyle='--', marker='x', markersize=4, linewidth=1.5)
-    plt.plot(dsr_mid_x, dsr_mid_y, color="#E4491E", label='DSR Midpoints', linestyle='--', marker='x', markersize=4, linewidth=1.5)
-    plt.plot(vicon_sys_time, vicon, color="#9DF423", label='VICON', alpha=0.8, linestyle='-', marker='o', markersize=4, linewidth=2)
-
-    plt.xlabel('Time (ms)') 
-    plt.ylabel('Distance Measurement')
-    plt.title('SR vs Mid-Point DSR vs VICON Distance Measurements Over Absolute Time')
     plt.legend()
     plt.grid(True, linestyle='--', alpha=0.7)
     plt.tight_layout()
@@ -223,5 +204,3 @@ if __name__ == '__main__':
     evaluation_data()
 
     plot_sr_dsr_vicon(align_sr, sr_sys_time, align_dsr, dsr_sys_time, align_vicon, vicon_sys_time)
-    
-    # plot_sr_dsr_mid_vicon(align_sr, sr_sys_time, align_dsr, dsr_sys_time, align_vicon, vicon_sys_time)
