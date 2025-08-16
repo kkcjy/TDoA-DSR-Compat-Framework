@@ -14,8 +14,8 @@ matplotlib.use('TkAgg')
 local_address = 2
 neighbor_address = 3
 time_threshold = 10
-leftbound = 1410370
-rightbound = 1422430
+leftbound = 3964420
+rightbound = 3971760
 
 sys_path = "../data/processed_Log.csv"
 dsr_path = "../data/output/dynamic_swarm_ranging.txt"
@@ -179,8 +179,7 @@ def evaluation_data():
         mean_ae = np.mean(ae)
         max_ae = np.max(ae)
         rmse = np.sqrt(np.mean((predicted - ground_truth) **2))
-        re = ae / (ground_truth + 1e-10)
-        mean_re = np.mean(re) * 100
+        mean_re = np.mean(np.abs(predicted - ground_truth) / ground_truth) * 100
         return mean_ae, max_ae, rmse, mean_re
 
     df = pd.read_csv(ranging_Log_path)
