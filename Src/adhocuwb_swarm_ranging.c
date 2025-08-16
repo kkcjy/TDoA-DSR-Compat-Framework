@@ -1083,7 +1083,7 @@ static int16_t computeDistance(Timestamp_Tuple_t Tp, Timestamp_Tuple_t Rp,
     // DEBUG_PRINT("compute dist:\t%d\n", distance);
     
     if (distance < 0) {
-        DEBUG_PRINT("Ranging Error: distance < 0\n");
+        // DEBUG_PRINT("Ranging Error: distance < 0\n");
         isErrorOccurred = true;
     }
 
@@ -1152,7 +1152,7 @@ static int16_t computeDistance2(Timestamp_Tuple_t Tx, Timestamp_Tuple_t Rx,
 
     // DEBUG_PRINT("compute dist 2:%d\n", distance);
     if (distance < 0) {
-        DEBUG_PRINT("Ranging Error: distance < 0\n");
+        // DEBUG_PRINT("Ranging Error: distance < 0\n");
         isErrorOccurred = true;
     }
 

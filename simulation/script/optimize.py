@@ -14,8 +14,11 @@ matplotlib.use('TkAgg')
 
 local_address = 2
 neighbor_address = 3
+ranging_Log_path = '../data/output/ranging_Log.csv'
 vicon_path = "../data/output/vicon.txt"
-threshold = 5
+# ranging_Log_path = '../../../../../../data/processed/5.csv'
+# vicon_path = "../../../../../../data/processed/5.txt"
+threshold = 50
 
 
 def read_log():
@@ -36,8 +39,7 @@ def read_log():
 
         return vicon_value, vicon_time
     
-    data_path = '../data/output/ranging_Log.csv'
-    data = pd.read_csv(data_path)
+    data = pd.read_csv(ranging_Log_path)
 
     data['DSR'] = pd.to_numeric(data['DSR'], errors='coerce')
     data['SR'] = pd.to_numeric(data['SR'], errors='coerce')
@@ -141,8 +143,6 @@ def evaluation_data(cdsr):
         re = ae / (ground_truth + 1e-10)
         mean_re = np.mean(re) * 100
         return mean_ae, max_ae, rmse, mean_re
-    
-    ranging_Log_path = '../data/output/ranging_Log.csv'
 
     df = pd.read_csv(ranging_Log_path)
     df = df.dropna(subset=['DSR', 'SR', 'VICON'])
