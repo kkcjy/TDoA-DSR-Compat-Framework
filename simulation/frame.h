@@ -21,16 +21,17 @@
 #endif
 
 
-#define     NODES_NUM           2
-#define     PACKET_LOSS         0
-#define     ADDR_SIZE           20
-#define     CENTER_ADDRESS      "CENTER"
-#define     CENTER_IP           "127.0.0.1"
-#define     CENTER_PORT         8888
-#define     MAX_LINE_LEN        256
-#define     MESSAGE_SIZE        512
-#define     PAYLOAD_SIZE        MESSAGE_SIZE - ADDR_SIZE - sizeof(size_t)
-#define     READ_PERIOD         50
+#define     NODES_NUM               2       // the total number of drones in the system
+#define     PACKET_LOSS             0       // packet loss rate for simulating communication link quality
+#define     RANGING_PERIOD_RATE     8       // rate multiplier for ranging data transmission period
+#define     ADDR_SIZE               20
+#define     CENTER_ADDRESS          "CENTER"
+#define     CENTER_IP               "127.0.0.1"
+#define     CENTER_PORT             8888
+#define     MAX_LINE_LEN            256
+#define     MESSAGE_SIZE            512
+#define     PAYLOAD_SIZE            MESSAGE_SIZE - ADDR_SIZE - sizeof(size_t)
+#define     READ_PERIOD             50
 
 
 const char *FILE_NAME = "./data/processed_Log.csv";

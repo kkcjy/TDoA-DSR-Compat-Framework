@@ -13,9 +13,9 @@ matplotlib.use('TkAgg')
 # Set to the required address
 local_address = 2
 neighbor_address = 3
-time_threshold = 10
-leftbound = 3964420
-rightbound = 3971760
+sr_calculate_failed_min = 50
+leftbound = 1409700
+rightbound = 1423480
 
 sys_path = "../data/processed_Log.csv"
 dsr_path = "../data/output/dynamic_swarm_ranging.txt"
@@ -146,13 +146,10 @@ def write_ranging_Log(sr, sr_sys_time, dsr, dsr_sys_time, vicon, vicon_sys_time)
             for i in range(len(sr_sys_time)):
                 t = sr_sys_time[i]
                 idx = np.argmin(np.abs(vicon_sys_time - t))
-                time_diff = abs(vicon_sys_time[idx] - t)
-
-                if time_diff > time_threshold:
-                    continue 
                 
-                writer.writerow([align_dsr[i], align_sr[i], align_vicon[idx], sr_sys_time[i]])
-                count += 1
+                if(align_sr[i] > sr_calculate_failed_min):
+                    writer.writerow([align_dsr[i], align_sr[i], align_vicon[idx], sr_sys_time[i]])
+                    count += 1
 
         print(f"Ranging log saved to {ranging_Log_path}, total {count} records.")
     else:

@@ -68,74 +68,78 @@ void *broadcast_flightLog(void *arg) {
         exit(EXIT_FAILURE);
     }
 
+    int line_count = 0;
+
     // Broadcast flight log to all drones
     while (fgets(line, sizeof(line), fp)) {
-        usleep(READ_PERIOD * 1000); 
+        if((line_count++ / NODES_NUM) % RANGING_PERIOD_RATE == 0) {
+            usleep(READ_PERIOD * 1000); 
 
-        if (*line == '\n' || *line == '\0') {
-            break;
-        }
-
-        //wait for broadcast_rangingMessage
-        pthread_mutex_lock(&task_allocation_mutex);
-        pthread_mutex_lock(&broadcast_rangingMessage_mutex);
-
-        // Tx task allocation
-        Line_Message_t Tx_line_message;
-        char *token = strtok(line, ",");
-        token = strtok(NULL, ",");
-        Tx_line_message.address = (uint16_t)strtoul(token, NULL, 10);
-        Tx_line_message.status = TX;
-        for (int i = 0; i < 3; i++) {
-            token = strtok(NULL, ",");
-        }
-        Tx_line_message.timestamp.full = (uint64_t)strtoull(token, NULL, 10);
-
-        for(int i = 0; i < droneNodeSet->count; i++) {
-            if((uint16_t)strtoul(droneNodeSet->node[i].address, NULL, 10) == Tx_line_message.address) {
-                printf("[broadcast_flightLog]: Tx address = %d, Tx timestamp = %lu\n", Tx_line_message.address, Tx_line_message.timestamp.full);
-
-                Simu_Message_t simu_msg;
-                strncpy(simu_msg.srcAddress, CENTER_ADDRESS, ADDR_SIZE);
-                memcpy(simu_msg.payload, &Tx_line_message, sizeof(Line_Message_t));
-                simu_msg.size = sizeof(Line_Message_t);
-
-                if(send(droneNodeSet->node[i].socket, &simu_msg, sizeof(Simu_Message_t), 0) < 0) {
-                    perror("Failed to send Tx message");
-                }
-            }
-        }
-
-        // Rx task allocation
-        for(int i = 0; i < rx_count; i++) {
-            Line_Message_t Rx_line_message;
-            token = strtok(NULL, ",");
-            Rx_line_message.address = (uint16_t)strtoul(token, NULL, 10);
-            Rx_line_message.status = RX;
-            token = strtok(NULL, ",");
-            Rx_line_message.timestamp.full = (uint64_t)strtoull(token, NULL, 10);
-
-            // Skip packet loss cases
-            if(Rx_line_message.timestamp.full == 0) {
-                continue;
+            if (*line == '\n' || *line == '\0') {
+                break;
             }
 
-            for(int j = 0; j < droneNodeSet->count; j++) {
-                if((uint16_t)strtoul(droneNodeSet->node[j].address, NULL, 10) == Rx_line_message.address) {
-                    printf("[broadcast_flightLog]: Rx address = %d, Rx timestamp = %lu\n", Rx_line_message.address, Rx_line_message.timestamp.full);
+            //wait for broadcast_rangingMessage
+            pthread_mutex_lock(&task_allocation_mutex);
+            pthread_mutex_lock(&broadcast_rangingMessage_mutex);
+
+            // Tx task allocation
+            Line_Message_t Tx_line_message;
+            char *token = strtok(line, ",");
+            token = strtok(NULL, ",");
+            Tx_line_message.address = (uint16_t)strtoul(token, NULL, 10);
+            Tx_line_message.status = TX;
+            for (int i = 0; i < 3; i++) {
+                token = strtok(NULL, ",");
+            }
+            Tx_line_message.timestamp.full = (uint64_t)strtoull(token, NULL, 10);
+
+            for(int i = 0; i < droneNodeSet->count; i++) {
+                if((uint16_t)strtoul(droneNodeSet->node[i].address, NULL, 10) == Tx_line_message.address) {
+                    printf("[broadcast_flightLog]: Tx address = %d, Tx timestamp = %lu\n", Tx_line_message.address, Tx_line_message.timestamp.full);
 
                     Simu_Message_t simu_msg;
                     strncpy(simu_msg.srcAddress, CENTER_ADDRESS, ADDR_SIZE);
-                    memcpy(simu_msg.payload, &Rx_line_message, sizeof(Line_Message_t));
+                    memcpy(simu_msg.payload, &Tx_line_message, sizeof(Line_Message_t));
                     simu_msg.size = sizeof(Line_Message_t);
 
-                    if(send(droneNodeSet->node[j].socket, &simu_msg, sizeof(Simu_Message_t), 0) < 0) {
-                        perror("Failed to send Rx message");
+                    if(send(droneNodeSet->node[i].socket, &simu_msg, sizeof(Simu_Message_t), 0) < 0) {
+                        perror("Failed to send Tx message");
                     }
                 }
             }
-        }
-        pthread_mutex_unlock(&broadcast_rangingMessage_mutex);
+
+            // Rx task allocation
+            for(int i = 0; i < rx_count; i++) {
+                Line_Message_t Rx_line_message;
+                token = strtok(NULL, ",");
+                Rx_line_message.address = (uint16_t)strtoul(token, NULL, 10);
+                Rx_line_message.status = RX;
+                token = strtok(NULL, ",");
+                Rx_line_message.timestamp.full = (uint64_t)strtoull(token, NULL, 10);
+
+                // Skip packet loss cases
+                if(Rx_line_message.timestamp.full == 0) {
+                    continue;
+                }
+
+                for(int j = 0; j < droneNodeSet->count; j++) {
+                    if((uint16_t)strtoul(droneNodeSet->node[j].address, NULL, 10) == Rx_line_message.address) {
+                        printf("[broadcast_flightLog]: Rx address = %d, Rx timestamp = %lu\n", Rx_line_message.address, Rx_line_message.timestamp.full);
+
+                        Simu_Message_t simu_msg;
+                        strncpy(simu_msg.srcAddress, CENTER_ADDRESS, ADDR_SIZE);
+                        memcpy(simu_msg.payload, &Rx_line_message, sizeof(Line_Message_t));
+                        simu_msg.size = sizeof(Line_Message_t);
+
+                        if(send(droneNodeSet->node[j].socket, &simu_msg, sizeof(Simu_Message_t), 0) < 0) {
+                            perror("Failed to send Rx message");
+                        }
+                    }
+                }
+            }
+            pthread_mutex_unlock(&broadcast_rangingMessage_mutex);
+        }       
     }
 
     printf("Flight log broadcast completed.\n");

@@ -51,8 +51,8 @@
 #define         LOWER_BOUND_DISTANCE        0
 
 /* Compensation Coefficient */
-#define         COMPENSATE_RATE             0.0f
-#define         DECELERATION_BOUND          5
+#define         COMPENSATE_RATE             0.6f
+#define         DECELERATION_BOUND          15
 #define         SEQGAP_THRESHOLD            3
 
 /* Queue Constants */

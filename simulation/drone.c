@@ -154,8 +154,6 @@ int main(int argc, char *argv[]) {
     const char *center_ip = CENTER_IP;
     localAddress = argv[1];
 
-    srand((unsigned int)time(NULL));
-
     lastTxTimestamp.full = 0;
     lastRxTimestamp.full = 0;
     TxTimestamp.full = 0;
