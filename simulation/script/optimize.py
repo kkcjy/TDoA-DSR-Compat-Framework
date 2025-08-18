@@ -18,54 +18,46 @@ neighbor_address = 3
 # ranging_Log_path = '../data/output/ranging_Log.csv'
 # vicon_path = "../data/output/vicon.txt"
 # ---processed
-# file_num = "1"
-# ranging_Log_path = "../../../../../../data/processed/" + file_num + ".csv"
-# vicon_path = "../../../../../../data/processed/" + file_num + ".txt"
+file_num = "1"
+ranging_Log_path = "../../../../../../data/processed/" + file_num + ".csv"
+vicon_path = "../../../../../../data/processed/" + file_num + ".txt"
 # ---packed loss
 # csv_num = "1_30"
 # txt_num = "1"
 # ranging_Log_path = "../../../../../../data/packedloss/" + csv_num + ".csv"
 # vicon_path = "../../../../../../data/packedloss/" + txt_num + ".txt"
 # ---period
-csv_num = "1_50"
-txt_num = "1"
-ranging_Log_path = "../../../../../../data/period/" + csv_num + ".csv"
-vicon_path = "../../../../../../data/period/" + txt_num + ".txt"
-threshold = 50
+# csv_num = "1_50"
+# txt_num = "1"
+# ranging_Log_path = "../../../../../../data/period/" + csv_num + ".csv"
+# vicon_path = "../../../../../../data/period/" + txt_num + ".txt"
 
 
-def read_log():
-    def read_vicon_Log():
+def read_log():  
+    def read_vicon_Log(): 
         vicon_value = []
         vicon_time = []
-
         pattern = re.compile(rf"\[local_(?:{local_address}) <- neighbor_(?:{neighbor_address})\]: vicon dist = (-?\d+\.\d+), time = (\d+)")
-
+        
         with open(vicon_path, "r", encoding="utf-8") as f:
             for line in f:
-                match = pattern.search(line)
-                if match:
-                    vicon_val = float(match.group(1)) 
-                    ts_val = int(match.group(2))   
-                    vicon_value.append(vicon_val)
-                    vicon_time.append(ts_val)      
-
+                if (match := pattern.search(line)):
+                    vicon_value.append(float(match.group(1)))
+                    vicon_time.append(int(match.group(2)))
+        
         return vicon_value, vicon_time
     
     data = pd.read_csv(ranging_Log_path)
-
     data['DSR'] = pd.to_numeric(data['DSR'], errors='coerce')
     data['SR'] = pd.to_numeric(data['SR'], errors='coerce')
     data['VICON'] = pd.to_numeric(data['VICON'], errors='coerce')
     data['TIME'] = pd.to_numeric(data['TIME'], errors='coerce')
-
     data.dropna(inplace=True)
 
     dsr = data['DSR'].to_numpy(dtype=float)
     sr = data['SR'].to_numpy(dtype=float)
     vicon_sample = data['VICON'].to_numpy(dtype=float)
     time = data['TIME'].to_numpy(dtype=float)
-
     vicon, vicon_sys_time = read_vicon_Log()
 
     return dsr, sr, vicon_sample, time, vicon, vicon_sys_time
@@ -88,7 +80,6 @@ def evaluation_data(cdsr, dsr, sr, vicon):
         print(f"SR : Mean AE(平均绝对误差) = {mean_ae_sr:.3f} cm, Max AE(最大绝对误差) = {max_ae_sr:.3f} cm, RMSE(均方根误差) = {rmse_sr:.3f} cm, MRE(平均相对误差) = {mre_sr:.3f}%")
         print(f"DSR: Mean AE(平均绝对误差) = {mean_ae_dsr:.3f} cm, Max AE(最大绝对误差) = {max_ae_dsr:.3f} cm, RMSE(均方根误差) = {rmse_dsr:.3f} cm, MRE(平均相对误差) = {mre_dsr:.3f}%")
         print(f"CDSR: Mean AE(平均绝对误差) = {mean_ae_cdsr:.3f} cm, Max AE(最大绝对误差) = {max_ae_cdsr:.3f} cm, RMSE(均方根误差) = {rmse_cdsr:.3f} cm, MRE(平均相对误差) = {mre_cdsr:.3f}%")
-
     else:
         print(f"len(cdsr)={len(cdsr)}, len(dsr)={len(dsr)}, len(sr)={len(sr)}, len(vicon)={len(vicon)}")
 
@@ -122,12 +113,10 @@ def compensation_algorithm(distance_List, compensate_rate, deceleration_bound):
 
 def ranging_plot(cdsr, dsr, sr, time, vicon, vicon_sys_time):
     plt.figure(figsize=(12, 6))
-
     plt.plot(time, sr, color="#4A90E2", label='SR', linestyle='--', marker='x', markersize=4, linewidth=1.5)
     plt.plot(time, dsr, color="#E4491E", label='DSR', linestyle='--', marker='x', markersize=4, linewidth=1.5)
     plt.plot(time, cdsr, color="#FF7B00", label='CDSR', linestyle='--', marker='x', markersize=4, linewidth=1.5)
     plt.plot(vicon_sys_time, vicon, color="#9DF423", label='VICON', alpha=0.8, linestyle='-', marker='o', markersize=4, linewidth=2)
-
     plt.title('Ranging Comparison Over Time')
     plt.xlabel('Sample Index')
     plt.ylabel('Distance (m)')
@@ -136,41 +125,28 @@ def ranging_plot(cdsr, dsr, sr, time, vicon, vicon_sys_time):
     plt.tight_layout()
     plt.show()
 
-def evaluate_params_mae(dsr, sr, vicon_sample, time, vicon, vicon_sys_time):
-    cdsr = []
+def set_param(COMPENSATE_RATE, DECELERATION_BOUND, dsr, sr, vicon_sample, time, vicon, vicon_sys_time):
+    cdsr = compensation_algorithm(dsr, COMPENSATE_RATE, DECELERATION_BOUND)
+    evaluation_data(cdsr, dsr, sr, vicon_sample)
+    ranging_plot(cdsr, dsr, sr, time, vicon, vicon_sys_time)
 
+def static_evaluate_params(dsr, sr, vicon_sample, time, vicon, vicon_sys_time):
+    cdsr = []
     best_mae = float('inf')
     best_params = (None, None)
-
     compensate_rate_range = np.arange(0, 1.01, 0.01)
     deceleration_bound_range = np.arange(0, 20.1, 0.1)
-
     total_iterations = len(compensate_rate_range) * len(deceleration_bound_range)
 
     with tqdm(total=total_iterations, desc="Evaluating parameters", ncols=100) as pbar:
         for param_compensate in compensate_rate_range:
             for param_deceleration in deceleration_bound_range:
                 curcdsr = compensation_algorithm(dsr, param_compensate, param_deceleration)
-
-                curcdsr_filter = []
-                vicon_filter = []
-
-                if len(curcdsr) == len(vicon_sample):
-                    for i in range(len(curcdsr)):
-                        if abs(curcdsr[i] - vicon_sample[i]) < threshold:
-                            curcdsr_filter.append(curcdsr[i])
-                            vicon_filter.append(vicon_sample[i])
-                else:
-                    pbar.update(1)
-                    continue
-
-                cur_mae = np.mean(np.abs(np.array(curcdsr_filter) - np.array(vicon_filter)))
-
+                cur_mae = np.mean(np.abs(np.array(curcdsr) - np.array(vicon_sample)))
                 if cur_mae < best_mae:
                     cdsr = curcdsr
                     best_params = (param_compensate, param_deceleration)
                     best_mae = cur_mae
-
                 pbar.update(1)  
 
     print(f"\nBest parameters found: COMPENSATE_RATE = {best_params[0]:.2f}, DECELERATION_BOUND = {best_params[1]:.2f}")
@@ -178,20 +154,20 @@ def evaluate_params_mae(dsr, sr, vicon_sample, time, vicon, vicon_sys_time):
     evaluation_data(cdsr, dsr, sr, vicon_sample)
     ranging_plot(cdsr, dsr, sr, time, vicon, vicon_sys_time)
 
-def set_param(COMPENSATE_RATE, DECELERATION_BOUND, dsr, sr, vicon_sample, time, vicon, vicon_sys_time):
-    cdsr = compensation_algorithm(dsr, COMPENSATE_RATE, DECELERATION_BOUND)
-    
-    evaluation_data(cdsr, dsr, sr, vicon_sample)
+def dynamic_evaluate_params(dsr, sr, vicon_sample, time, vicon, vicon_sys_time):
+    cdsr = []
 
+    
+
+    evaluation_data(cdsr, dsr, sr, vicon_sample)
     ranging_plot(cdsr, dsr, sr, time, vicon, vicon_sys_time)
 
 
 if __name__ == '__main__':
     dsr, sr, vicon_sample, time, vicon, vicon_sys_time = read_log()
 
-    COMPENSATE_RATE = 0.2
-    DECELERATION_BOUND = 5
-
-    evaluate_params_mae(dsr, sr, vicon_sample, time, vicon, vicon_sys_time)
-
+    # COMPENSATE_RATE = 0.2
+    # DECELERATION_BOUND = 5
     # set_param(COMPENSATE_RATE, DECELERATION_BOUND, dsr, sr, vicon_sample, time, vicon, vicon_sys_time)
+
+    static_evaluate_params(dsr, sr, vicon_sample, time, vicon, vicon_sys_time)

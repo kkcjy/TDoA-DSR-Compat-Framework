@@ -28,7 +28,6 @@ def align_sys_time(time_list):
     sys_time = []
     rx_time = []
     align_sys_time = []
-
     with open(sys_path, 'r', encoding='utf-8') as f:
         reader = csv.DictReader(f)
         for row in reader:
@@ -37,7 +36,6 @@ def align_sys_time(time_list):
 
     index = 0
     length = len(time_list)
-
     for i in range(len(rx_time)):
         if index >= length:
             break
@@ -47,38 +45,29 @@ def align_sys_time(time_list):
         
     return align_sys_time
 
-def read_vicon_Log():
+def read_vicon_Log(): 
     vicon_value = []
     vicon_time = []
-
     pattern = re.compile(rf"\[local_(?:{local_address}) <- neighbor_(?:{neighbor_address})\]: vicon dist = (-?\d+\.\d+), time = (\d+)")
-
+    
     with open(vicon_path, "r", encoding="utf-8") as f:
         for line in f:
-            match = pattern.search(line)
-            if match:
-                vicon_val = float(match.group(1)) 
-                ts_val = int(match.group(2))   
-                vicon_value.append(vicon_val)
-                vicon_time.append(ts_val)      
-
+            if (match := pattern.search(line)):
+                vicon_value.append(float(match.group(1)))
+                vicon_time.append(int(match.group(2)))
+    
     return vicon_value, vicon_time
 
 def read_dsr_Log():
     dsr_value = []
     dsr_time = []
-
     pattern = re.compile(rf"\[local_(?:{local_address}) <- neighbor_(?:{neighbor_address})\]: DSR dist = (-?\d+\.\d+), time = (\d+)")
 
     with open(dsr_path, "r", encoding="utf-8") as f:
         for line in f:
-            match = pattern.search(line)
-            if match:
-                dsr_val = float(match.group(1)) 
-                ts_val = int(match.group(2))   
-                dsr_value.append(dsr_val)
-                dsr_time.append(ts_val)      
-
+            if (match := pattern.search(line)):
+                dsr_value.append(float(match.group(1)))
+                dsr_time.append(int(match.group(2)))
     dsr_sys_time = align_sys_time(dsr_time)
 
     return dsr_value, dsr_time, dsr_sys_time
@@ -86,18 +75,13 @@ def read_dsr_Log():
 def read_sr_Log():
     sr_value = []
     sr_time = []
-
     pattern = re.compile(rf"\[local_(?:{local_address}) <- neighbor_(?:{neighbor_address})\]: SR dist = (-?\d+), time = (\d+)")
 
     with open(sr_path, "r", encoding="utf-8") as f:
         for line in f:
-            match = pattern.search(line)
-            if match:
-                sr_val = int(match.group(1))
-                ts_val = int(match.group(2))
-                sr_value.append(sr_val)
-                sr_time.append(ts_val)
-
+            if (match := pattern.search(line)):
+                sr_value.append(int(match.group(1)))
+                sr_time.append(int(match.group(2)))
     sr_sys_time = align_sys_time(sr_time)
 
     return sr_value, sr_time, sr_sys_time
@@ -161,7 +145,6 @@ def plot_sr_dsr_vicon(sr, sr_sys_time, dsr, dsr_sys_time, vicon, vicon_sys_time)
     plt.plot(sr_sys_time, sr, color='#4A90E2', label='SR', linestyle='--', marker='x', markersize=4, linewidth=1.5)
     plt.plot(dsr_sys_time, dsr, color="#E4491E", label='DSR', linestyle='--', marker='x', markersize=4, linewidth=1.5)
     plt.plot(vicon_sys_time, vicon, color="#9DF423", label='VICON', alpha=0.8, linestyle='-', marker='o', markersize=4, linewidth=2)
-
     plt.xlabel('Time (ms)') 
     plt.ylabel('Distance Measurement')
     plt.title('SR vs DSR vs VICON Distance Measurements Over Absolute Time')
