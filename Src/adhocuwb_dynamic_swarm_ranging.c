@@ -33,14 +33,15 @@ static TaskHandle_t uwbRangingRxTaskHandle = 0;
 int16_t dis_Real[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = NULL_DIS};
 int16_t dis_Calculate[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = NULL_DIS};
 
-#ifdef COMPENSATE_ENABLE
+#if defined(STATIC_COMPENSATE_ENABLE) || defined(DYNAMIC_COMPENSATE_ENABLE)
 static int16_t last_dis_Calculate[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = NULL_DIS};
 static int16_t last_Seq[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = NULL_SEQ};
-static double dis_unit[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = NULL_SEQ};
+static double compensate_unit[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = NULL_SEQ};
 #endif
 
 #ifdef OPTIMAL_RANGING_SCHEDULE_ENABLE
 static int8_t rangingPeriodFineTune = 0;
+
 
 void Midpoint_Adjustment(dwTime_t curTxDwtime, ReceiveList_t *receiveList) {
 
@@ -1536,7 +1537,6 @@ void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
 
     // print result
     if(dis_Calculate[rangingTable->neighborAddress] != NULL_DIS) {
-        #ifdef COMPENSATE_ENABLE
         /* For swarm ranging, the calculated distance value has a certain lag.
                 ···Tb      <--Pb-->      Rp   <--Db-->   Tr      <--Rb-->      Rf
 
@@ -1573,13 +1573,13 @@ void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
             Discontinuous scenes:
                 If packet loss occurs, use linear extrapolation:
                     seqGap = Re.seqNumber - Rr.seqNumber
-                    ΔDis = dis_unit * seqGap
-                    Dis_e = Dis_r + ΔDis = ToF_r * velocity + ΔDis ≈ ToF * velocity + dis_unit * seqGap
+                    ΔDis = compensate_unit * seqGap
+                    Dis_e = Dis_r + ΔDis = ToF_r * velocity + ΔDis ≈ ToF * velocity + compensate_unit * seqGap
 
             Preliminary Algorithm: 
             seqGap = Re.seqNumber - Rr.seqNumber
-            dis_Compensate = dis_unit * seqGap
-            dis_unit = (dis_Calculate - last_dis_Calculate) / seqGap
+            dis_Compensate = compensate_unit * seqGap
+            compensate_unit = (dis_Calculate - last_dis_Calculate) / seqGap
             distance = dis_Calculate + dis_Compensate
 
             Optimize:
@@ -1600,9 +1600,9 @@ void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
                     last_Seq = rangingMessage->header.msgSequence;
                     distance = dis_Calculate;
                 }
-                else if(dis_unit == NULL_DIS) {
+                else if(compensate_unit == NULL_DIS) {
                     seqGap = rangingMessage->header.msgSequence - last_Seq;
-                    dis_unit = (dis_Calculate - last_dis_Calculate) / seqGap;
+                    compensate_unit = (dis_Calculate - last_dis_Calculate) / seqGap;
                     last_dis_Calculate = dis_Calculate;
                     last_Seq = rangingMessage->header.msgSequence;
                     distance = dis_Calculate;
@@ -1610,8 +1610,8 @@ void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
                 // Normal compensation:
                 else {
                     seqGap = rangingMessage->header.msgSequence - last_Seq;
-                    dis_Compensate = dis_unit * seqGap;
-                    dis_unit = (dis_Calculate - last_dis_Calculate) / seqGap;
+                    dis_Compensate = compensate_unit * seqGap;
+                    compensate_unit = (dis_Calculate - last_dis_Calculate) / seqGap;
                     last_dis_Calculate = dis_Calculate;
                     last_Seq = rangingMessage->header.msgSequence;
                     // Optimize 1
@@ -1619,7 +1619,7 @@ void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
                         distance = dis_Calculate;
                     }
                     // Optimize 2
-                    else if(abs(dis_Compensate / seqGap) - abs(dis_unit) > DECELERATION_BOUND || dis_Compensate * dis_unit <= 0) {
+                    else if(abs(dis_Compensate / seqGap) - abs(compensate_unit) > DECELERATION_BOUND || dis_Compensate * compensate_unit <= 0) {
                         distance = dis_Calculate;
                     }
                     // Optimize 3
@@ -1629,15 +1629,16 @@ void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
                 }
             return distance;
         */
+        #if defined(STATIC_COMPENSATE_ENABLE)
             if(last_Seq[rangingTable->neighborAddress] == NULL_SEQ || last_dis_Calculate[rangingTable->neighborAddress] == NULL_DIS) {
                 last_dis_Calculate[rangingTable->neighborAddress] = dis_Calculate[rangingTable->neighborAddress];
                 last_Seq[rangingTable->neighborAddress] = rangingMessage->header.msgSequence;
                 double distance = (double)dis_Calculate[rangingTable->neighborAddress];
                 DEBUG_PRINT("[local_%u <- neighbor_%u]: DSR dist = %f", MY_UWB_ADDRESS, rangingTable->neighborAddress, distance);
             }
-            else if(dis_unit[rangingTable->neighborAddress] == NULL_DIS) {
+            else if(compensate_unit[rangingTable->neighborAddress] == NULL_DIS) {
                 uint16_t seqGap = rangingMessage->header.msgSequence - last_Seq[rangingTable->neighborAddress];
-                dis_unit[rangingTable->neighborAddress] = (dis_Calculate[rangingTable->neighborAddress] - last_dis_Calculate[rangingTable->neighborAddress]) / seqGap;
+                compensate_unit[rangingTable->neighborAddress] = (dis_Calculate[rangingTable->neighborAddress] - last_dis_Calculate[rangingTable->neighborAddress]) / seqGap;
                 last_dis_Calculate[rangingTable->neighborAddress] = dis_Calculate[rangingTable->neighborAddress];
                 last_Seq[rangingTable->neighborAddress] = rangingMessage->header.msgSequence;
                 double distance = (double)dis_Calculate[rangingTable->neighborAddress];
@@ -1645,8 +1646,8 @@ void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
             }
             else {
                 uint16_t seqGap = rangingMessage->header.msgSequence - last_Seq[rangingTable->neighborAddress];
-                double dis_Compensate = dis_unit[rangingTable->neighborAddress] * seqGap;
-                dis_unit[rangingTable->neighborAddress] = (dis_Calculate[rangingTable->neighborAddress] - last_dis_Calculate[rangingTable->neighborAddress]) / seqGap;
+                double dis_Compensate = compensate_unit[rangingTable->neighborAddress] * seqGap;
+                compensate_unit[rangingTable->neighborAddress] = (dis_Calculate[rangingTable->neighborAddress] - last_dis_Calculate[rangingTable->neighborAddress]) / seqGap;
                 last_dis_Calculate[rangingTable->neighborAddress] = dis_Calculate[rangingTable->neighborAddress];
                 last_Seq[rangingTable->neighborAddress] = rangingMessage->header.msgSequence;
 
@@ -1657,12 +1658,53 @@ void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
                     distance = dis_Calculate[rangingTable->neighborAddress];
                 }
                 // Optimize 2
-                else if((abs(dis_Compensate / seqGap) - abs(dis_unit[rangingTable->neighborAddress]) > DECELERATION_BOUND) || dis_Compensate * dis_unit[rangingTable->neighborAddress] <= 0) {
+                else if((abs(dis_Compensate / seqGap) - abs(compensate_unit[rangingTable->neighborAddress]) > DECELERATION_BOUND) || dis_Compensate * compensate_unit[rangingTable->neighborAddress] <= 0) {
                     distance = dis_Calculate[rangingTable->neighborAddress];
                 }
                 // Optimize 3
                 else {
                     distance = dis_Calculate[rangingTable->neighborAddress] + dis_Compensate * COMPENSATE_RATE;                    
+                }
+                DEBUG_PRINT("[local_%u <- neighbor_%u]: DSR dist = %f", MY_UWB_ADDRESS, rangingTable->neighborAddress, distance);
+            }
+        #elif defined(DYNAMIC_COMPENSATE_ENABLE)
+            if(last_Seq[rangingTable->neighborAddress] == NULL_SEQ || last_dis_Calculate[rangingTable->neighborAddress] == NULL_DIS) {
+                last_dis_Calculate[rangingTable->neighborAddress] = dis_Calculate[rangingTable->neighborAddress];
+                last_Seq[rangingTable->neighborAddress] = rangingMessage->header.msgSequence;
+                double distance = (double)dis_Calculate[rangingTable->neighborAddress];
+                DEBUG_PRINT("[local_%u <- neighbor_%u]: DSR dist = %f", MY_UWB_ADDRESS, rangingTable->neighborAddress, distance);
+            }
+            else if(compensate_unit[rangingTable->neighborAddress] == NULL_DIS) {
+                uint16_t seqGap = rangingMessage->header.msgSequence - last_Seq[rangingTable->neighborAddress];
+                compensate_unit[rangingTable->neighborAddress] = (dis_Calculate[rangingTable->neighborAddress] - last_dis_Calculate[rangingTable->neighborAddress]) / seqGap;
+                last_dis_Calculate[rangingTable->neighborAddress] = dis_Calculate[rangingTable->neighborAddress];
+                last_Seq[rangingTable->neighborAddress] = rangingMessage->header.msgSequence;
+                double distance = (double)dis_Calculate[rangingTable->neighborAddress];
+                DEBUG_PRINT("[local_%u <- neighbor_%u]: DSR dist = %f", MY_UWB_ADDRESS, rangingTable->neighborAddress, distance);
+            }
+            else {
+                uint16_t seqGap = rangingMessage->header.msgSequence - last_Seq[rangingTable->neighborAddress];
+                double dis_Compensate = compensate_unit[rangingTable->neighborAddress] * seqGap;
+                compensate_unit[rangingTable->neighborAddress] = (dis_Calculate[rangingTable->neighborAddress] - last_dis_Calculate[rangingTable->neighborAddress]) / seqGap;
+                last_dis_Calculate[rangingTable->neighborAddress] = dis_Calculate[rangingTable->neighborAddress];
+                last_Seq[rangingTable->neighborAddress] = rangingMessage->header.msgSequence;
+
+                double distance;
+                double avg_compensate_unit = ((dis_Compensate / seqGap) + compensate_unit[rangingTable->neighborAddress]) / 2;
+                double compensate_rate = abs(avg_compensate_unit) < MOTION_THRESHOLD ? COMPENSATE_RATE_LOW : COMPENSATE_RATE_HIGH;
+                double deceleration_bound = abs(avg_compensate_unit) < MOTION_THRESHOLD ? DECELERATION_BOUND_LOW : DECELERATION_BOUND_HIGH;
+
+                // Optimize 1
+                if(seqGap > SEQGAP_THRESHOLD) {
+                    distance = dis_Calculate[rangingTable->neighborAddress];
+                }
+                // Optimize 2
+                else if((abs(dis_Compensate / seqGap) - abs(compensate_unit[rangingTable->neighborAddress]) > deceleration_bound) || dis_Compensate * compensate_unit[rangingTable->neighborAddress] <= 0) {
+                    distance = dis_Calculate[rangingTable->neighborAddress];
+                }
+                // Optimize 3
+                else {
+                    distance = dis_Calculate[rangingTable->neighborAddress] + dis_Compensate * compensate_rate;                    
                 }
                 DEBUG_PRINT("[local_%u <- neighbor_%u]: DSR dist = %f", MY_UWB_ADDRESS, rangingTable->neighborAddress, distance);
             }

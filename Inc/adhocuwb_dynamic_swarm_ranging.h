@@ -26,7 +26,8 @@
 
 /* -------------------- Define -------------------- */
 #define         CLASSIC_SUPPORT_ENABLE
-// #define         COMPENSATE_ENABLE
+// #define         STATIC_COMPENSATE_ENABLE
+#define         DYNAMIC_COMPENSATE_ENABLE
 // #define         COORDINATE_SEND_ENABLE
 // #define         PACKET_LOSS_ENABLE
 #define         OPTIMAL_RANGING_SCHEDULE_ENABLE
@@ -51,9 +52,17 @@
 #define         LOWER_BOUND_DISTANCE        0
 
 /* Compensation Coefficient */
-#define         COMPENSATE_RATE             0.6f
-#define         DECELERATION_BOUND          15
 #define         SEQGAP_THRESHOLD            3
+#if defined(STATIC_COMPENSATE_ENABLE)
+#define         COMPENSATE_RATE             0.7f
+#define         DECELERATION_BOUND          15
+#elif defined(DYNAMIC_COMPENSATE_ENABLE)
+#define         MOTION_THRESHOLD            4
+#define         COMPENSATE_RATE_LOW         0.1f
+#define         DECELERATION_BOUND_LOW      1
+#define         COMPENSATE_RATE_HIGH        0.7f
+#define         DECELERATION_BOUND_HIGH     15
+#endif
 
 /* Queue Constants */
 #define         RANGING_RX_QUEUE_SIZE       10

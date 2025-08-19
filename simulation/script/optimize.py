@@ -18,19 +18,19 @@ neighbor_address = 3
 # ranging_Log_path = '../data/output/ranging_Log.csv'
 # vicon_path = "../data/output/vicon.txt"
 # ---processed
-file_num = "1"
-ranging_Log_path = "../../../../../../data/processed/" + file_num + ".csv"
-vicon_path = "../../../../../../data/processed/" + file_num + ".txt"
+# file_num = "1"
+# ranging_Log_path = "../../../../../../data/processed/" + file_num + ".csv"
+# vicon_path = "../../../../../../data/processed/" + file_num + ".txt"
 # ---packed loss
 # csv_num = "1_30"
 # txt_num = "1"
 # ranging_Log_path = "../../../../../../data/packedloss/" + csv_num + ".csv"
 # vicon_path = "../../../../../../data/packedloss/" + txt_num + ".txt"
 # ---period
-# csv_num = "1_50"
-# txt_num = "1"
-# ranging_Log_path = "../../../../../../data/period/" + csv_num + ".csv"
-# vicon_path = "../../../../../../data/period/" + txt_num + ".txt"
+csv_num = "1_50"
+txt_num = "1"
+ranging_Log_path = "../../../../../../data/period/" + csv_num + ".csv"
+vicon_path = "../../../../../../data/period/" + txt_num + ".txt"
 
 
 def read_log():  
@@ -83,9 +83,9 @@ def evaluation_data(cdsr, dsr, sr, vicon):
     else:
         print(f"len(cdsr)={len(cdsr)}, len(dsr)={len(dsr)}, len(sr)={len(sr)}, len(vicon)={len(vicon)}")
 
-def compensation_algorithm(distance_List, compensate_rate, deceleration_bound):
+def static_compensation_algorithm(distance_List, compensate_rate, deceleration_bound):
     last_dis_Calculate = None
-    dis_unit = None
+    compensate_unit = None
     distance_List_Processed = []
 
     for i in range(len(distance_List)):
@@ -94,16 +94,48 @@ def compensation_algorithm(distance_List, compensate_rate, deceleration_bound):
         if last_dis_Calculate is None:
             last_dis_Calculate = dis_Calculate
             distance = dis_Calculate
-        elif dis_unit is None:
-            dis_unit = dis_Calculate - last_dis_Calculate
+        elif compensate_unit is None:
+            compensate_unit = dis_Calculate - last_dis_Calculate
             last_dis_Calculate = dis_Calculate
             distance = dis_Calculate
         else:
-            dis_Compensate = dis_unit
-            dis_unit = dis_Calculate - last_dis_Calculate
+            dis_Compensate = compensate_unit
+            compensate_unit = dis_Calculate - last_dis_Calculate
             last_dis_Calculate = dis_Calculate
 
-            if abs(dis_Compensate) - abs(dis_unit) > deceleration_bound or dis_Compensate * dis_unit <= 0:
+            if abs(dis_Compensate) - abs(compensate_unit) > deceleration_bound or dis_Compensate * compensate_unit <= 0:
+                distance = dis_Calculate
+            else:
+                distance = dis_Calculate + dis_Compensate * compensate_rate
+        distance_List_Processed.append(distance)
+
+    return np.array(distance_List_Processed)
+
+def dynamic_compensation_algorithm(distance_List, compensate_rate_low, deceleration_bound_low, compensate_rate_high, deceleration_bound_high, motion_threshold):
+    last_dis_Calculate = None
+    compensate_unit = None
+    distance_List_Processed = []
+
+    for i in range(len(distance_List)):
+        dis_Calculate = distance_List[i]
+
+        if last_dis_Calculate is None:
+            last_dis_Calculate = dis_Calculate
+            distance = dis_Calculate
+        elif compensate_unit is None:
+            compensate_unit = dis_Calculate - last_dis_Calculate
+            last_dis_Calculate = dis_Calculate
+            distance = dis_Calculate
+        else:
+            dis_Compensate = compensate_unit
+            compensate_unit = dis_Calculate - last_dis_Calculate
+            last_dis_Calculate = dis_Calculate
+
+            avg_compensate_unit = (dis_Compensate + compensate_unit) / 2
+            deceleration_bound = deceleration_bound_low if abs(avg_compensate_unit) < motion_threshold else deceleration_bound_high
+            compensate_rate = compensate_rate_low if abs(avg_compensate_unit) < motion_threshold else compensate_rate_high
+
+            if abs(dis_Compensate) - abs(compensate_unit) > deceleration_bound or dis_Compensate * compensate_unit <= 0:
                 distance = dis_Calculate
             else:
                 distance = dis_Calculate + dis_Compensate * compensate_rate
@@ -125,11 +157,16 @@ def ranging_plot(cdsr, dsr, sr, time, vicon, vicon_sys_time):
     plt.tight_layout()
     plt.show()
 
-def set_param(COMPENSATE_RATE, DECELERATION_BOUND, dsr, sr, vicon_sample, time, vicon, vicon_sys_time):
-    cdsr = compensation_algorithm(dsr, COMPENSATE_RATE, DECELERATION_BOUND)
+def static_set_param(COMPENSATE_RATE, DECELERATION_BOUND, dsr, sr, vicon_sample, time, vicon, vicon_sys_time):
+    cdsr = static_compensation_algorithm(dsr, COMPENSATE_RATE, DECELERATION_BOUND)
     evaluation_data(cdsr, dsr, sr, vicon_sample)
     ranging_plot(cdsr, dsr, sr, time, vicon, vicon_sys_time)
 
+def dynamic_set_param(COMPENSATE_RATE_LOW, DECELERATION_BOUND_LOW, COMPENSATE_RATE_HIGH, DECELERATION_BOUND_HIGH, MOTION_THRESHOLD, dsr, sr, vicon_sample, time, vicon, vicon_sys_time):
+    cdsr = dynamic_compensation_algorithm(dsr, COMPENSATE_RATE_LOW, DECELERATION_BOUND_LOW, COMPENSATE_RATE_HIGH, DECELERATION_BOUND_HIGH, MOTION_THRESHOLD)
+    evaluation_data(cdsr, dsr, sr, vicon_sample)
+    ranging_plot(cdsr, dsr, sr, time, vicon, vicon_sys_time)
+    
 def static_evaluate_params(dsr, sr, vicon_sample, time, vicon, vicon_sys_time):
     cdsr = []
     best_mae = float('inf')
@@ -141,7 +178,7 @@ def static_evaluate_params(dsr, sr, vicon_sample, time, vicon, vicon_sys_time):
     with tqdm(total=total_iterations, desc="Evaluating parameters", ncols=100) as pbar:
         for param_compensate in compensate_rate_range:
             for param_deceleration in deceleration_bound_range:
-                curcdsr = compensation_algorithm(dsr, param_compensate, param_deceleration)
+                curcdsr = static_compensation_algorithm(dsr, param_compensate, param_deceleration)
                 cur_mae = np.mean(np.abs(np.array(curcdsr) - np.array(vicon_sample)))
                 if cur_mae < best_mae:
                     cdsr = curcdsr
@@ -152,22 +189,54 @@ def static_evaluate_params(dsr, sr, vicon_sample, time, vicon, vicon_sys_time):
     print(f"\nBest parameters found: COMPENSATE_RATE = {best_params[0]:.2f}, DECELERATION_BOUND = {best_params[1]:.2f}")
 
     evaluation_data(cdsr, dsr, sr, vicon_sample)
-    ranging_plot(cdsr, dsr, sr, time, vicon, vicon_sys_time)
+    # ranging_plot(cdsr, dsr, sr, time, vicon, vicon_sys_time)
 
 def dynamic_evaluate_params(dsr, sr, vicon_sample, time, vicon, vicon_sys_time):
     cdsr = []
+    best_mae = float('inf')
+    best_params = (None, None, None, None, None)
+    compensate_rate_range_low = np.arange(0, 1.1, 0.1)
+    deceleration_bound_range_low = np.arange(0, 21, 1)
+    compensate_rate_range_high = np.arange(0, 1.1, 0.1)
+    deceleration_bound_range_high = np.arange(0, 21, 1)
+    motion_threshold = np.arange(0, 5, 1)
 
-    
+    total_iterations = len(compensate_rate_range_low) * len(deceleration_bound_range_low) * len(compensate_rate_range_high) * len(deceleration_bound_range_high) * len(motion_threshold)
+
+    with tqdm(total=total_iterations, desc="Evaluating parameters", ncols=100) as pbar:
+        for param_compensate_low in compensate_rate_range_low:
+            for param_deceleration_low in deceleration_bound_range_low:
+                for param_compensate_high in compensate_rate_range_high:
+                    for param_deceleration_high in deceleration_bound_range_high:   
+                        for param_motion_threshold in motion_threshold:
+                            curcdsr = dynamic_compensation_algorithm(dsr, param_compensate_low, param_deceleration_low, param_compensate_high, param_deceleration_high, param_motion_threshold)
+                            cur_mae = np.mean(np.abs(np.array(curcdsr) - np.array(vicon_sample)))
+                            if cur_mae < best_mae:
+                                cdsr = curcdsr
+                                best_params = (param_compensate_low, param_deceleration_low, param_compensate_high, param_deceleration_high, param_motion_threshold)
+                                best_mae = cur_mae
+                            pbar.update(1)  
+
+    print(f"\nBest parameters found: COMPENSATE_RATE_LOW = {best_params[0]:.2f}, DECELERATION_BOUND_LOW = {best_params[1]:.2f}, COMPENSATE_RATE_HIGH = {best_params[2]:.2f}, DECELERATION_BOUND_HIGH = {best_params[3]:.2f}, MOTION_THRESHOLD = {best_params[4]:.2f}")
 
     evaluation_data(cdsr, dsr, sr, vicon_sample)
-    ranging_plot(cdsr, dsr, sr, time, vicon, vicon_sys_time)
+    # ranging_plot(cdsr, dsr, sr, time, vicon, vicon_sys_time)
 
 
 if __name__ == '__main__':
     dsr, sr, vicon_sample, time, vicon, vicon_sys_time = read_log()
 
-    # COMPENSATE_RATE = 0.2
-    # DECELERATION_BOUND = 5
-    # set_param(COMPENSATE_RATE, DECELERATION_BOUND, dsr, sr, vicon_sample, time, vicon, vicon_sys_time)
+    # COMPENSATE_RATE = 0.7
+    # DECELERATION_BOUND = 15
+    # static_set_param(COMPENSATE_RATE, DECELERATION_BOUND, dsr, sr, vicon_sample, time, vicon, vicon_sys_time)
+
+    # COMPENSATE_RATE_LOW = 0.1
+    # DECELERATION_BOUND_LOW = 15
+    # COMPENSATE_RATE_HIGH = 0.7
+    # DECELERATION_BOUND_HIGH = 15
+    # MOTION_THRESHOLD = 4
+    # dynamic_set_param(COMPENSATE_RATE_LOW, DECELERATION_BOUND_LOW, COMPENSATE_RATE_HIGH, DECELERATION_BOUND_HIGH, MOTION_THRESHOLD, dsr, sr, vicon_sample, time, vicon, vicon_sys_time)
 
     static_evaluate_params(dsr, sr, vicon_sample, time, vicon, vicon_sys_time)
+
+    dynamic_evaluate_params(dsr, sr, vicon_sample, time, vicon, vicon_sys_time)
