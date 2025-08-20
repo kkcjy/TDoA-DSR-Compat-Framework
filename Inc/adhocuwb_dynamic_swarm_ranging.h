@@ -27,7 +27,7 @@
 /* -------------------- Define -------------------- */
 #define         CLASSIC_SUPPORT_ENABLE
 // #define         STATIC_COMPENSATE_ENABLE                // suitable for mobile scenarios
-#define         DYNAMIC_COMPENSATE_ENABLE               // suitable for scenarios with repeated switching between static and dynamic states
+// #define         DYNAMIC_COMPENSATE_ENABLE               // suitable for scenarios with repeated switching between static and dynamic states
 // #define         COORDINATE_SEND_ENABLE
 // #define         PACKET_LOSS_ENABLE
 #define         OPTIMAL_RANGING_SCHEDULE_ENABLE

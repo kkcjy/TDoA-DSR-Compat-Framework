@@ -641,7 +641,7 @@ bool rangingTableSetAddTable(Ranging_Table_Set_t *set, Ranging_Table_t table) {
     set->size++;
     /* Sort the ranging table, keep it in order. */
     rangingTableSetRearrange(set, COMPARE_BY_ADDRESS);
-    DEBUG_PRINT("rangingTableSetAddTable: Add new neighbor %u to ranging table.\n", table.neighborAddress);
+    // DEBUG_PRINT("rangingTableSetAddTable: Add new neighbor %u to ranging table.\n", table.neighborAddress);
     return true;
 }
 
@@ -1181,6 +1181,8 @@ static void S1_Tf(Ranging_Table_t *rangingTable) {
 static void S1_RX_NO_Rf(Ranging_Table_t *rangingTable) {
     RANGING_TABLE_STATE prevState = rangingTable->state;
 
+    DEBUG_PRINT("[local_%u <- neighbor_%u]: SR dist = %d, time = %llu\n", MY_UWB_ADDRESS, rangingTable->neighborAddress, -1, rangingTable->Re.timestamp.full % UWB_MAX_TIMESTAMP);
+
     rangingTable->state = RANGING_STATE_S1;
 
     RANGING_TABLE_STATE curState = rangingTable->state;
@@ -1190,6 +1192,8 @@ static void S1_RX_NO_Rf(Ranging_Table_t *rangingTable) {
 
 static void S1_RX_Rf(Ranging_Table_t *rangingTable) {
     RANGING_TABLE_STATE prevState = rangingTable->state;
+
+    DEBUG_PRINT("[local_%u <- neighbor_%u]: SR dist = %d, time = %llu\n", MY_UWB_ADDRESS, rangingTable->neighborAddress, -1, rangingTable->Re.timestamp.full % UWB_MAX_TIMESTAMP);
 
     rangingTable->state = RANGING_STATE_S1;
 
@@ -1211,6 +1215,8 @@ static void S2_Tf(Ranging_Table_t *rangingTable) {
 static void S2_RX_NO_Rf(Ranging_Table_t *rangingTable) {
     RANGING_TABLE_STATE prevState = rangingTable->state;
 
+    DEBUG_PRINT("[_%u <- neighbor_%u]: SR dist = %d, time = %llu\n", MY_UWB_ADDRESS, rangingTable->neighborAddress, -1, rangingTable->Re.timestamp.full % UWB_MAX_TIMESTAMP);
+
     rangingTable->state = RANGING_STATE_S2;
 
     RANGING_TABLE_STATE curState = rangingTable->state;
@@ -1226,6 +1232,8 @@ static void S2_RX_Rf(Ranging_Table_t *rangingTable) {
     if (!rangingTable->Tf.timestamp.full) {
         DEBUG_PRINT("Cannot found corresponding Tf in Tf buffer, the ranging frequency may be too high or Tf buffer is in a small size.");
     }
+
+    DEBUG_PRINT("[local_%u <- neighbor_%u]: SR dist = %d, time = %llu\n", MY_UWB_ADDRESS, rangingTable->neighborAddress, -1, rangingTable->Re.timestamp.full % UWB_MAX_TIMESTAMP);
 
     /* Shift ranging table
     * Rp <- Rf

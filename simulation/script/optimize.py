@@ -1,4 +1,5 @@
 import re
+from joblib import Parallel, delayed
 import pandas as pd
 from tqdm import tqdm
 import matplotlib
@@ -15,8 +16,8 @@ matplotlib.use('TkAgg')
 local_address = 2
 neighbor_address = 3
 # ---temp
-# ranging_Log_path = '../data/output/ranging_Log.csv'
-# vicon_path = "../data/output/vicon.txt"
+ranging_Log_path = '../data/output/ranging_Log.csv'
+vicon_path = "../data/output/vicon.txt"
 # ---processed
 # file_num = "5"
 # ranging_Log_path = "../../../../../../data/processed/" + file_num + ".csv"
@@ -27,10 +28,10 @@ neighbor_address = 3
 # ranging_Log_path = "../../../../../../data/packedloss/" + csv_num + ".csv"
 # vicon_path = "../../../../../../data/packedloss/" + txt_num + ".txt"
 # ---period
-csv_num = "1_400"
-txt_num = "1"
-ranging_Log_path = "../../../../../../data/period/" + csv_num + ".csv"
-vicon_path = "../../../../../../data/period/" + txt_num + ".txt"
+# csv_num = "1_400"
+# txt_num = "1"
+# ranging_Log_path = "../../../../../../data/period/" + csv_num + ".csv"
+# vicon_path = "../../../../../../data/period/" + txt_num + ".txt"
 
 
 def read_log():  
@@ -166,59 +167,64 @@ def dynamic_set_param(COMPENSATE_RATE_LOW, DECELERATION_BOUND_LOW, COMPENSATE_RA
     cdsr = dynamic_compensation_algorithm(dsr, COMPENSATE_RATE_LOW, DECELERATION_BOUND_LOW, COMPENSATE_RATE_HIGH, DECELERATION_BOUND_HIGH, MOTION_THRESHOLD)
     evaluation_data(cdsr, dsr, sr, vicon_sample)
     ranging_plot(cdsr, dsr, sr, time, vicon, vicon_sys_time)
-    
+
 def static_evaluate_params(dsr, sr, vicon_sample, time, vicon, vicon_sys_time):
-    cdsr = []
-    best_mae = float('inf')
-    best_params = (None, None)
+    def evaluate_static_params(param_compensate, param_deceleration, dsr, vicon_sample):
+        curcdsr = static_compensation_algorithm(dsr, param_compensate, param_deceleration)
+        cur_mae = np.mean(np.abs(curcdsr - vicon_sample))
+        return cur_mae, param_compensate, param_deceleration, curcdsr
+
     compensate_rate_range = np.arange(0, 1.01, 0.01)
     deceleration_bound_range = np.arange(0, 20.1, 0.1)
-    total_iterations = len(compensate_rate_range) * len(deceleration_bound_range)
 
-    with tqdm(total=total_iterations, desc="Evaluating parameters", ncols=100) as pbar:
-        for param_compensate in compensate_rate_range:
-            for param_deceleration in deceleration_bound_range:
-                curcdsr = static_compensation_algorithm(dsr, param_compensate, param_deceleration)
-                cur_mae = np.mean(np.abs(np.array(curcdsr) - np.array(vicon_sample)))
-                if cur_mae < best_mae:
-                    cdsr = curcdsr
-                    best_params = (param_compensate, param_deceleration)
-                    best_mae = cur_mae
-                pbar.update(1)  
+    tasks = [(c, d) for c in compensate_rate_range for d in deceleration_bound_range]
 
-    print(f"\nBest parameters found: COMPENSATE_RATE = {best_params[0]:.2f}, DECELERATION_BOUND = {best_params[1]:.2f}")
+    results = Parallel(n_jobs=-1, verbose=0)(
+        delayed(evaluate_static_params)(c, d, dsr, vicon_sample)
+        for c, d in tqdm(tasks, desc="Evaluating static parameters", ncols=100)
+    )
 
+    best_result = min(results, key=lambda x: x[0])
+    best_mae, best_c, best_d, cdsr = best_result
+
+    print(f"\nBest parameters found: COMPENSATE_RATE = {best_c:.2f}, DECELERATION_BOUND = {best_d:.2f}")
     evaluation_data(cdsr, dsr, sr, vicon_sample)
-    # ranging_plot(cdsr, dsr, sr, time, vicon, vicon_sys_time)
+    ranging_plot(cdsr, dsr, sr, time, vicon, vicon_sys_time)
+
 
 def dynamic_evaluate_params(dsr, sr, vicon_sample, time, vicon, vicon_sys_time):
-    cdsr = []
-    best_mae = float('inf')
-    best_params = (None, None, None, None, None)
+    def evaluate_dynamic_params(param_compensate_low, param_deceleration_low,
+                                param_compensate_high, param_deceleration_high,
+                                param_motion_threshold, dsr, vicon_sample):
+        curcdsr = dynamic_compensation_algorithm(dsr, param_compensate_low, param_deceleration_low,
+                                                 param_compensate_high, param_deceleration_high,
+                                                 param_motion_threshold)
+        cur_mae = np.mean(np.abs(curcdsr - vicon_sample))
+        return cur_mae, param_compensate_low, param_deceleration_low, param_compensate_high, param_deceleration_high, param_motion_threshold, curcdsr
+
     compensate_rate_range_low = np.arange(0, 1.1, 0.1)
     deceleration_bound_range_low = np.arange(0, 21, 1)
     compensate_rate_range_high = np.arange(0, 1.1, 0.1)
     deceleration_bound_range_high = np.arange(0, 21, 1)
     motion_threshold = np.arange(0, 5, 1)
 
-    total_iterations = len(compensate_rate_range_low) * len(deceleration_bound_range_low) * len(compensate_rate_range_high) * len(deceleration_bound_range_high) * len(motion_threshold)
+    tasks = [(cl, dl, ch, dh, mt)
+             for cl in compensate_rate_range_low
+             for dl in deceleration_bound_range_low
+             for ch in compensate_rate_range_high
+             for dh in deceleration_bound_range_high
+             for mt in motion_threshold]
 
-    with tqdm(total=total_iterations, desc="Evaluating parameters", ncols=100) as pbar:
-        for param_compensate_low in compensate_rate_range_low:
-            for param_deceleration_low in deceleration_bound_range_low:
-                for param_compensate_high in compensate_rate_range_high:
-                    for param_deceleration_high in deceleration_bound_range_high:   
-                        for param_motion_threshold in motion_threshold:
-                            curcdsr = dynamic_compensation_algorithm(dsr, param_compensate_low, param_deceleration_low, param_compensate_high, param_deceleration_high, param_motion_threshold)
-                            cur_mae = np.mean(np.abs(np.array(curcdsr) - np.array(vicon_sample)))
-                            if cur_mae < best_mae:
-                                cdsr = curcdsr
-                                best_params = (param_compensate_low, param_deceleration_low, param_compensate_high, param_deceleration_high, param_motion_threshold)
-                                best_mae = cur_mae
-                            pbar.update(1)  
+    results = Parallel(n_jobs=-1, verbose=0)(
+        delayed(evaluate_dynamic_params)(cl, dl, ch, dh, mt, dsr, vicon_sample)
+        for cl, dl, ch, dh, mt in tqdm(tasks, desc="Evaluating dynamic parameters", ncols=100)
+    )
 
-    print(f"\nBest parameters found: COMPENSATE_RATE_LOW = {best_params[0]:.2f}, DECELERATION_BOUND_LOW = {best_params[1]:.2f}, COMPENSATE_RATE_HIGH = {best_params[2]:.2f}, DECELERATION_BOUND_HIGH = {best_params[3]:.2f}, MOTION_THRESHOLD = {best_params[4]:.2f}")
+    best_result = min(results, key=lambda x: x[0])
+    best_mae, cl, dl, ch, dh, mt, cdsr = best_result
 
+    print(f"\nBest parameters found: COMPENSATE_RATE_LOW = {cl:.2f}, DECELERATION_BOUND_LOW = {dl:.2f}, "
+          f"COMPENSATE_RATE_HIGH = {ch:.2f}, DECELERATION_BOUND_HIGH = {dh:.2f}, MOTION_THRESHOLD = {mt:.2f}")
     evaluation_data(cdsr, dsr, sr, vicon_sample)
     # ranging_plot(cdsr, dsr, sr, time, vicon, vicon_sys_time)
 

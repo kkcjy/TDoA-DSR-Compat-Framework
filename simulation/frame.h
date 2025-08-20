@@ -23,7 +23,8 @@
 
 #define     NODES_NUM               2       // the total number of drones in the system
 #define     PACKET_LOSS             0       // packet loss rate for simulating communication link quality
-#define     RANGING_PERIOD_RATE     8       // rate multiplier for ranging data transmission period
+#define     RANGING_PERIOD_RATE     1       // rate multiplier for ranging data transmission period
+
 #define     ADDR_SIZE               20
 #define     CENTER_ADDRESS          "CENTER"
 #define     CENTER_IP               "127.0.0.1"

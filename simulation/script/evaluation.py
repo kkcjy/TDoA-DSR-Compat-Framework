@@ -13,7 +13,7 @@ matplotlib.use('TkAgg')
 # Set to the required address
 local_address = 2
 neighbor_address = 3
-sr_calculate_failed_min = 50
+calculate_failed_sign = -1
 leftbound = 1409700
 rightbound = 1423480
 
@@ -64,12 +64,14 @@ def read_dsr_Log():
     pattern = re.compile(rf"\[local_(?:{local_address}) <- neighbor_(?:{neighbor_address})\]: DSR dist = (-?\d+\.\d+), time = (\d+)")
 
     with open(dsr_path, "r", encoding="utf-8") as f:
-        for line in f:
+        for i, line in enumerate(f):
+            if i < 3:
+                continue
             if (match := pattern.search(line)):
                 dsr_value.append(float(match.group(1)))
                 dsr_time.append(int(match.group(2)))
-    dsr_sys_time = align_sys_time(dsr_time)
 
+    dsr_sys_time = align_sys_time(dsr_time)
     return dsr_value, dsr_time, dsr_sys_time
 
 def read_sr_Log():
@@ -78,30 +80,35 @@ def read_sr_Log():
     pattern = re.compile(rf"\[local_(?:{local_address}) <- neighbor_(?:{neighbor_address})\]: SR dist = (-?\d+), time = (\d+)")
 
     with open(sr_path, "r", encoding="utf-8") as f:
-        for line in f:
+        for i, line in enumerate(f):
+            if i < 3:
+                continue
             if (match := pattern.search(line)):
                 sr_value.append(int(match.group(1)))
                 sr_time.append(int(match.group(2)))
-    sr_sys_time = align_sys_time(sr_time)
 
+    sr_sys_time = align_sys_time(sr_time)
     return sr_value, sr_time, sr_sys_time
 
 def write_ranging_Log(sr, sr_sys_time, dsr, dsr_sys_time, vicon, vicon_sys_time):
     def get_diff_dis(sr, sr_sys_time, dsr, dsr_sys_time, vicon, vicon_sys_time):
         left_idx_sr = np.searchsorted(sr_sys_time, leftbound, side='left')
-        right_idx_sr = np.searchsorted(sr_sys_time, rightbound, side='right') - 1
+        right_idx_sr = np.searchsorted(sr_sys_time, rightbound, side='right')
         sr_slice = sr[left_idx_sr : right_idx_sr]
-        sr_mean = np.mean(sr_slice)
+        sr_slice = sr_slice[sr_slice != calculate_failed_sign]
+        sr_mean = np.mean(sr_slice) if sr_slice.size > 0 else np.nan
 
         left_idx_dsr = np.searchsorted(dsr_sys_time, leftbound, side='left')
-        right_idx_dsr = np.searchsorted(dsr_sys_time, rightbound, side='right') - 1
+        right_idx_dsr = np.searchsorted(dsr_sys_time, rightbound, side='right')
         dsr_slice = dsr[left_idx_dsr : right_idx_dsr]
-        dsr_mean = np.mean(dsr_slice)
+        dsr_slice = dsr_slice[dsr_slice != calculate_failed_sign]
+        dsr_mean = np.mean(dsr_slice) if dsr_slice.size > 0 else np.nan
 
         left_idx_vicon = np.searchsorted(vicon_sys_time, leftbound, side='left')
-        right_idx_vicon = np.searchsorted(vicon_sys_time, rightbound, side='right') - 1
+        right_idx_vicon = np.searchsorted(vicon_sys_time, rightbound, side='right')
         vicon_slice = vicon[left_idx_vicon : right_idx_vicon]
-        vicon_mean = np.mean(vicon_slice)
+        vicon_slice = vicon_slice[vicon_slice != calculate_failed_sign]
+        vicon_mean = np.mean(vicon_slice) if vicon_slice.size > 0 else np.nan
 
         sr_diff = vicon_mean - sr_mean
         dsr_diff = vicon_mean - dsr_mean
@@ -130,8 +137,8 @@ def write_ranging_Log(sr, sr_sys_time, dsr, dsr_sys_time, vicon, vicon_sys_time)
             for i in range(len(sr_sys_time)):
                 t = sr_sys_time[i]
                 idx = np.argmin(np.abs(vicon_sys_time - t))
-                
-                if(align_sr[i] > sr_calculate_failed_min):
+
+                if(dsr[i] != calculate_failed_sign and sr[i] != calculate_failed_sign):
                     writer.writerow([align_dsr[i], align_sr[i], align_vicon[idx], sr_sys_time[i]])
                     count += 1
 
