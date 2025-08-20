@@ -26,8 +26,8 @@
 
 /* -------------------- Define -------------------- */
 #define         CLASSIC_SUPPORT_ENABLE
-// #define         STATIC_COMPENSATE_ENABLE
-#define         DYNAMIC_COMPENSATE_ENABLE
+// #define         STATIC_COMPENSATE_ENABLE                // suitable for mobile scenarios
+#define         DYNAMIC_COMPENSATE_ENABLE               // suitable for scenarios with repeated switching between static and dynamic states
 // #define         COORDINATE_SEND_ENABLE
 // #define         PACKET_LOSS_ENABLE
 #define         OPTIMAL_RANGING_SCHEDULE_ENABLE
@@ -57,7 +57,7 @@
 #define         COMPENSATE_RATE             0.7f
 #define         DECELERATION_BOUND          15
 #elif defined(DYNAMIC_COMPENSATE_ENABLE)
-#define         MOTION_THRESHOLD            4
+#define         MOTION_THRESHOLD            3
 #define         COMPENSATE_RATE_LOW         0.1f
 #define         DECELERATION_BOUND_LOW      1
 #define         COMPENSATE_RATE_HIGH        0.7f

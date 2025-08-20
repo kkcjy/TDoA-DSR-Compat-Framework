@@ -139,7 +139,7 @@ void fprintSwarmRangingMessaage(FILE* file, libusb_device_handle *device_handle)
 #elif defined(DYNAMIC_SWARM_RANGING_MODE)
 void fprintDynamicSwarmRangingMessaage(FILE* file, libusb_device_handle *device_handle) {
     uint8_t buffer[MAX_PACKET_SIZE];
-    uint8_t payload[256];
+    uint8_t payload[MAX_PACKET_SIZE];
     uint8_t endpoint = 0x81; 
     int transferred;
 

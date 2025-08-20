@@ -18,7 +18,7 @@ neighbor_address = 3
 # ranging_Log_path = '../data/output/ranging_Log.csv'
 # vicon_path = "../data/output/vicon.txt"
 # ---processed
-# file_num = "1"
+# file_num = "5"
 # ranging_Log_path = "../../../../../../data/processed/" + file_num + ".csv"
 # vicon_path = "../../../../../../data/processed/" + file_num + ".txt"
 # ---packed loss
@@ -27,7 +27,7 @@ neighbor_address = 3
 # ranging_Log_path = "../../../../../../data/packedloss/" + csv_num + ".csv"
 # vicon_path = "../../../../../../data/packedloss/" + txt_num + ".txt"
 # ---period
-csv_num = "1_50"
+csv_num = "1_400"
 txt_num = "1"
 ranging_Log_path = "../../../../../../data/period/" + csv_num + ".csv"
 vicon_path = "../../../../../../data/period/" + txt_num + ".txt"
@@ -231,10 +231,10 @@ if __name__ == '__main__':
     # static_set_param(COMPENSATE_RATE, DECELERATION_BOUND, dsr, sr, vicon_sample, time, vicon, vicon_sys_time)
 
     # COMPENSATE_RATE_LOW = 0.1
-    # DECELERATION_BOUND_LOW = 15
+    # DECELERATION_BOUND_LOW = 1
     # COMPENSATE_RATE_HIGH = 0.7
     # DECELERATION_BOUND_HIGH = 15
-    # MOTION_THRESHOLD = 4
+    # MOTION_THRESHOLD = 3
     # dynamic_set_param(COMPENSATE_RATE_LOW, DECELERATION_BOUND_LOW, COMPENSATE_RATE_HIGH, DECELERATION_BOUND_HIGH, MOTION_THRESHOLD, dsr, sr, vicon_sample, time, vicon, vicon_sys_time)
 
     static_evaluate_params(dsr, sr, vicon_sample, time, vicon, vicon_sys_time)
