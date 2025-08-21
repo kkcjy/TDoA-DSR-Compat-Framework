@@ -1,7 +1,6 @@
 import re
 import csv
 import numpy as np
-import pandas as pd
 import matplotlib
 import matplotlib.pyplot as plt
 matplotlib.use('TkAgg')
@@ -10,12 +9,12 @@ matplotlib.use('TkAgg')
 # This script integrates the processed SR and DSR data, aligns them with the VICON timestamps, and then evaluates the data.
 
 
-# Set to the required address
+# Set the active address and use the target address’s time range as the alignment reference
 local_address = 2
 neighbor_address = 3
-calculate_failed_sign = -1
 leftbound = 1409700
 rightbound = 1423480
+invalid_sign = -1
 
 sys_path = "../data/processed_Log.csv"
 dsr_path = "../data/output/dynamic_swarm_ranging.txt"
@@ -91,42 +90,12 @@ def read_sr_Log():
     return sr_value, sr_time, sr_sys_time
 
 def write_ranging_Log(sr, sr_sys_time, dsr, dsr_sys_time, vicon, vicon_sys_time):
-    def get_diff_dis(sr, sr_sys_time, dsr, dsr_sys_time, vicon, vicon_sys_time):
-        left_idx_sr = np.searchsorted(sr_sys_time, leftbound, side='left')
-        right_idx_sr = np.searchsorted(sr_sys_time, rightbound, side='right')
-        sr_slice = sr[left_idx_sr : right_idx_sr]
-        sr_slice = sr_slice[sr_slice != calculate_failed_sign]
-        sr_mean = np.mean(sr_slice) if sr_slice.size > 0 else np.nan
-
-        left_idx_dsr = np.searchsorted(dsr_sys_time, leftbound, side='left')
-        right_idx_dsr = np.searchsorted(dsr_sys_time, rightbound, side='right')
-        dsr_slice = dsr[left_idx_dsr : right_idx_dsr]
-        dsr_slice = dsr_slice[dsr_slice != calculate_failed_sign]
-        dsr_mean = np.mean(dsr_slice) if dsr_slice.size > 0 else np.nan
-
-        left_idx_vicon = np.searchsorted(vicon_sys_time, leftbound, side='left')
-        right_idx_vicon = np.searchsorted(vicon_sys_time, rightbound, side='right')
-        vicon_slice = vicon[left_idx_vicon : right_idx_vicon]
-        vicon_slice = vicon_slice[vicon_slice != calculate_failed_sign]
-        vicon_mean = np.mean(vicon_slice) if vicon_slice.size > 0 else np.nan
-
-        sr_diff = vicon_mean - sr_mean
-        dsr_diff = vicon_mean - dsr_mean
-
-        return sr_diff, dsr_diff
-
     sr_sys_time = np.array(sr_sys_time)
     sr = np.array(sr)
     dsr_sys_time = np.array(dsr_sys_time)
     dsr = np.array(dsr)
     vicon_sys_time = np.array(vicon_sys_time)
     vicon = np.array(vicon)
-
-    sr_diff, dsr_diff = get_diff_dis(sr, sr_sys_time, dsr, dsr_sys_time, vicon, vicon_sys_time)
-
-    align_sr = sr + sr_diff
-    align_dsr = dsr + dsr_diff
-    align_vicon = vicon
 
     if len(sr_sys_time) == len(dsr_sys_time) and np.all(sr_sys_time == dsr_sys_time):
         with open(ranging_Log_path, mode='w', newline='') as f:
@@ -138,15 +107,111 @@ def write_ranging_Log(sr, sr_sys_time, dsr, dsr_sys_time, vicon, vicon_sys_time)
                 t = sr_sys_time[i]
                 idx = np.argmin(np.abs(vicon_sys_time - t))
 
-                if(dsr[i] != calculate_failed_sign and sr[i] != calculate_failed_sign):
-                    writer.writerow([align_dsr[i], align_sr[i], align_vicon[idx], sr_sys_time[i]])
-                    count += 1
+                writer.writerow([dsr[i], sr[i], vicon[idx], sr_sys_time[i]])
+                count += 1
 
         print(f"Ranging log saved to {ranging_Log_path}, total {count} records.")
     else:
         print("Error: sr_sys_time and dsr_sys_time are not identical. Cannot write log.")
 
-    return align_sr, align_dsr, align_vicon
+def get_align_data(sr, sr_sys_time, dsr, dsr_sys_time, vicon, vicon_sys_time):
+    def get_diff_dis(sr, sr_sys_time, dsr, dsr_sys_time, vicon, vicon_sys_time):
+        left_idx_sr = np.searchsorted(sr_sys_time, leftbound, side='left')
+        right_idx_sr = np.searchsorted(sr_sys_time, rightbound, side='right')
+        sr_slice = sr[left_idx_sr : right_idx_sr]
+        sr_slice = sr_slice[sr_slice != invalid_sign]
+        sr_mean = np.mean(sr_slice) if sr_slice.size > 0 else np.nan
+
+        left_idx_dsr = np.searchsorted(dsr_sys_time, leftbound, side='left')
+        right_idx_dsr = np.searchsorted(dsr_sys_time, rightbound, side='right')
+        dsr_slice = dsr[left_idx_dsr : right_idx_dsr]
+        dsr_slice = dsr_slice[dsr_slice != invalid_sign]
+        dsr_mean = np.mean(dsr_slice) if dsr_slice.size > 0 else np.nan
+
+        left_idx_vicon = np.searchsorted(vicon_sys_time, leftbound, side='left')
+        right_idx_vicon = np.searchsorted(vicon_sys_time, rightbound, side='right')
+        vicon_slice = vicon[left_idx_vicon : right_idx_vicon]
+        vicon_slice = vicon_slice[vicon_slice != invalid_sign]
+        vicon_mean = np.mean(vicon_slice) if vicon_slice.size > 0 else np.nan
+
+        sr_diff = vicon_mean - sr_mean
+        dsr_diff = vicon_mean - dsr_mean
+
+        avg_diff = (sr_diff + dsr_diff) / 2
+
+        return avg_diff
+    
+    sr = np.array(sr)
+    dsr = np.array(dsr)
+    vicon = np.array(vicon)
+    sr_sys_time = np.array(sr_sys_time)
+    dsr_sys_time = np.array(dsr_sys_time)
+    vicon_sys_time = np.array(vicon_sys_time)
+
+    avg_diff = get_diff_dis(sr, sr_sys_time, dsr, dsr_sys_time, vicon, vicon_sys_time)
+
+    align_sr = sr + avg_diff
+    align_dsr = dsr + avg_diff
+    align_vicon = vicon
+
+    return align_sr, align_dsr, align_vicon, avg_diff
+
+def evaluation_data(align_sr, sr_sys_time, align_dsr, dsr_sys_time, align_vicon, vicon_sys_time, avg_diff):
+    def compute_error_metrics(predicted, ground_truth):
+        if len(predicted) == 0 or len(ground_truth) == 0:
+            return np.nan, np.nan, np.nan, np.nan
+        ae = np.abs(predicted - ground_truth)
+        mean_ae = np.mean(ae)
+        max_ae = np.max(ae)
+        rmse = np.sqrt(np.mean((predicted - ground_truth) ** 2))
+        mean_re = np.mean(np.abs(predicted - ground_truth) / ground_truth) * 100
+        return mean_ae, max_ae, rmse, mean_re
+
+    align_sr = np.array(align_sr)
+    sr_sys_time = np.array(sr_sys_time)
+    align_dsr = np.array(align_dsr)
+    dsr_sys_time = np.array(dsr_sys_time)
+    align_vicon = np.array(align_vicon)
+    vicon_sys_time = np.array(vicon_sys_time)
+
+    sr_filtered = []
+    vicon_for_sr = []
+    for i, t in enumerate(sr_sys_time):
+        if align_sr[i] == avg_diff + invalid_sign:
+            continue
+        idx = np.argmin(np.abs(vicon_sys_time - t))
+        sr_filtered.append(align_sr[i])
+        vicon_for_sr.append(align_vicon[idx])
+    sr_filtered = np.array(sr_filtered)
+    vicon_for_sr = np.array(vicon_for_sr)
+    invalid_rate_sr = (len(sr_sys_time) - len(sr_filtered)) / len(sr_sys_time) * 100 if len(sr_sys_time) > 0 else np.nan
+
+    dsr_filtered = []
+    vicon_for_dsr = []
+    for i, t in enumerate(dsr_sys_time):
+        if align_dsr[i] == avg_diff + invalid_sign:
+            continue
+        idx = np.argmin(np.abs(vicon_sys_time - t))
+        dsr_filtered.append(align_dsr[i])
+        vicon_for_dsr.append(align_vicon[idx])
+    dsr_filtered = np.array(dsr_filtered)
+    vicon_for_dsr = np.array(vicon_for_dsr)
+    invalid_rate_dsr = (len(dsr_sys_time) - len(dsr_filtered)) / len(dsr_sys_time) * 100 if len(dsr_sys_time) > 0 else np.nan
+
+    mean_ae_sr, max_ae_sr, rmse_sr, mre_sr = compute_error_metrics(sr_filtered, vicon_for_sr)
+    mean_ae_dsr, max_ae_dsr, rmse_dsr, mre_dsr = compute_error_metrics(dsr_filtered, vicon_for_dsr)
+
+    print("==== Error Metrics ====")
+    print(f"SR : Mean AE(平均绝对误差) = {mean_ae_sr:.3f} cm, "
+          f"Max AE(最大绝对误差) = {max_ae_sr:.3f} cm, "
+          f"RMSE(均方根误差) = {rmse_sr:.3f} cm, "
+          f"MRE(平均相对误差) = {mre_sr:.3f}%, "
+          f"Invalid Rate = {invalid_rate_sr:.2f}%")
+    print(f"DSR: Mean AE(平均绝对误差) = {mean_ae_dsr:.3f} cm, "
+          f"Max AE(最大绝对误差) = {max_ae_dsr:.3f} cm, "
+          f"RMSE(均方根误差) = {rmse_dsr:.3f} cm, "
+          f"MRE(平均相对误差) = {mre_dsr:.3f}%, "
+          f"Invalid Rate = {invalid_rate_dsr:.2f}%")
 
 def plot_sr_dsr_vicon(sr, sr_sys_time, dsr, dsr_sys_time, vicon, vicon_sys_time):
     plt.plot(sr_sys_time, sr, color='#4A90E2', label='SR', linestyle='--', marker='x', markersize=4, linewidth=1.5)
@@ -160,33 +225,16 @@ def plot_sr_dsr_vicon(sr, sr_sys_time, dsr, dsr_sys_time, vicon, vicon_sys_time)
     plt.tight_layout()
     plt.show()
 
-def evaluation_data():
-    def compute_error_metrics(predicted, ground_truth):
-        ae = np.abs(predicted - ground_truth)
-        mean_ae = np.mean(ae)
-        max_ae = np.max(ae)
-        rmse = np.sqrt(np.mean((predicted - ground_truth) **2))
-        mean_re = np.mean(np.abs(predicted - ground_truth) / ground_truth) * 100
-        return mean_ae, max_ae, rmse, mean_re
-
-    df = pd.read_csv(ranging_Log_path)
-    df = df.dropna(subset=['DSR', 'SR', 'VICON'])
-
-    mean_ae_sr, max_ae_sr, rmse_sr, mre_sr = compute_error_metrics(df['SR'].values, df['VICON'].values)
-    mean_ae_dsr, max_ae_dsr, rmse_dsr, mre_dsr = compute_error_metrics(df['DSR'].values, df['VICON'].values)
-
-    print("==== Error Metrics ====")
-    print(f"SR : Mean AE(平均绝对误差) = {mean_ae_sr:.3f} cm, Max AE(最大绝对误差) = {max_ae_sr:.3f} cm, RMSE(均方根误差) = {rmse_sr:.3f} cm, MRE(平均相对误差) = {mre_sr:.3f}%")
-    print(f"DSR: Mean AE(平均绝对误差) = {mean_ae_dsr:.3f} cm, Max AE(最大绝对误差) = {max_ae_dsr:.3f} cm, RMSE(均方根误差) = {rmse_dsr:.3f} cm, MRE(平均相对误差) = {mre_dsr:.3f}%")
-
 
 if __name__ == '__main__':
     sr, sr_time, sr_sys_time = read_sr_Log()
     dsr, dsr_time, dsr_sys_time = read_dsr_Log()
     vicon, vicon_sys_time = read_vicon_Log()
+    
+    write_ranging_Log(sr, sr_sys_time, dsr, dsr_sys_time, vicon, vicon_sys_time)
 
-    align_sr, align_dsr, align_vicon = write_ranging_Log(sr, sr_sys_time, dsr, dsr_sys_time, vicon, vicon_sys_time)
+    align_sr, align_dsr, align_vicon, avg_diff = get_align_data(sr, sr_sys_time, dsr, dsr_sys_time, vicon, vicon_sys_time)
 
-    evaluation_data()
+    evaluation_data(align_sr, sr_sys_time, align_dsr, dsr_sys_time, align_vicon, vicon_sys_time, avg_diff)
 
     plot_sr_dsr_vicon(align_sr, sr_sys_time, align_dsr, dsr_sys_time, align_vicon, vicon_sys_time)
