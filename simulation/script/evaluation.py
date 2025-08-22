@@ -213,7 +213,7 @@ def evaluation_data(align_sr, sr_sys_time, align_dsr, dsr_sys_time, align_vicon,
           f"MRE(平均相对误差) = {mre_dsr:.3f}%, "
           f"Invalid Rate = {invalid_rate_dsr:.2f}%")
 
-def plot_sr_dsr_vicon(sr, sr_sys_time, dsr, dsr_sys_time, vicon, vicon_sys_time):
+def ranging_plot(sr, sr_sys_time, dsr, dsr_sys_time, vicon, vicon_sys_time):
     plt.plot(sr_sys_time, sr, color='#4A90E2', label='SR', linestyle='--', marker='x', markersize=4, linewidth=1.5)
     plt.plot(dsr_sys_time, dsr, color="#E4491E", label='DSR', linestyle='--', marker='x', markersize=4, linewidth=1.5)
     plt.plot(vicon_sys_time, vicon, color="#9DF423", label='VICON', alpha=0.8, linestyle='-', marker='o', markersize=4, linewidth=2)
@@ -237,4 +237,4 @@ if __name__ == '__main__':
 
     evaluation_data(align_sr, sr_sys_time, align_dsr, dsr_sys_time, align_vicon, vicon_sys_time, avg_diff)
 
-    plot_sr_dsr_vicon(align_sr, sr_sys_time, align_dsr, dsr_sys_time, align_vicon, vicon_sys_time)
+    ranging_plot(align_sr, sr_sys_time, align_dsr, dsr_sys_time, align_vicon, vicon_sys_time)
