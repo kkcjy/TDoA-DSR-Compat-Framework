@@ -15,8 +15,8 @@ matplotlib.use('TkAgg')
 
 local_address = 2
 neighbor_address = 3
-leftbound = 1409700
-rightbound = 1423480
+leftbound = 1719676
+rightbound = 1725063
 invalid_sign = -1
 
 # ---temp
@@ -146,12 +146,12 @@ def evaluation_data(cdsr, dsr, sr, vicon, avg_diff):
     mean_ae_cdsr, max_ae_cdsr, rmse_cdsr, mre_cdsr = compute_error_metrics(cdsr, vicon_for_dsr)
 
     print("==== Error Metrics ====")
-    print(f"SR : Mean AE(平均绝对误差) = {mean_ae_sr:.3f} cm, "
+    print(f"SR  : Mean AE(平均绝对误差) = {mean_ae_sr:.3f} cm, "
           f"Max AE(最大绝对误差) = {max_ae_sr:.3f} cm, "
           f"RMSE(均方根误差) = {rmse_sr:.3f} cm, "
           f"MRE(平均相对误差) = {mre_sr:.3f}%, "
           f"Invalid Rate = {invalid_rate_sr:.2f}%")
-    print(f"DSR: Mean AE(平均绝对误差) = {mean_ae_dsr:.3f} cm, "
+    print(f"DSR : Mean AE(平均绝对误差) = {mean_ae_dsr:.3f} cm, "
           f"Max AE(最大绝对误差) = {max_ae_dsr:.3f} cm, "
           f"RMSE(均方根误差) = {rmse_dsr:.3f} cm, "
           f"MRE(平均相对误差) = {mre_dsr:.3f}%, "
@@ -239,12 +239,12 @@ def ranging_plot(cdsr, dsr, sr, sys_time, vicon, vicon_sys_time):
 def static_set_param(COMPENSATE_RATE, DECELERATION_BOUND, dsr, sr, vicon_sample, sys_time, vicon, vicon_sys_time, avg_diff):
     cdsr = static_compensation_algorithm(dsr, COMPENSATE_RATE, DECELERATION_BOUND)
     evaluation_data(cdsr, dsr, sr, vicon_sample, avg_diff)
-    # ranging_plot(cdsr, dsr, sr, sys_time, vicon, vicon_sys_time)
+    ranging_plot(cdsr, dsr, sr, sys_time, vicon, vicon_sys_time)
 
 def dynamic_set_param(COMPENSATE_RATE_LOW, DECELERATION_BOUND_LOW, COMPENSATE_RATE_HIGH, DECELERATION_BOUND_HIGH, MOTION_THRESHOLD, dsr, sr, vicon_sample, sys_time, vicon, vicon_sys_time, avg_diff):
     cdsr = dynamic_compensation_algorithm(dsr, COMPENSATE_RATE_LOW, DECELERATION_BOUND_LOW, COMPENSATE_RATE_HIGH, DECELERATION_BOUND_HIGH, MOTION_THRESHOLD)
     evaluation_data(cdsr, dsr, sr, vicon_sample, avg_diff)
-    # ranging_plot(cdsr, dsr, sr, sys_time, vicon, vicon_sys_time)
+    ranging_plot(cdsr, dsr, sr, sys_time, vicon, vicon_sys_time)
 
 def static_evaluate_params(dsr, sr, vicon_sample, sys_time, vicon, vicon_sys_time, avg_diff):
     def evaluate_static_params(param_compensate, param_deceleration, dsr, vicon_sample):

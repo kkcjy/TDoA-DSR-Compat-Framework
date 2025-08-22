@@ -12,8 +12,8 @@ matplotlib.use('TkAgg')
 # Set the active address and use the target address’s time range as the alignment reference
 local_address = 2
 neighbor_address = 3
-leftbound = 1409700
-rightbound = 1423480
+leftbound = 1719676
+rightbound = 1725063
 invalid_sign = -1
 
 sys_path = "../data/processed_Log.csv"
@@ -202,12 +202,12 @@ def evaluation_data(align_sr, sr_sys_time, align_dsr, dsr_sys_time, align_vicon,
     mean_ae_dsr, max_ae_dsr, rmse_dsr, mre_dsr = compute_error_metrics(dsr_filtered, vicon_for_dsr)
 
     print("==== Error Metrics ====")
-    print(f"SR : Mean AE(平均绝对误差) = {mean_ae_sr:.3f} cm, "
+    print(f"SR  : Mean AE(平均绝对误差) = {mean_ae_sr:.3f} cm, "
           f"Max AE(最大绝对误差) = {max_ae_sr:.3f} cm, "
           f"RMSE(均方根误差) = {rmse_sr:.3f} cm, "
           f"MRE(平均相对误差) = {mre_sr:.3f}%, "
           f"Invalid Rate = {invalid_rate_sr:.2f}%")
-    print(f"DSR: Mean AE(平均绝对误差) = {mean_ae_dsr:.3f} cm, "
+    print(f"DSR : Mean AE(平均绝对误差) = {mean_ae_dsr:.3f} cm, "
           f"Max AE(最大绝对误差) = {max_ae_dsr:.3f} cm, "
           f"RMSE(均方根误差) = {rmse_dsr:.3f} cm, "
           f"MRE(平均相对误差) = {mre_dsr:.3f}%, "
@@ -235,6 +235,6 @@ if __name__ == '__main__':
 
     align_sr, align_dsr, align_vicon, avg_diff = get_align_data(sr, sr_sys_time, dsr, dsr_sys_time, vicon, vicon_sys_time)
 
-    evaluation_data(align_sr, sr_sys_time, align_dsr, dsr_sys_time, align_vicon, vicon_sys_time, avg_diff)
+    # evaluation_data(align_sr, sr_sys_time, align_dsr, dsr_sys_time, align_vicon, vicon_sys_time, avg_diff)
 
-    ranging_plot(align_sr, sr_sys_time, align_dsr, dsr_sys_time, align_vicon, vicon_sys_time)
+    # ranging_plot(align_sr, sr_sys_time, align_dsr, dsr_sys_time, align_vicon, vicon_sys_time)

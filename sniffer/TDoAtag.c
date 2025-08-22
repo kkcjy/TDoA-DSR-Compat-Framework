@@ -9,7 +9,6 @@
 #include "../Inc/adhocuwb_dynamic_swarm_ranging.h"
 
 
-#define         ALPHA                       1
 #define         TIMESTAMP_LIST_SIZE         3
 #define         ANCHOR_SIZE                 2
 #define         NULL_INDEX                  0xFF
@@ -17,10 +16,10 @@
 #define         NULL_SEQ                    0x0
 #define         NULL_TIMESTAMP              0xFFFFFFFFFFU
 #define         NULL_DIS                    -1
-#define     MAX_PACKET_SIZE 256
-#define     MAGIC_MATCH     0xBB88
-#define     VENDOR_ID       0x0483
-#define     PRODUCT_ID      0x5740
+#define         MAX_PACKET_SIZE             256
+#define         MAGIC_MATCH                 0xBB88
+#define         VENDOR_ID                   0x0483
+#define         PRODUCT_ID                  0x5740
 
 
 typedef union {
@@ -128,8 +127,19 @@ uint64_t processTDoAMessage(Ranging_Message_With_Additional_Info_t *rangingMessa
     }
 
     /* Process Bodyunit */
-    // get distance (The message employs a circular finite queue mechanism)
-    uint16_t remoteAnchorAddress = rangingMessage->bodyUnits[0].address;
+    // get distance
+    uint8_t bodyunitIndex = NULL_INDEX;
+    uint16_t remoteAnchorAddress = NULL_ADDR;
+    for(int i = 0; i < MESSAGE_BODYUNIT_SIZE; i++) {
+        if(remoteAnchorAddress == NULL_ADDR) {
+            bodyunitIndex = i;
+            remoteAnchorAddress = rangingMessage->bodyUnits[i].address;
+        }
+        else if(COMPARE_TIME(rangingMessage->bodyUnits[bodyunitIndex].timestamp.full, rangingMessage->bodyUnits[i].timestamp.full)) {
+            bodyunitIndex = i;
+            remoteAnchorAddress = rangingMessage->bodyUnits[i].address;
+        }
+    }
     int16_t distance = NULL_DIS;
     for(int i = 0; i < ANCHOR_SIZE - 1; i++) {
         if(AnchorTable->remoteAnchorDistanceTable.remoteAnchorAddress[i] == remoteAnchorAddress) {
@@ -139,9 +149,11 @@ uint64_t processTDoAMessage(Ranging_Message_With_Additional_Info_t *rangingMessa
 
     // get delta_Tx, delta_Rx
     uint64_t Tx_1 = NULL_TIMESTAMP;
-    uint64_t Tx_2 = NULL_TIMESTAMP;
     uint64_t Rx_1 = NULL_TIMESTAMP;
+    uint64_t Tx_2 = NULL_TIMESTAMP;
     uint64_t Rx_2 = NULL_TIMESTAMP;
+    uint64_t last_Tx_1 = NULL_TIMESTAMP;
+    uint64_t last_Rx_1 = NULL_TIMESTAMP;
     uint64_t delta_Tx = NULL_TIMESTAMP;
     uint64_t delta_Rx = NULL_TIMESTAMP;
 
@@ -161,10 +173,13 @@ uint64_t processTDoAMessage(Ranging_Message_With_Additional_Info_t *rangingMessa
         if(AnchorTable->Tx[i].seqNumber != NULL_SEQ && AnchorTable->Rx[i].seqNumber != NULL_SEQ && COMPARE_TIME(AnchorTable->Tx[i].timestamp.full, Tx_2) && COMPARE_TIME(AnchorTable->Rx[i].timestamp.full, Rx_2)) {
             Tx_1 = AnchorTable->Tx[i].timestamp.full;
             Rx_1 = AnchorTable->Rx[i].timestamp.full;
+            uint8_t index = (i - 1 + TIMESTAMP_LIST_SIZE) % TIMESTAMP_LIST_SIZE;
+            last_Tx_1 = AnchorTable->Tx[index].timestamp.full;
+            last_Rx_1 = AnchorTable->Rx[index].timestamp.full;
         }
     }
 
-    if(Tx_1 == NULL_TIMESTAMP || Rx_1 == NULL_TIMESTAMP || Tx_2 == NULL_TIMESTAMP || Rx_2 == NULL_TIMESTAMP) {
+    if(Tx_1 == NULL_TIMESTAMP || Rx_1 == NULL_TIMESTAMP || Tx_2 == NULL_TIMESTAMP || Rx_2 == NULL_TIMESTAMP || last_Tx_1 == NULL_TIMESTAMP || last_Rx_1 == NULL_TIMESTAMP) {
         DEBUG_PRINT("Warnging: failed to find all timestamps\n");
         return NULL_TIMESTAMP;
     }
@@ -172,7 +187,12 @@ uint64_t processTDoAMessage(Ranging_Message_With_Additional_Info_t *rangingMessa
     delta_Tx = (Tx_2 - Tx_1 + UWB_MAX_TIMESTAMP) % UWB_MAX_TIMESTAMP;
     delta_Rx = (Rx_2 - Rx_1 + UWB_MAX_TIMESTAMP) % UWB_MAX_TIMESTAMP;
 
-    uint64_t TDoA = delta_Rx - ALPHA * delta_Tx;
+    uint64_t adjacent_delta_Tx = (Tx_1 - last_Tx_1 + UWB_MAX_TIMESTAMP) % UWB_MAX_TIMESTAMP;
+    uint64_t adjacent_delta_Rx = (Rx_1 - last_Rx_1 + UWB_MAX_TIMESTAMP) % UWB_MAX_TIMESTAMP;
+
+    float alpha = (float)adjacent_delta_Rx / (float)adjacent_delta_Tx;
+
+    uint64_t TDoA = delta_Rx - alpha * delta_Tx;
 
     return TDoA;
 }
@@ -216,7 +236,7 @@ void handleTDoATask(libusb_device_handle *device_handle) {
 
                     uint64_t TDoA = processTDoAMessage(rangingMessageWithAdditionalInfo);
 
-                    printf("TDoA: %lu, Anchor: %u, remote Anchor: %u\n", TDoA, rangingMessage.header.srcAddress, rangingMessage.bodyUnits[0].address);
+                    printf("TDoA: %lu, delta_dis = %f, Anchor: %u, remote Anchor: %u\n", TDoA, TDoA * VELOCITY, rangingMessage.header.srcAddress, rangingMessage.bodyUnits[0].address);
                 }
                 // fail
                 else if(transferred > MAX_PACKET_SIZE) {
