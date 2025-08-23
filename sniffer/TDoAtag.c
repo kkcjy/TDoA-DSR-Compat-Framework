@@ -15,7 +15,6 @@
 #define         NULL_ADDRESS                0xFFFF
 #define         NULL_SEQ                    0x0
 #define         NULL_TIMESTAMP              0xFFFFFFFFFFU
-#define         NULL_DIS                    -1
 #define         MAX_PACKET_SIZE             256
 #define         MAGIC_MATCH                 0xBB88
 #define         VENDOR_ID                   0x0483
@@ -34,11 +33,6 @@ typedef union {
 } __attribute__((packed)) Sniffer_Meta_t;
 
 // TDoA Table Structure
-typedef struct {
-    dwTime_t timestamp;
-    uint16_t seqNumber;
-} __attribute__((packed)) Timestamp_Tuple_t;
-
 typedef struct {
     uint16_t remoteAnchorAddress[ANCHOR_SIZE - 1];
     int16_t distance[ANCHOR_SIZE - 1];
@@ -101,7 +95,7 @@ uint64_t processTDoAMessage(Ranging_Message_With_Additional_Info_t *rangingMessa
         }
     }
     if(tableIndex == NULL_INDEX) {
-        DEBUG_PRINT("Warnging: failed to find TDoA table\n");
+        printf("Warnging: failed to find TDoA table\n");
         return NULL_TIMESTAMP;
     }
 
@@ -158,7 +152,8 @@ uint64_t processTDoAMessage(Ranging_Message_With_Additional_Info_t *rangingMessa
     uint64_t delta_Rx = NULL_TIMESTAMP;
 
     // Infer the transmission time of the remote anchor from the reception time at the current anchor
-    Tx_2 = (rangingMessage->bodyUnits[0].timestamp.full - (distance / VELOCITY) + UWB_MAX_TIMESTAMP) % UWB_MAX_TIMESTAMP;
+    Tx_2 = (rangingMessage->bodyUnits[0].timestamp.full - (uint64_t)(distance / VELOCITY) + UWB_MAX_TIMESTAMP) % UWB_MAX_TIMESTAMP;
+
     for(int i = 0; i < ANCHOR_SIZE; i++) {
         if(AnchorTableSet->AnchorTable[i].anchorAddress == remoteAnchorAddress) {
             for(int j = 0; j < TIMESTAMP_LIST_SIZE; j++) {
@@ -180,7 +175,7 @@ uint64_t processTDoAMessage(Ranging_Message_With_Additional_Info_t *rangingMessa
     }
 
     if(Tx_1 == NULL_TIMESTAMP || Rx_1 == NULL_TIMESTAMP || Tx_2 == NULL_TIMESTAMP || Rx_2 == NULL_TIMESTAMP || last_Tx_1 == NULL_TIMESTAMP || last_Rx_1 == NULL_TIMESTAMP) {
-        DEBUG_PRINT("Warnging: failed to find all timestamps\n");
+        printf("Warnging: failed to find all timestamps\n");
         return NULL_TIMESTAMP;
     }
 
@@ -234,7 +229,7 @@ void handleTDoATask(libusb_device_handle *device_handle) {
                     rangingMessageWithAdditionalInfo.rangingMessage = rangingMessage;
                     rangingMessageWithAdditionalInfo.timestamp.full = meta->rxTime;
 
-                    uint64_t TDoA = processTDoAMessage(rangingMessageWithAdditionalInfo);
+                    uint64_t TDoA = processTDoAMessage(&rangingMessageWithAdditionalInfo);
 
                     printf("TDoA: %lu, delta_dis = %f, Anchor: %u, remote Anchor: %u\n", TDoA, TDoA * VELOCITY, rangingMessage.header.srcAddress, rangingMessage.bodyUnits[0].address);
                 }

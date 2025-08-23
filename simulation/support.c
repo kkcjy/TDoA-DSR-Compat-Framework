@@ -21,9 +21,9 @@ void DEBUG_PRINT(const char *format, ...) {
     
     // print to file
     #if defined(SWARM_RANGING_MODE)
-    FILE *log_file = first_call ? fopen("./data/output/swarm_ranging.txt", "w") : fopen("./data/output/swarm_ranging.txt", "a");
+    FILE *log_file = first_call ? fopen("./data/swarm_ranging.txt", "w") : fopen("./data/swarm_ranging.txt", "a");
     #elif defined(DYNAMIC_SWARM_RANGING_MODE)
-    FILE *log_file = first_call ? fopen("./data/output/dynamic_swarm_ranging.txt", "w") : fopen("./data/output/dynamic_swarm_ranging.txt", "a");
+    FILE *log_file = first_call ? fopen("./data/dynamic_swarm_ranging.txt", "w") : fopen("./data/dynamic_swarm_ranging.txt", "a");
     #endif
 
     if (log_file != NULL) {

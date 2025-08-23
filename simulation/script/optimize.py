@@ -17,11 +17,13 @@ local_address = 2
 neighbor_address = 3
 leftbound = 1719676
 rightbound = 1725063
+# leftbound = 1409700
+# rightbound = 1423480
 invalid_sign = -1
 
 # ---temp
-ranging_Log_path = '../data/output/ranging_Log.csv'
-vicon_path = "../data/output/vicon.txt"
+ranging_Log_path = '../data/ranging_Log.csv'
+vicon_path = "../data/vicon.txt"
 # ---processed
 # file_num = "5"
 # ranging_Log_path = "../../../../../../data/processed/" + file_num + ".csv"
@@ -239,12 +241,12 @@ def ranging_plot(cdsr, dsr, sr, sys_time, vicon, vicon_sys_time):
 def static_set_param(COMPENSATE_RATE, DECELERATION_BOUND, dsr, sr, vicon_sample, sys_time, vicon, vicon_sys_time, avg_diff):
     cdsr = static_compensation_algorithm(dsr, COMPENSATE_RATE, DECELERATION_BOUND)
     evaluation_data(cdsr, dsr, sr, vicon_sample, avg_diff)
-    ranging_plot(cdsr, dsr, sr, sys_time, vicon, vicon_sys_time)
+    # ranging_plot(cdsr, dsr, sr, sys_time, vicon, vicon_sys_time)
 
 def dynamic_set_param(COMPENSATE_RATE_LOW, DECELERATION_BOUND_LOW, COMPENSATE_RATE_HIGH, DECELERATION_BOUND_HIGH, MOTION_THRESHOLD, dsr, sr, vicon_sample, sys_time, vicon, vicon_sys_time, avg_diff):
     cdsr = dynamic_compensation_algorithm(dsr, COMPENSATE_RATE_LOW, DECELERATION_BOUND_LOW, COMPENSATE_RATE_HIGH, DECELERATION_BOUND_HIGH, MOTION_THRESHOLD)
     evaluation_data(cdsr, dsr, sr, vicon_sample, avg_diff)
-    ranging_plot(cdsr, dsr, sr, sys_time, vicon, vicon_sys_time)
+    # ranging_plot(cdsr, dsr, sr, sys_time, vicon, vicon_sys_time)
 
 def static_evaluate_params(dsr, sr, vicon_sample, sys_time, vicon, vicon_sys_time, avg_diff):
     def evaluate_static_params(param_compensate, param_deceleration, dsr, vicon_sample):

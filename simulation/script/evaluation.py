@@ -12,15 +12,17 @@ matplotlib.use('TkAgg')
 # Set the active address and use the target address’s time range as the alignment reference
 local_address = 2
 neighbor_address = 3
-leftbound = 1719676
-rightbound = 1725063
+# leftbound = 1719676
+# rightbound = 1725063
+leftbound = 1409700
+rightbound = 1423480
 invalid_sign = -1
 
 sys_path = "../data/processed_Log.csv"
-dsr_path = "../data/output/dynamic_swarm_ranging.txt"
-sr_path = "../data/output/swarm_ranging.txt"
-vicon_path = "../data/output/vicon.txt"
-ranging_Log_path = "../data/output/ranging_Log.csv"
+dsr_path = "../data/dynamic_swarm_ranging.txt"
+sr_path = "../data/swarm_ranging.txt"
+vicon_path = "../data/vicon.txt"
+ranging_Log_path = "../data/ranging_Log.csv"
 
 
 def align_sys_time(time_list):

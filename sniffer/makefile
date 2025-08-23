@@ -12,8 +12,13 @@ LDFLAGS = -lusb-1.0
 # LDFLAGS = -L/opt/homebrew/lib -lusb-1.0
 
 
-SRC = sniffer.c
-TARGET = sniffer
+# for TDoATag
+SRC = TDoAtag.c
+TARGET = TDoAtag
+
+# for sniffer
+# SRC = sniffer.c
+# TARGET = sniffer
 
 all: $(TARGET)
 
