@@ -15,10 +15,12 @@ matplotlib.use('TkAgg')
 
 local_address = 2
 neighbor_address = 3
-leftbound = 1719676
-rightbound = 1725063
-# leftbound = 1409700
-# rightbound = 1423480
+leftbound = 1409700
+rightbound = 1423480
+# leftbound = 1719676
+# rightbound = 1725063
+# leftbound = 2056100
+# rightbound = 2066600
 invalid_sign = -1
 
 # ---temp
@@ -110,7 +112,7 @@ def get_align_data(sr, sr_sys_time, dsr, dsr_sys_time, vicon, vicon_sys_time):
 
     return align_sr, align_dsr, avg_diff
 
-def evaluation_data(cdsr, dsr, sr, vicon, avg_diff):
+def evaluation_data(dsr, sr, S_cdsr, D_cdsr, vicon, avg_diff):
     def compute_error_metrics(predicted, ground_truth):
         if len(predicted) == 0 or len(ground_truth) == 0:
             return np.nan, np.nan, np.nan, np.nan
@@ -134,35 +136,40 @@ def evaluation_data(cdsr, dsr, sr, vicon, avg_diff):
 
     dsr_filtered = []
     vicon_for_dsr = []
-    for i in range(len(align_dsr)):
-        if align_dsr[i] == avg_diff + invalid_sign:
+    for i in range(len(dsr)):
+        if dsr[i] == avg_diff + invalid_sign:
             continue
-        dsr_filtered.append(align_dsr[i])
+        dsr_filtered.append(dsr[i])
         vicon_for_dsr.append(vicon[i])
     dsr_filtered = np.array(dsr_filtered)
     vicon_for_dsr = np.array(vicon_for_dsr)
-    invalid_rate_dsr = (len(align_dsr) - len(dsr_filtered)) / len(align_dsr) * 100 if len(align_dsr) > 0 else np.nan
+    invalid_rate_dsr = (len(dsr) - len(dsr_filtered)) / len(dsr) * 100 if len(dsr) > 0 else np.nan
 
     mean_ae_sr, max_ae_sr, rmse_sr, mre_sr = compute_error_metrics(sr_filtered, vicon_for_sr)
     mean_ae_dsr, max_ae_dsr, rmse_dsr, mre_dsr = compute_error_metrics(dsr_filtered, vicon_for_dsr)
-    mean_ae_cdsr, max_ae_cdsr, rmse_cdsr, mre_cdsr = compute_error_metrics(cdsr, vicon_for_dsr)
+    mean_ae_s_cdsr, max_ae_s_cdsr, rmse_s_cdsr, mre_s_cdsr = compute_error_metrics(S_cdsr, vicon_for_dsr)
+    mean_ae_d_cdsr, max_ae_d_cdsr, rmse_d_cdsr, mre_d_cdsr = compute_error_metrics(D_cdsr, vicon_for_dsr)
 
-    print("==== Error Metrics ====")
-    print(f"SR  : Mean AE(平均绝对误差) = {mean_ae_sr:.3f} cm, "
+    print(f"SR:     Mean AE(平均绝对误差) = {mean_ae_sr:.3f} cm, "
           f"Max AE(最大绝对误差) = {max_ae_sr:.3f} cm, "
           f"RMSE(均方根误差) = {rmse_sr:.3f} cm, "
           f"MRE(平均相对误差) = {mre_sr:.3f}%, "
-          f"Invalid Rate = {invalid_rate_sr:.2f}%")
-    print(f"DSR : Mean AE(平均绝对误差) = {mean_ae_dsr:.3f} cm, "
+          f"Invalid Rate(计算失败率) = {invalid_rate_sr:.2f}%")
+    print(f"DSR:    Mean AE(平均绝对误差) = {mean_ae_dsr:.3f} cm, "
           f"Max AE(最大绝对误差) = {max_ae_dsr:.3f} cm, "
           f"RMSE(均方根误差) = {rmse_dsr:.3f} cm, "
           f"MRE(平均相对误差) = {mre_dsr:.3f}%, "
-          f"Invalid Rate = {invalid_rate_dsr:.2f}%")
-    print(f"CDSR: Mean AE(平均绝对误差) = {mean_ae_cdsr:.3f} cm, "
-          f"Max AE(最大绝对误差) = {max_ae_cdsr:.3f} cm, "
-          f"RMSE(均方根误差) = {rmse_cdsr:.3f} cm, "
-          f"MRE(平均相对误差) = {mre_cdsr:.3f}%, "
-          f"Invalid Rate = {invalid_rate_dsr:.2f}%")
+          f"Invalid Rate(计算失败率) = {invalid_rate_dsr:.2f}%")
+    print(f"S-CDSR: Mean AE(平均绝对误差) = {mean_ae_s_cdsr:.3f} cm, "
+          f"Max AE(最大绝对误差) = {max_ae_s_cdsr:.3f} cm, "
+          f"RMSE(均方根误差) = {rmse_s_cdsr:.3f} cm, "
+          f"MRE(平均相对误差) = {mre_s_cdsr:.3f}%, "
+          f"Invalid Rate(计算失败率) = {invalid_rate_dsr:.2f}%")
+    print(f"D-CDSR: Mean AE(平均绝对误差) = {mean_ae_d_cdsr:.3f} cm, "
+          f"Max AE(最大绝对误差) = {max_ae_d_cdsr:.3f} cm, "
+          f"RMSE(均方根误差) = {rmse_d_cdsr:.3f} cm, "
+          f"MRE(平均相对误差) = {mre_d_cdsr:.3f}%, "
+          f"Invalid Rate(计算失败率) = {invalid_rate_dsr:.2f}%")
 
 def static_compensation_algorithm(distance_List, compensate_rate, deceleration_bound):
     last_dis_Calculate = None
@@ -238,17 +245,17 @@ def ranging_plot(cdsr, dsr, sr, sys_time, vicon, vicon_sys_time):
     plt.tight_layout()
     plt.show()
 
-def static_set_param(COMPENSATE_RATE, DECELERATION_BOUND, dsr, sr, vicon_sample, sys_time, vicon, vicon_sys_time, avg_diff):
-    cdsr = static_compensation_algorithm(dsr, COMPENSATE_RATE, DECELERATION_BOUND)
-    evaluation_data(cdsr, dsr, sr, vicon_sample, avg_diff)
-    # ranging_plot(cdsr, dsr, sr, sys_time, vicon, vicon_sys_time)
+def static_set_param(COMPENSATE_RATE, DECELERATION_BOUND, dsr, sr, sys_time, vicon, vicon_sys_time):
+    S_cdsr = static_compensation_algorithm(dsr, COMPENSATE_RATE, DECELERATION_BOUND)
+    # ranging_plot(S_cdsr, dsr, sr, sys_time, vicon, vicon_sys_time)
+    return S_cdsr
 
-def dynamic_set_param(COMPENSATE_RATE_LOW, DECELERATION_BOUND_LOW, COMPENSATE_RATE_HIGH, DECELERATION_BOUND_HIGH, MOTION_THRESHOLD, dsr, sr, vicon_sample, sys_time, vicon, vicon_sys_time, avg_diff):
-    cdsr = dynamic_compensation_algorithm(dsr, COMPENSATE_RATE_LOW, DECELERATION_BOUND_LOW, COMPENSATE_RATE_HIGH, DECELERATION_BOUND_HIGH, MOTION_THRESHOLD)
-    evaluation_data(cdsr, dsr, sr, vicon_sample, avg_diff)
-    # ranging_plot(cdsr, dsr, sr, sys_time, vicon, vicon_sys_time)
+def dynamic_set_param(COMPENSATE_RATE_LOW, DECELERATION_BOUND_LOW, COMPENSATE_RATE_HIGH, DECELERATION_BOUND_HIGH, MOTION_THRESHOLD, dsr, sr, sys_time, vicon, vicon_sys_time):
+    D_cdsr = dynamic_compensation_algorithm(dsr, COMPENSATE_RATE_LOW, DECELERATION_BOUND_LOW, COMPENSATE_RATE_HIGH, DECELERATION_BOUND_HIGH, MOTION_THRESHOLD)
+    # ranging_plot(D_cdsr, dsr, sr, sys_time, vicon, vicon_sys_time)
+    return D_cdsr
 
-def static_evaluate_params(dsr, sr, vicon_sample, sys_time, vicon, vicon_sys_time, avg_diff):
+def static_evaluate_params(dsr, sr, vicon_sample, sys_time, vicon, vicon_sys_time):
     def evaluate_static_params(param_compensate, param_deceleration, dsr, vicon_sample):
         curcdsr = static_compensation_algorithm(dsr, param_compensate, param_deceleration)
         cur_mae = np.mean(np.abs(curcdsr - vicon_sample))
@@ -265,14 +272,14 @@ def static_evaluate_params(dsr, sr, vicon_sample, sys_time, vicon, vicon_sys_tim
     )
 
     best_result = min(results, key=lambda x: x[0])
-    best_mae, best_c, best_d, cdsr = best_result
+    best_mae, best_c, best_d, S_cdsr = best_result
 
     print(f"\nBest parameters found: COMPENSATE_RATE = {best_c:.2f}, DECELERATION_BOUND = {best_d:.2f}")
-    evaluation_data(cdsr, dsr, sr, vicon_sample, avg_diff)
-    ranging_plot(cdsr, dsr, sr, sys_time, vicon, vicon_sys_time)
+    # ranging_plot(S_cdsr, dsr, sr, sys_time, vicon, vicon_sys_time)
+    return S_cdsr
 
 
-def dynamic_evaluate_params(dsr, sr, vicon_sample, sys_time, vicon, vicon_sys_time, avg_diff):
+def dynamic_evaluate_params(dsr, sr, vicon_sample, sys_time, vicon, vicon_sys_time):
     def evaluate_dynamic_params(param_compensate_low, param_deceleration_low,
                                 param_compensate_high, param_deceleration_high,
                                 param_motion_threshold, dsr, vicon_sample):
@@ -301,12 +308,12 @@ def dynamic_evaluate_params(dsr, sr, vicon_sample, sys_time, vicon, vicon_sys_ti
     )
 
     best_result = min(results, key=lambda x: x[0])
-    best_mae, cl, dl, ch, dh, mt, cdsr = best_result
+    best_mae, cl, dl, ch, dh, mt, D_cdsr = best_result
 
     print(f"\nBest parameters found: COMPENSATE_RATE_LOW = {cl:.2f}, DECELERATION_BOUND_LOW = {dl:.2f}, "
           f"COMPENSATE_RATE_HIGH = {ch:.2f}, DECELERATION_BOUND_HIGH = {dh:.2f}, MOTION_THRESHOLD = {mt:.2f}")
-    evaluation_data(cdsr, dsr, sr, vicon_sample, avg_diff)
-    ranging_plot(cdsr, dsr, sr, sys_time, vicon, vicon_sys_time)
+    # ranging_plot(D_cdsr, dsr, sr, sys_time, vicon, vicon_sys_time)
+    return D_cdsr
 
 
 if __name__ == '__main__':
@@ -316,15 +323,15 @@ if __name__ == '__main__':
 
     COMPENSATE_RATE = 0.7
     DECELERATION_BOUND = 15
-    static_set_param(COMPENSATE_RATE, DECELERATION_BOUND, align_dsr, align_sr, vicon_sample, sys_time, vicon, vicon_sys_time, avg_diff)
-
+    S_cdsr = static_set_param(COMPENSATE_RATE, DECELERATION_BOUND, align_dsr, align_sr, sys_time, vicon, vicon_sys_time)
     COMPENSATE_RATE_LOW = 0.1
     DECELERATION_BOUND_LOW = 1
     COMPENSATE_RATE_HIGH = 0.7
     DECELERATION_BOUND_HIGH = 15
     MOTION_THRESHOLD = 3
-    dynamic_set_param(COMPENSATE_RATE_LOW, DECELERATION_BOUND_LOW, COMPENSATE_RATE_HIGH, DECELERATION_BOUND_HIGH, MOTION_THRESHOLD, align_dsr, align_sr, vicon_sample, sys_time, vicon, vicon_sys_time, avg_diff)
+    D_cdsr = dynamic_set_param(COMPENSATE_RATE_LOW, DECELERATION_BOUND_LOW, COMPENSATE_RATE_HIGH, DECELERATION_BOUND_HIGH, MOTION_THRESHOLD, align_dsr, align_sr, sys_time, vicon, vicon_sys_time)
+    evaluation_data(align_dsr, align_sr, S_cdsr, D_cdsr, vicon_sample, avg_diff)
 
-    # static_evaluate_params(align_dsr, align_sr, vicon_sample, sys_time, vicon, vicon_sys_time, avg_diff)
-
-    # dynamic_evaluate_params(align_dsr, align_sr, vicon_sample, sys_time, vicon, vicon_sys_time, avg_diff)
+    # S_cdsr = static_evaluate_params(align_dsr, align_sr, vicon_sample, sys_time, vicon, vicon_sys_time)
+    # D_cdsr = dynamic_evaluate_params(align_dsr, align_sr, vicon_sample, sys_time, vicon, vicon_sys_time)
+    # evaluation_data(align_dsr, align_sr, S_cdsr, D_cdsr, vicon_sample, avg_diff)

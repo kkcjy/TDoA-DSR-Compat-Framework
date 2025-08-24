@@ -12,8 +12,6 @@ matplotlib.use('TkAgg')
 # Set the active address and use the target address’s time range as the alignment reference
 local_address = 2
 neighbor_address = 3
-# leftbound = 1719676
-# rightbound = 1725063
 leftbound = 1409700
 rightbound = 1423480
 invalid_sign = -1
@@ -235,7 +233,7 @@ if __name__ == '__main__':
     
     write_ranging_Log(sr, sr_sys_time, dsr, dsr_sys_time, vicon, vicon_sys_time)
 
-    align_sr, align_dsr, align_vicon, avg_diff = get_align_data(sr, sr_sys_time, dsr, dsr_sys_time, vicon, vicon_sys_time)
+    # align_sr, align_dsr, align_vicon, avg_diff = get_align_data(sr, sr_sys_time, dsr, dsr_sys_time, vicon, vicon_sys_time)
 
     # evaluation_data(align_sr, sr_sys_time, align_dsr, dsr_sys_time, align_vicon, vicon_sys_time, avg_diff)
 
