@@ -71,7 +71,7 @@ void fprintSwarmRangingMessaage(FILE* file, libusb_device_handle *device_handle)
 
     while (keep_running) {
         // first reception
-        int response = libusb_bulk_transfer(device_handle, endpoint, buffer, MAX_PACKET_SIZE, &transferred, 1000);
+        int response = libusb_bulk_transfer(device_handle, endpoint, buffer, MAX_PACKET_SIZE, &transferred, 5000);
         
         // success
         if(response == 0 && transferred <= MAX_PACKET_SIZE) {
@@ -104,7 +104,7 @@ void fprintSwarmRangingMessaage(FILE* file, libusb_device_handle *device_handle)
             fprintf(file, "%lu,", system_time);
 
             if(meta->magic == MAGIC_MATCH && meta->msgLength <= 256) {
-                response = libusb_bulk_transfer(device_handle, endpoint, payload, meta->msgLength, &transferred, 1000);
+                response = libusb_bulk_transfer(device_handle, endpoint, payload, meta->msgLength, &transferred, 5000);
                 if (response == 0 && transferred == meta->msgLength) {
                     Ranging_Message_t rangingMessage;
                     memcpy(&rangingMessage, payload, sizeof(Ranging_Message_t));
@@ -145,7 +145,7 @@ void fprintDynamicSwarmRangingMessaage(FILE* file, libusb_device_handle *device_
 
     while (keep_running) {
         // first reception
-        int response = libusb_bulk_transfer(device_handle, endpoint, buffer, MAX_PACKET_SIZE, &transferred, 1000);
+        int response = libusb_bulk_transfer(device_handle, endpoint, buffer, MAX_PACKET_SIZE, &transferred, 5000);
         
         // success
         if(response == 0 && transferred <= MAX_PACKET_SIZE) {
@@ -178,7 +178,7 @@ void fprintDynamicSwarmRangingMessaage(FILE* file, libusb_device_handle *device_
             fprintf(file, "%lu,", system_time);
 
             if(meta->magic == MAGIC_MATCH && meta->msgLength <= 256) {
-                response = libusb_bulk_transfer(device_handle, endpoint, payload, meta->msgLength, &transferred, 1000);
+                response = libusb_bulk_transfer(device_handle, endpoint, payload, meta->msgLength, &transferred, 5000);
                 if (response == 0 && transferred == meta->msgLength) {
                     Ranging_Message_t rangingMessage;
                     memcpy(&rangingMessage, payload, sizeof(Ranging_Message_t));
