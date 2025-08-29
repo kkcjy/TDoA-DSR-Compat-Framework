@@ -30,7 +30,7 @@ if __name__ == "__main__":
     detected_rigids = set()     # Names of all detected rigid bodies
     target_rigids = []          # Final filtered list of rigid bodies to monitor
     
-    output_dir = '../data/output'
+    output_dir = '../data'
     os.makedirs(output_dir, exist_ok=True)
     
     # Connect to Vicon host

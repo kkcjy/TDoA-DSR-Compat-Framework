@@ -5,14 +5,13 @@
 #include <arpa/inet.h>
 #include <pthread.h>
 #include <netinet/in.h>
+#include <semaphore.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <time.h>
 #include <unistd.h>
-
-
 #include "support.h"
 #if defined(SWARM_RANGING_MODE)
 #include "../Inc/adhocuwb_swarm_ranging.h"

@@ -31,10 +31,9 @@ void DEBUG_PRINT(const char *format, ...) {
         vfprintf(log_file, format, args);
         va_end(args);
         fclose(log_file);
-        
         first_call = false;
-
-    } else {
+    } 
+    else {
         printf("Warning: Could not open modified_Log.txt for writing\n");
     }
 }

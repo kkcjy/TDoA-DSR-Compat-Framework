@@ -13,12 +13,12 @@ LDFLAGS = -lusb-1.0
 
 
 # for TDoATag
-SRC = TDoAtag.c
-TARGET = TDoAtag
+# SRC = TDoAtag.c
+# TARGET = TDoAtag
 
 # for sniffer
-# SRC = sniffer.c
-# TARGET = sniffer
+SRC = sniffer.c
+TARGET = sniffer
 
 all: $(TARGET)
 

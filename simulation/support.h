@@ -21,18 +21,18 @@ typedef         uint16_t                    UWB_Address_t;
 typedef         uint32_t                    TickType_t;
 typedef         long                        BaseType_t;
 #define         ASSERT                      assert
-#define         DWT_TIME_UNITS              (1.0/499.2e6/128.0) 
-#define         M2T(X)                      ((unsigned int)(X))
-#define         pdTRUE                      ((BaseType_t)1)
+#define         DWT_TIME_UNITS              (1.0/499.2e6/128.0)
 #define         portTickType                TickType_t
 #define         portMAX_DELAY               (TickType_t)0xffffffffUL
+#define         pdTRUE                      ((BaseType_t)1)
 #define         UWB_DEST_EMPTY              65534
 #define         UWB_FRAME_LEN_MAX           256
+#define         UWB_MAX_TIMESTAMP           1099511627776
 #define         UWB_PACKET_SIZE_MAX         UWB_FRAME_LEN_MAX
 #define         UWB_PAYLOAD_SIZE_MAX        (UWB_PACKET_SIZE_MAX - sizeof(UWB_Packet_Header_t))
-#define         UWB_MAX_TIMESTAMP           1099511627776
 typedef         pthread_mutex_t             *SemaphoreHandle_t;
 typedef         portTickType                Time_t;
+#define         M2T(X)                      ((unsigned int)(X))
 
 
 typedef enum {

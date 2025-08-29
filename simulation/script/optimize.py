@@ -23,23 +23,8 @@ rightbound = 1423480
 # rightbound = 2066600
 invalid_sign = -1
 
-# ---temp
 ranging_Log_path = '../data/ranging_Log.csv'
 vicon_path = "../data/vicon.txt"
-# ---processed
-# file_num = "5"
-# ranging_Log_path = "../../../../../../data/processed/" + file_num + ".csv"
-# vicon_path = "../../../../../../data/processed/" + file_num + ".txt"
-# ---packed loss
-# csv_num = "1_0"
-# txt_num = "1"
-# ranging_Log_path = "../../../../../../data/packedloss/" + csv_num + ".csv"
-# vicon_path = "../../../../../../data/packedloss/" + txt_num + ".txt"
-# ---period
-# csv_num = "1_400"
-# txt_num = "1"
-# ranging_Log_path = "../../../../../../data/period/" + csv_num + ".csv"
-# vicon_path = "../../../../../../data/period/" + txt_num + ".txt"
 
 
 def read_log():  
