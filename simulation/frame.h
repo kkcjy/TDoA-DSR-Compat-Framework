@@ -34,7 +34,7 @@
 #define     READ_PERIOD             50
 
 
-const char *FILE_NAME = "./data/processed_Log.csv";
+const char *FILE_NAME = "./data/processed_log.csv";
 
 
 typedef enum {
