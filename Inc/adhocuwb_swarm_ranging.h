@@ -6,13 +6,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "dwTypes.h"
-
-
 #ifdef SIMULATION_COMPILE
-#include "../simulation/support.h"
+#include "../../support.h"
 #else
 #include "adhocuwb_init.h"
+#include "dwTypes.h"
 #endif
 
 #if !defined(SNIFFER_COMPILE) && !defined(SIMULATION_COMPILE)
@@ -23,9 +21,6 @@
 
 #define RANGING_DEBUG_ENABLE
 
-#define IEEE_802_15_4Z
-// #define SWARM_RANGING_V1
-// #define SWARM_RANGING_V2
 
 /* Function Switch */
 // #define     ENABLE_BUS_BOARDING_SCHEME
