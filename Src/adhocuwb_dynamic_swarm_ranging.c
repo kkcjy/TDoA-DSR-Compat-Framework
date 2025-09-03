@@ -1328,7 +1328,7 @@ static void S6_RX_NO(Ranging_Table_t *rangingTable) {
                                                                                           |
                                                               +------+------+------+------+------+------+------+          
                                                               |      |      |      |  Rp  | [Tr] | [Rf] | S6.1 |         
-                                                              +------+------+------+------+------+------+------+  
+                                                              +------+------+------+------+------+------+------+
                                                               |      |      |      |  Tp  |  Rr  |  Tf  | [Re] |  
                                                               +------+------+------+------+------+------+------+         
                                                               |             |             |                               
@@ -1363,7 +1363,7 @@ static void S6_RX_NO(Ranging_Table_t *rangingTable) {
                                                               +------+------+------+------+------+------+------+                                                                  |
                                                               |             |    PTof     |                                                                                       |
                                                               +------+------+------+------+                                                                                       |
-                                                                                          |                                                 normal case                                               |
+                                                                                          |                                                 normal case                           |
                                                                                           |  shift                  +-------------------------------------------------------------+
                                                                                           |                         |                                                             |
 +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+<---+       +------+------+------+------+------+------+------+    |
@@ -1541,7 +1541,7 @@ void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
     /* process header */
     index_t index_Rr = rangingTable->TrRrBuffer.topIndex;
     for(int i = 0; i < MESSAGE_TX_POOL_SIZE; i++) {
-        // find corresponding Tr according to Rr to get a valid Tr-Rr pair, this approach may help when experiencing continuous packet loss
+        // find corresponding Rr according to Tr to get a valid Tr-Rr pair, this approach may help when experiencing continuous packet loss
         if(rangingMessage->header.Txtimestamps[i].timestamp.full != NULL_TIMESTAMP 
            && rangingTable->TrRrBuffer.candidates[index_Rr].Rr.timestamp.full != NULL_TIMESTAMP 
            && rangingMessage->header.Txtimestamps[i].seqNumber == rangingTable->TrRrBuffer.candidates[index_Rr].Rr.seqNumber) {
@@ -1590,7 +1590,7 @@ void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
                    last_DSR                  DSR
         我们现有 last_DSR 和 DSR, 可以得出 ΔDSR = DSR - last_DSR, 且 ToF_DSR = (ToF_r + ToF_f) / 2, ToF_last_DSR = (ToF_b + ToF_p) / 2
         所以 2 * ΔDSR = (Dis_r + Dis_f) - (Dis_b + Dis_p) = (Dis_f - Dis_b) + (Dis_r - Dis_p)
-        又因为在接收到报文并查找用于计算距离的上一次发送时间戳时，系统总是选择距离当前接收时刻最近的那一次历史发送时间戳, 并且通信双方发送报文的频率是相同且恒定的, 因此存在关系：
+        又因为在接收到报文并查找用于计算距离的上一次发送时间戳时，系统总是选择距离当前接收时刻最近的那一次历史发送时间戳, 并且通信双方发送报文的频率是相同且恒定的, 因此存在近似关系：
         ToF_r - ToF_p = ToF_e - ToF_f, 即: Dis_r - Dis_p = Dis_e - Dis_f
         所以能得到: 2 * ΔDSR = Dis_e - Dis_b
         SeqGap = Seq_e - Seq_r
