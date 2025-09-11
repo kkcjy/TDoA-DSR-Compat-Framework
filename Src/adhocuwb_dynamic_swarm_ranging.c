@@ -33,15 +33,19 @@ static TaskHandle_t uwbRangingRxTaskHandle = 0;
 #endif
 
 int16_t dis_Real[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = NULL_DIS};
-int16_t DSR[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = NULL_DIS};
+int16_t Dis[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = NULL_DIS};
 
 #ifdef COMPENSATE_ENABLE
-static int16_t last_DSR[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = NULL_DIS};
-static int16_t his_avg_DSR[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = NULL_DIS};
+static int16_t last_Dis[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = NULL_DIS};
+static int16_t his_avg_Dis[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = NULL_DIS};
+static double compensateDis[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = NULL_DIS};
 static int16_t last_Seq[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = NULL_SEQ};
 static int16_t last_SeqGap[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = NULL_SEQ};
 static bool turning_state[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = false};
 static double compensateRate = NULL_RATE;
+static uint64_t ONCE_Rr[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = NULL_TIMESTAMP};
+static uint64_t ONCE_Tf[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = NULL_TIMESTAMP};
+static bool compensated[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = false};
 #endif
 
 #if defined(DYNAMIC_RANGING_MODE)
@@ -662,6 +666,8 @@ float calculatePToF(Ranging_Table_t *rangingTable, Ranging_Table_Tr_Rr_Candidate
             // use tmpPToF as the estimated value
             curPToF = (curPToF == NULL_TOF) ? tmpPToF : curPToF;
             #ifdef COMPENSATE_ENABLE
+                ONCE_Rr[rangingTable->neighborAddress] = Rr.timestamp.full;
+                ONCE_Tf[rangingTable->neighborAddress] = Tf.timestamp.full;
                 uint64_t diffReRr = (Re.timestamp.full - Rr.timestamp.full + UWB_MAX_TIMESTAMP) % UWB_MAX_TIMESTAMP;
                 uint64_t diffTfRr = (Tf.timestamp.full - Rr.timestamp.full + UWB_MAX_TIMESTAMP) % UWB_MAX_TIMESTAMP;
                 compensateRate = (double)(diffReRr - diffTfRr / 2.0) / (double)diffReRr;
@@ -682,7 +688,7 @@ void continuousPacketLossHandler(Ranging_Table_t *rangingTable, Ranging_Table_Tr
     
     float curPToF_avg = (classicCalculatePToF(rangingTable->Tb, rangingTable->Rb, rangingTable->Tp, rangingTable->Rp, candidate.Tr, candidate.Rr) 
                        + classicCalculatePToF(rangingTable->Tp, rangingTable->Rp, candidate.Tr, candidate.Rr, rangingTable->Tf, rangingTable->Rf)) / 2;
-    DSR[rangingTable->neighborAddress] = (curPToF_avg * VELOCITY) / 2;
+    Dis[rangingTable->neighborAddress] = (curPToF_avg * VELOCITY) / 2;
     
     updateRangingTableRr_Buffer(&rangingTable->TrRrBuffer, rangingTable->Re);
 
@@ -994,7 +1000,7 @@ static void S4_RX(Ranging_Table_t *rangingTable) {
             */
             Ranging_Table_Tr_Rr_Candidate_t candidate = rangingTableTr_Rr_BufferGetCandidate(&rangingTable->TrRrBuffer, rangingTable->Rp, nullTimestampTuple);
             float curPToF = classicCalculatePToF(rangingTable->Tb, rangingTable->Rb, rangingTable->Tp, rangingTable->Rp, candidate.Tr, candidate.Rr);
-            DSR[rangingTable->neighborAddress] = (curPToF == NULL_TOF) ? ((rangingTable->PToF * VELOCITY) / 2) : ((curPToF * VELOCITY) / 2);
+            Dis[rangingTable->neighborAddress] = (curPToF == NULL_TOF) ? ((rangingTable->PToF * VELOCITY) / 2) : ((curPToF * VELOCITY) / 2);
 
             updateRangingTableRr_Buffer(&rangingTable->TrRrBuffer, rangingTable->Re);
             break;
@@ -1012,7 +1018,7 @@ static void S4_RX(Ranging_Table_t *rangingTable) {
             */
             Ranging_Table_Tr_Rr_Candidate_t candidate = rangingTableTr_Rr_BufferGetCandidate(&rangingTable->TrRrBuffer, rangingTable->Rp, nullTimestampTuple);
             float curPToF = calculatePToF(rangingTable, candidate);
-            DSR[rangingTable->neighborAddress] = (curPToF * VELOCITY) / 2;
+            Dis[rangingTable->neighborAddress] = (curPToF * VELOCITY) / 2;
 
             updateRangingTableRr_Buffer(&rangingTable->TrRrBuffer, rangingTable->Re);
             break;
@@ -1062,7 +1068,7 @@ static void S4_RX_NO(Ranging_Table_t *rangingTable) {
             */
             Ranging_Table_Tr_Rr_Candidate_t candidate = rangingTableTr_Rr_BufferGetCandidate(&rangingTable->TrRrBuffer, rangingTable->Rp, nullTimestampTuple);
             float curPToF = classicCalculatePToF(rangingTable->Tb, rangingTable->Rb, rangingTable->Tp, rangingTable->Rp, candidate.Tr, candidate.Rr);
-            DSR[rangingTable->neighborAddress] = (curPToF == NULL_TOF) ? ((rangingTable->PToF * VELOCITY) / 2) : ((curPToF * VELOCITY) / 2);
+            Dis[rangingTable->neighborAddress] = (curPToF == NULL_TOF) ? ((rangingTable->PToF * VELOCITY) / 2) : ((curPToF * VELOCITY) / 2);
 
             updateRangingTableRr_Buffer(&rangingTable->TrRrBuffer, rangingTable->Re);
             break;
@@ -1080,7 +1086,7 @@ static void S4_RX_NO(Ranging_Table_t *rangingTable) {
             */
             Ranging_Table_Tr_Rr_Candidate_t candidate = rangingTableTr_Rr_BufferGetCandidate(&rangingTable->TrRrBuffer, rangingTable->Rp, nullTimestampTuple);
             float curPToF = calculatePToF(rangingTable, candidate);
-            DSR[rangingTable->neighborAddress] = (curPToF * VELOCITY) / 2;
+            Dis[rangingTable->neighborAddress] = (curPToF * VELOCITY) / 2;
 
             updateRangingTableRr_Buffer(&rangingTable->TrRrBuffer, rangingTable->Re);
             break;
@@ -1151,7 +1157,7 @@ static void S5_RX(Ranging_Table_t *rangingTable) {
             Ranging_Table_Tr_Rr_Candidate_t candidate = rangingTableTr_Rr_BufferGetCandidate(&rangingTable->TrRrBuffer, rangingTable->Rp, rangingTable->Tf);
             float curPToF = classicCalculatePToF(rangingTable->Tp, rangingTable->Rp, candidate.Tr, candidate.Rr, rangingTable->Tf, rangingTable->Rf);
             if(curPToF != NULL_TOF) {
-                DSR[rangingTable->neighborAddress] = (curPToF * VELOCITY) / 2;
+                Dis[rangingTable->neighborAddress] = (curPToF * VELOCITY) / 2;
             }
 
             updateRangingTableRr_Buffer(&rangingTable->TrRrBuffer, rangingTable->Re);
@@ -1174,7 +1180,7 @@ static void S5_RX(Ranging_Table_t *rangingTable) {
             */
             Ranging_Table_Tr_Rr_Candidate_t candidate = rangingTableTr_Rr_BufferGetCandidate(&rangingTable->TrRrBuffer, rangingTable->Rp, rangingTable->Tf);
             float curPToF = classicCalculatePToF(rangingTable->Tp, rangingTable->Rp, candidate.Tr, candidate.Rr, rangingTable->Tf, rangingTable->Rf);
-            DSR[rangingTable->neighborAddress] = (curPToF == NULL_TOF) ? (rangingTable->PToF * VELOCITY) / 2 : (curPToF * VELOCITY) / 2;
+            Dis[rangingTable->neighborAddress] = (curPToF == NULL_TOF) ? (rangingTable->PToF * VELOCITY) / 2 : (curPToF * VELOCITY) / 2;
 
             updateRangingTableRr_Buffer(&rangingTable->TrRrBuffer, rangingTable->Re);
 
@@ -1207,7 +1213,7 @@ static void S5_RX(Ranging_Table_t *rangingTable) {
             // normal
             else {
                 float curPToF = calculatePToF(rangingTable, candidate);
-                DSR[rangingTable->neighborAddress] = (curPToF * VELOCITY) / 2;
+                Dis[rangingTable->neighborAddress] = (curPToF * VELOCITY) / 2;
 
                 updateRangingTableRr_Buffer(&rangingTable->TrRrBuffer, rangingTable->Re);
 
@@ -1261,7 +1267,7 @@ static void S5_RX_NO(Ranging_Table_t *rangingTable) {
             */
             Ranging_Table_Tr_Rr_Candidate_t candidate = rangingTableTr_Rr_BufferGetCandidate(&rangingTable->TrRrBuffer, rangingTable->Rp, nullTimestampTuple);
             float curPToF = classicCalculatePToF(rangingTable->Tb, rangingTable->Rb, rangingTable->Tp, rangingTable->Rp, candidate.Tr, candidate.Rr);
-            DSR[rangingTable->neighborAddress] = (curPToF == NULL_TOF) ? (rangingTable->PToF * VELOCITY) / 2 : (curPToF * VELOCITY) / 2;
+            Dis[rangingTable->neighborAddress] = (curPToF == NULL_TOF) ? (rangingTable->PToF * VELOCITY) / 2 : (curPToF * VELOCITY) / 2;
 
             updateRangingTableRr_Buffer(&rangingTable->TrRrBuffer, rangingTable->Re);
             break;
@@ -1279,7 +1285,7 @@ static void S5_RX_NO(Ranging_Table_t *rangingTable) {
             */
             Ranging_Table_Tr_Rr_Candidate_t candidate = rangingTableTr_Rr_BufferGetCandidate(&rangingTable->TrRrBuffer, rangingTable->Rp, nullTimestampTuple);
             float curPToF = calculatePToF(rangingTable, candidate);
-            DSR[rangingTable->neighborAddress] = (curPToF * VELOCITY) / 2;
+            Dis[rangingTable->neighborAddress] = (curPToF * VELOCITY) / 2;
 
             updateRangingTableRr_Buffer(&rangingTable->TrRrBuffer, rangingTable->Re);
             break;
@@ -1594,7 +1600,7 @@ void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
         RangingTableEventHandler(rangingTable, RANGING_EVENT_RX_NO);
     }
 
-    /*  即使对于 dynamic swarm ranging(以下用 DSR 简称), 计算出的距离值仍然会存在一定的滞后性。
+    /*  即使对于 dynamic swarm ranging(以下用 Dis 简称), 计算出的距离值仍然会存在一定的滞后性。
         定义: ranging_i 为一次报文发送接收的动作, ToF_i 为该次报文传输所用的时间, Dis_i 为该次报文传输时双方的距离, Ti 和 Ri 为发送接收时间戳的时间。
 
             A   ···      Rp   <--Db-->   Tr      <--Rb-->      Rf
@@ -1603,39 +1609,7 @@ void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
 
                 #       *                  *                  *                  *
                     Ranging_p          Ranging_r          Ranging_f          Ranging_e
-                                          [SR]     [DSR]                        [CDSR]
-
-        我们不妨让:
-            ToF_r = ToF_f - ΔT1, 
-            ToF_e = ToF_f + ΔT2, 
-            ΔT1 + ΔT2 = ΔT
-        当下 DSR 计算的过程实际上是用 ToF_DSR = (ToF_r + ToF_f) / 2, DSR = ToF_DSR * velocity 得到的计算距离。
-        可以假定 # 号无人机静止(坐标系建立对相对位置关系无任何影响), * 号无人机远离(靠近同理), 我们可以将 ToF_DSR 看作报文从 # 传输到 Ranging_r 和 Ranging_f 中点所用的时间, 
-        因此 DSR 获取的距离本质上离 Re 还是有一定的偏差, 尽管 DSR 本身已经相较于 SR 协议的 ToF_SR = ToF_r 更接近于 ToF_e。
-
-        为了进一步贴近于当前状态下的 Ranging_e, 我们提出一种基于 DSR 的补偿机制:
-        CDSR = DSR + ΔDis * Rate = ToF_DSR * velocity + ΔDis * Rate
-        其中 ToF_DSR 的计算方式已经给出, 现在来探讨关于 ΔDis * Rate 的计算。
-
-        1. 为了补偿 DSR 与真实值之间的距离差, 我们首先要计算出 ΔT 时间间隔内两架无人机相对移动的距离 ΔDis, 也就是 Dis_e - Dis_r。
-            ···Tb      ^      Rp      Tr      ^      Rf
-                       ^                      ^
-            ···   Rb   ^   Tp            Rr   ^   Tf            Re
-                   last_DSR                  DSR
-        我们现有 last_DSR 和 DSR, 可以得出 ΔDSR = DSR - last_DSR, 且 ToF_DSR = (ToF_r + ToF_f) / 2, ToF_last_DSR = (ToF_b + ToF_p) / 2
-        所以 2 * ΔDSR = (Dis_r + Dis_f) - (Dis_b + Dis_p) = (Dis_f - Dis_b) + (Dis_r - Dis_p)
-        又因为在接收到报文并查找用于计算距离的上一次发送时间戳时，系统总是选择距离当前接收时刻最近的那一次历史发送时间戳, 并且通信双方发送报文的频率是相同且恒定的, 因此存在近似关系：
-        ToF_r - ToF_p = ToF_e - ToF_f, 即: Dis_r - Dis_p = Dis_e - Dis_f
-        所以能得到: 2 * ΔDSR = Dis_e - Dis_b
-        SeqGap = Seq_e - Seq_r
-        lastSeqGap = Seq_r - Seq_b
-        因此 ΔDis = [SeqGap / (SeqGap + lastSeqGap)] * (2 * ΔDSR) = [SeqGap / (SeqGap + lastSeqGap)] * 2 * (DSR - last_DSR)
-
-        2. 接下来要确定 Rate 的数值, Rate 是小于 1 的系数, 决定了补偿距离占 ΔDis 的比例。
-        我们知道 ToF_DSR = (ToF_r + ToF_f) / 2, 所以有:
-        Rate = [Re - Rr - (Tf - Rr) / 2] / (Re - Rr)
-
-        最终能算出 CDSR = DSR + ΔDis * Rate。
+                                          [SR]     [Dis]                        [CDSR]
 
         禁用场景:
         1. 连续丢包场景下, 历史计算值的参考性对于当下结果借鉴性不大, 为避免可能引入的额外误差
@@ -1644,60 +1618,68 @@ void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
     */
 
     #if defined(COMPENSATE_ENABLE)
-        if(last_DSR[neighborAddress] == NULL_DIS || last_Seq[neighborAddress] == NULL_SEQ) {
-            last_DSR[neighborAddress] = DSR[neighborAddress];
-            his_avg_DSR[neighborAddress] = DSR[neighborAddress];
+        if(last_Dis[neighborAddress] == NULL_DIS || last_Seq[neighborAddress] == NULL_SEQ) {
+            last_Dis[neighborAddress] = Dis[neighborAddress];
+            his_avg_Dis[neighborAddress] = Dis[neighborAddress];
             last_Seq[neighborAddress] = rangingMessage->header.msgSequence;
-            DEBUG_PRINT("[local_%u <- neighbor_%u]: %s dist = %f", MY_UWB_ADDRESS, neighborAddress, RANGING_MODE, (double)DSR[neighborAddress]);
+            DEBUG_PRINT("[local_%u <- neighbor_%u]: %s dist = %f", MY_UWB_ADDRESS, neighborAddress, RANGING_MODE, (double)Dis[neighborAddress]);
         }
         else if(last_SeqGap[neighborAddress] == NULL_SEQ) {
-            turning_state[neighborAddress] = (DSR[neighborAddress] - last_DSR[neighborAddress]) >= 0;
+            turning_state[neighborAddress] = (Dis[neighborAddress] - last_Dis[neighborAddress]) >= 0;
             last_SeqGap[neighborAddress] = rangingMessage->header.msgSequence - last_Seq[neighborAddress];
-            last_DSR[neighborAddress] = DSR[neighborAddress];
-            his_avg_DSR[neighborAddress] = (his_avg_DSR[neighborAddress] + DSR[neighborAddress]) / 2;
+            last_Dis[neighborAddress] = Dis[neighborAddress];
+            his_avg_Dis[neighborAddress] = (his_avg_Dis[neighborAddress] + Dis[neighborAddress]) / 2;
             last_Seq[neighborAddress] = rangingMessage->header.msgSequence;
-            DEBUG_PRINT("[local_%u <- neighbor_%u]: %s dist = %f", MY_UWB_ADDRESS, neighborAddress, RANGING_MODE, (double)DSR[neighborAddress]);
+            DEBUG_PRINT("[local_%u <- neighbor_%u]: %s dist = %f", MY_UWB_ADDRESS, neighborAddress, RANGING_MODE, (double)Dis[neighborAddress]);
         }
         else {
             // calculate compensateDis
             uint16_t seqGap = rangingMessage->header.msgSequence - last_Seq[neighborAddress];
             uint16_t total_SeqGap = seqGap + last_SeqGap[neighborAddress];
-            double delta_DSR = DSR[neighborAddress] - last_DSR[neighborAddress];
-            double compensateDis = ((double)seqGap / total_SeqGap) * (2 * delta_DSR);
+            double delta_DSR = Dis[neighborAddress] - last_Dis[neighborAddress];
+            compensateDis[neighborAddress] = ((double)seqGap / total_SeqGap) * (2 * delta_DSR);
 
             // judge
-            bool judge_static = abs(DSR[neighborAddress] - his_avg_DSR[neighborAddress]) < STATIC_BOUND;
-            bool judge_deceleration = abs(DSR[neighborAddress] / seqGap) - abs(last_DSR[neighborAddress] / last_SeqGap[neighborAddress]) > DECELERATION_BOUND;
-            bool judge_turning = ((DSR[neighborAddress] - last_DSR[neighborAddress]) >= 0) ^ turning_state[neighborAddress];
+            bool judge_static = abs(Dis[neighborAddress] - his_avg_Dis[neighborAddress]) < STATIC_BOUND;
+            bool judge_deceleration = abs(Dis[neighborAddress] / seqGap) - abs(last_Dis[neighborAddress] / last_SeqGap[neighborAddress]) > DECELERATION_BOUND;
+            bool judge_turning = ((Dis[neighborAddress] - last_Dis[neighborAddress]) >= 0) ^ turning_state[neighborAddress];
 
             // update
-            turning_state[neighborAddress] = (DSR[neighborAddress] - last_DSR[neighborAddress]) >= 0;
+            turning_state[neighborAddress] = (Dis[neighborAddress] - last_Dis[neighborAddress]) >= 0;
             last_SeqGap[neighborAddress] = seqGap;
-            last_DSR[neighborAddress] = DSR[neighborAddress];
-            his_avg_DSR[neighborAddress] = (his_avg_DSR[neighborAddress] + DSR[neighborAddress]) / 2;
+            last_Dis[neighborAddress] = Dis[neighborAddress];
+            his_avg_Dis[neighborAddress] = (his_avg_Dis[neighborAddress] + Dis[neighborAddress]) / 2;
             last_Seq[neighborAddress] = rangingMessage->header.msgSequence;
 
             if(compensateRate != NULL_RATE) {
-                double CDSR = DSR[neighborAddress] + compensateDis * compensateRate;
+                double CDSR = Dis[neighborAddress] + compensateDis[neighborAddress] * compensateRate;
+                compensateRate = NULL_RATE;
                 if(seqGap > SEQGAP_THRESHOLD) {
                     if(seqGap > UINT16_MAX / 2) {
                         last_SeqGap[neighborAddress] = 0;
                     }
-                    DEBUG_PRINT("[local_%u <- neighbor_%u]: %s dist = %f", MY_UWB_ADDRESS, neighborAddress, RANGING_MODE, (double)DSR[neighborAddress]);
+                    compensated[neighborAddress] = false;
+                    DEBUG_PRINT("[local_%u <- neighbor_%u]: %s dist = %f", MY_UWB_ADDRESS, neighborAddress, RANGING_MODE, (double)Dis[neighborAddress]);
                 }
                 else if(judge_static) {
-                    DEBUG_PRINT("[local_%u <- neighbor_%u]: %s dist = %f", MY_UWB_ADDRESS, neighborAddress, RANGING_MODE, (double)DSR[neighborAddress]);
+                    compensated[neighborAddress] = false;
+                    DEBUG_PRINT("[local_%u <- neighbor_%u]: %s dist = %f", MY_UWB_ADDRESS, neighborAddress, RANGING_MODE, (double)Dis[neighborAddress]);
                 }
                 else if(judge_deceleration || judge_turning) {
-                    DEBUG_PRINT("[local_%u <- neighbor_%u]: %s dist = %f", MY_UWB_ADDRESS, neighborAddress, RANGING_MODE, (double)DSR[neighborAddress]);
+                    compensated[neighborAddress] = false;
+                    DEBUG_PRINT("[local_%u <- neighbor_%u]: %s dist = %f", MY_UWB_ADDRESS, neighborAddress, RANGING_MODE, (double)Dis[neighborAddress]);
                 }
                 else {
+                    compensated[neighborAddress] = true;
                     DEBUG_PRINT("[local_%u <- neighbor_%u]: %s dist = %f", MY_UWB_ADDRESS, neighborAddress, RANGING_MODE, CDSR);
                 }
             }
+            else {
+                compensated[neighborAddress] = false;
+            }
         }
     #else
-        DEBUG_PRINT("[local_%u <- neighbor_%u]: %s dist = %f", MY_UWB_ADDRESS, neighborAddress, RANGING_MODE, (double)DSR[neighborAddress]);
+        DEBUG_PRINT("[local_%u <- neighbor_%u]: %s dist = %f", MY_UWB_ADDRESS, neighborAddress, RANGING_MODE, (double)Dis[neighborAddress]);
     #endif
 
     #ifdef COORDINATE_SEND_ENABLE
@@ -1708,6 +1690,27 @@ void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
     rangingTableSet->rangingTable[neighborIndex].expirationSign = false;
 
     // printRangingTableSet(rangingTableSet);
+}
+
+double getCurDistance(uint16_t neighborAddress, uint64_t Rx) {
+    index_t neighborIndex = findRangingTable(rangingTableSet, neighborAddress);
+
+    if(neighborIndex == NULL_INDEX) {
+        ASSERT(0 && "[getCurDistance]: Should not be called\n");
+    }
+
+    Ranging_Table_t rangingTable = rangingTableSet->rangingTable[neighborIndex];
+
+    uint64_t diffRxRr = (Rx - ONCE_Rr[neighborAddress] + UWB_MAX_TIMESTAMP) % UWB_MAX_TIMESTAMP;
+    uint64_t diffTfRr = (ONCE_Tf[neighborAddress] - ONCE_Rr[neighborAddress] + UWB_MAX_TIMESTAMP) % UWB_MAX_TIMESTAMP;
+    compensateRate = (double)(diffRxRr - diffTfRr / 2.0) / (double)diffRxRr;
+
+    double CDSR = last_Dis[neighborAddress] + compensateDis[neighborAddress] * compensateRate;
+    
+    if(compensated[neighborAddress] == false) {
+        return last_Dis[neighborAddress];
+    }
+    return CDSR;
 }
 
 
@@ -1832,36 +1835,36 @@ void rangingInit() {
 
 #ifdef  CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE
 LOG_GROUP_START(Ranging)
-LOG_ADD(LOG_INT16, distTo00, DSR + 0)
-LOG_ADD(LOG_INT16, distTo01, DSR + 1)
-LOG_ADD(LOG_INT16, distTo02, DSR + 2)
-LOG_ADD(LOG_INT16, distTo03, DSR + 3)
-LOG_ADD(LOG_INT16, distTo04, DSR + 4)
-LOG_ADD(LOG_INT16, distTo05, DSR + 5)
-LOG_ADD(LOG_INT16, distTo06, DSR + 6)
-LOG_ADD(LOG_INT16, distTo07, DSR + 7)
-LOG_ADD(LOG_INT16, distTo08, DSR + 8)
-LOG_ADD(LOG_INT16, distTo09, DSR + 9)
-LOG_ADD(LOG_INT16, distTo10, DSR + 10)
-LOG_ADD(LOG_INT16, distTo11, DSR + 11)
-LOG_ADD(LOG_INT16, distTo12, DSR + 12)
-LOG_ADD(LOG_INT16, distTo13, DSR + 13)
-LOG_ADD(LOG_INT16, distTo14, DSR + 14)
-LOG_ADD(LOG_INT16, distTo15, DSR + 15)
-LOG_ADD(LOG_INT16, distTo16, DSR + 16)
-LOG_ADD(LOG_INT16, distTo17, DSR + 17)
-LOG_ADD(LOG_INT16, distTo18, DSR + 18)
-LOG_ADD(LOG_INT16, distTo19, DSR + 19)
-LOG_ADD(LOG_INT16, distTo20, DSR + 20)
-LOG_ADD(LOG_INT16, distTo21, DSR + 21)
-LOG_ADD(LOG_INT16, distTo22, DSR + 22)
-LOG_ADD(LOG_INT16, distTo23, DSR + 23)
-LOG_ADD(LOG_INT16, distTo24, DSR + 24)
-LOG_ADD(LOG_INT16, distTo25, DSR + 25)
-LOG_ADD(LOG_INT16, distTo26, DSR + 26)
-LOG_ADD(LOG_INT16, distTo27, DSR + 27)
-LOG_ADD(LOG_INT16, distTo28, DSR + 28)
-LOG_ADD(LOG_INT16, distTo29, DSR + 29)
+LOG_ADD(LOG_INT16, distTo00, Dis + 0)
+LOG_ADD(LOG_INT16, distTo01, Dis + 1)
+LOG_ADD(LOG_INT16, distTo02, Dis + 2)
+LOG_ADD(LOG_INT16, distTo03, Dis + 3)
+LOG_ADD(LOG_INT16, distTo04, Dis + 4)
+LOG_ADD(LOG_INT16, distTo05, Dis + 5)
+LOG_ADD(LOG_INT16, distTo06, Dis + 6)
+LOG_ADD(LOG_INT16, distTo07, Dis + 7)
+LOG_ADD(LOG_INT16, distTo08, Dis + 8)
+LOG_ADD(LOG_INT16, distTo09, Dis + 9)
+LOG_ADD(LOG_INT16, distTo10, Dis + 10)
+LOG_ADD(LOG_INT16, distTo11, Dis + 11)
+LOG_ADD(LOG_INT16, distTo12, Dis + 12)
+LOG_ADD(LOG_INT16, distTo13, Dis + 13)
+LOG_ADD(LOG_INT16, distTo14, Dis + 14)
+LOG_ADD(LOG_INT16, distTo15, Dis + 15)
+LOG_ADD(LOG_INT16, distTo16, Dis + 16)
+LOG_ADD(LOG_INT16, distTo17, Dis + 17)
+LOG_ADD(LOG_INT16, distTo18, Dis + 18)
+LOG_ADD(LOG_INT16, distTo19, Dis + 19)
+LOG_ADD(LOG_INT16, distTo20, Dis + 20)
+LOG_ADD(LOG_INT16, distTo21, Dis + 21)
+LOG_ADD(LOG_INT16, distTo22, Dis + 22)
+LOG_ADD(LOG_INT16, distTo23, Dis + 23)
+LOG_ADD(LOG_INT16, distTo24, Dis + 24)
+LOG_ADD(LOG_INT16, distTo25, Dis + 25)
+LOG_ADD(LOG_INT16, distTo26, Dis + 26)
+LOG_ADD(LOG_INT16, distTo27, Dis + 27)
+LOG_ADD(LOG_INT16, distTo28, Dis + 28)
+LOG_ADD(LOG_INT16, distTo29, Dis + 29)
 LOG_GROUP_STOP(Ranging)
 #endif
 #endif
