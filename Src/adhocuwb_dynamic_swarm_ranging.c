@@ -1524,7 +1524,7 @@ void generateDSRMessage(Ranging_Message_t *rangingMessage) {
         checkExpirationCallback(rangingTableSet);
     }
 
-    // DEBUG_PRINT("[generate]\n");
+     DEBUG_PRINT("[generate]\n");
     // printRangingMessage(rangingMessage);
 }
 
