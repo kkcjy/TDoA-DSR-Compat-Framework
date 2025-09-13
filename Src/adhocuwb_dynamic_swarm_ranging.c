@@ -1666,7 +1666,6 @@ void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
 
             if(compensateRate != NULL_RATE) {
                 double CDSR = Dis[neighborAddress] + compensateDis[neighborAddress] * compensateRate;
-                compensateRate = NULL_RATE;
                 if(seqGap > SEQGAP_THRESHOLD) {
                     if(seqGap > UINT16_MAX / 2) {
                         last_SeqGap[neighborAddress] = 0;
