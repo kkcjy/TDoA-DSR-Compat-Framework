@@ -299,6 +299,19 @@ void deregisterRangingTable(Ranging_Table_Set_t *rangingTableSet, uint16_t addre
     rangingTableSet->priorityQueue[rangingTableSet->size - 1] = NULL_INDEX;
     rangingTableSet->size--;
 
+    #ifdef COMPENSATE_ENABLE
+        last_Dis[address] = NULL_DIS;
+        his_avg_Dis[address] = NULL_DIS;
+        compensateDis[address] = NULL_DIS;
+        last_Seq[address] = NULL_SEQ;
+        last_SeqGap[address] = NULL_SEQ;
+        turning_state[address] = false;
+        compensateRate = NULL_RATE;
+        ONCE_Rr[address] = NULL_TIMESTAMP;
+        ONCE_Tf[address] = NULL_TIMESTAMP;
+        compensated[address] = false;
+    #endif
+
     DEBUG_PRINT("Deregister ranging table entry: Address = %u\n", address);
 }
 

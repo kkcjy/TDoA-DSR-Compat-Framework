@@ -312,5 +312,6 @@ typedef void (*EventHandlerTable)(Ranging_Table_t*);
 /* -------------------- Generate and Process -------------------- */
 void generateDSRMessage(Ranging_Message_t *rangingMessage);
 void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWithAdditionalInfo);
+double getCurDistance(uint16_t neighborAddress, uint64_t Rx);
 
 #endif
