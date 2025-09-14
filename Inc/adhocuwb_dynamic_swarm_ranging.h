@@ -33,7 +33,7 @@
 #define         OPTIMAL_RANGING_SCHEDULE_ENABLE
 
 /* Ranging Constants */
-#define         RANGING_PERIOD              50
+#define         RANGING_PERIOD              200
 #define         RANGING_PERIOD_MIN          50
 #define         RANGING_PERIOD_MAX          500
 

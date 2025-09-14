@@ -4,8 +4,12 @@
 #include <stdio.h>
 
 #include "adhocuwb_init.h"
-#include "adhocuwb_swarm_ranging.h"
 #include "adhocuwb_sniffer.h"
+#if defined(IEEE_802_15_4Z) || defined(SWARM_RANGING_V1) || defined(SWARM_RANGING_V2)
+#include "adhocuwb_swarm_ranging.h"
+#elif defined(DYNAMIC_RANGING_MODE) || defined(COMPENSATE_DYNAMIC_RANGING_MODE)
+#include "adhocuwb_dynamic_swarm_ranging.h"
+#endif
 
 #ifdef CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE
   //
