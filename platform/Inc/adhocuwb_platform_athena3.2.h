@@ -2,6 +2,7 @@
 #define __ADHOCUWB_PLATFORM_ATHENA32_H__
 
 #include <assert.h>
+#include <cmsis_os.h>
 
 #include "FreeRTOS.h"
 #include "queue.h"
@@ -11,8 +12,8 @@
 
 #include "dwTypes.h"
 #include "libdw3000.h"
-#include "dw3000_cbll.h"
 
+#define DEBUG_PRINT printf
 #define NO_DMA_CCM_SAFE_ZERO_INIT static
 #define adhocuwb_readtxtimestamp dwt_readtxtimestamp
 #define ASSERT assert
@@ -27,11 +28,26 @@
 #define ADHOC_UWB_RANGING_RX_TASK_NAME "uwbRangingRxTask"
 #define ADHOC_UWB_TASK_PRI osPriorityNormal
 
+/* 涉及到DW3000模组选择模式，参考如下文档：
+ * 1. https://seunetsi.feishu.cn/docx/Nlu9d3ndgoFnPixKRMTcsR1Yn7b , Drive DW3000 for Atherna
+ * 2. https://seunetsi.feishu.cn/wiki/wikcnB0VX2BpLy8xW6eOoYOuDih , DWM3000 驱动实现
+ */
+
+//#define IEEE_802_15_4Z
+//#define SWARM_RANGING_V1
+//#define SWARM_RANGING_V2
+//#define DYNAMIC_RANGING_MODE
+#define COMPENSATE_DYNAMIC_RANGING_MODE
+
+//#define CONFIG_ADHOCDECK_USE_UART1_PINS
+//#define CONFIG_ADHOCDECK_USE_UART2_PINS
+#define CONFIG_ADHOCDECK_USE_ALT_PINS
+// TODO: rename ADHOCUWBH7 to ADW3KH7C for H7 and DW3000 in the same PCB
+
 void adhocuwb_get_velocity_init();
 void adhocuwb_get_velocity(float* velocityX, float* velocityY, float* velocityZ);
 
-BaseType_t adhocuwb_xQueueSendFromISR(
-    QueueHandle_t xQueue,
-    const void * pvItemToQueue);
+void adhocuwb_vTaskNotifyGiveFromISR(TaskHandle_t taskHandle);
+BaseType_t adhocuwb_xQueueSendFromISR( QueueHandle_t xQueue, const void * pvItemToQueue);
 
 #endif

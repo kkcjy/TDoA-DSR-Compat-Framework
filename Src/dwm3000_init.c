@@ -19,7 +19,7 @@
 #include "adhocuwb_platform.h"
 #include "adhocuwb_init.h"
 
-#ifdef CONFIG_ADHOCUWB_PLATFORM_ADHOCUWBH7
+#if defined(CONFIG_ADHOCUWB_PLATFORM_ADHOCUWBH7) || defined(CONFIG_ADHOCUWB_PLATFORM_ATHENA)
   #include "main.h"
   static uint16_t MY_UWB_ADDRESS;
   #define DEBUG_PRINT printf
@@ -28,6 +28,9 @@
 #ifdef CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE
   #include "deck.h"
   #include "param.h"
+#endif
+
+#if defined(CONFIG_ADHOCUWB_PLATFORM_ADHOCUWBH7) || defined(CONFIG_ADHOCUWB_PLATFORM_ATHENA)
   static uint16_t MY_UWB_ADDRESS;
   static bool isInit = false;
   static TaskHandle_t uwbISRTaskHandle = 0;

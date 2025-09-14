@@ -13,7 +13,7 @@
 #include "dwm3000_init.h"
 #endif
 
-#ifdef CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE
+#if defined(CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE) || defined(CONFIG_ADHOCUWB_PLATFORM_ATHENA)
   #include "FreeRTOS.h"
   #include "queue.h"
   #include "semphr.h"
