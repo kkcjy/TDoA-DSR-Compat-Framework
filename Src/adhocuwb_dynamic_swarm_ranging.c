@@ -1,6 +1,6 @@
 #include "adhocuwb_dynamic_swarm_ranging.h"
 
-#if !defined(DYNAMIC_RANGING_MODE) && !defined(COMPENSATE_DYNAMIC_RANGING_MODE)
+#if !defined(DYNAMIC_RANGING) && !defined(COMPENSATE_DYNAMIC_RANGING)
 #ifndef SIMULATION_COMPILE
 #include "FreeRTOS.h"
 #include "queue.h"
@@ -32,28 +32,29 @@ static TaskHandle_t uwbRangingTxTaskHandle = 0;
 static TaskHandle_t uwbRangingRxTaskHandle = 0;
 #endif
 
-int16_t dis_Real[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = NULL_DIS};
-int16_t Dis[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = NULL_DIS};
+static int16_t dis_Real[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = NULL_DIS};
+static int16_t Dis[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = NULL_DIS};
+static int16_t last_Dis[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = NULL_DIS};
 
 #ifdef COMPENSATE_ENABLE
-static int16_t last_Dis[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = NULL_DIS};
+// used for compensation
 static int16_t his_avg_Dis[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = NULL_DIS};
-static double compensateDis[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = NULL_DIS};
+static double compensate_Dis[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = NULL_DIS};
 static int16_t last_Seq[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = NULL_SEQ};
 static int16_t last_SeqGap[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = NULL_SEQ};
 static bool turning_state[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = false};
-static double compensateRate = NULL_RATE;
+static double compensation_factor = NULL_RATE;
+// used for getting current distance
 static uint64_t ONCE_Rr[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = NULL_TIMESTAMP};
 static uint64_t ONCE_Tf[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = NULL_TIMESTAMP};
+static uint64_t ONCE_Re[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = NULL_TIMESTAMP};
 static bool compensated[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = false};
 #endif
 
-#if defined(DYNAMIC_RANGING_MODE)
+#if defined(DYNAMIC_RANGING)
 #define     RANGING_MODE            "DSR"
-#elif defined(COMPENSATE_DYNAMIC_RANGING_MODE)
+#elif defined(COMPENSATE_DYNAMIC_RANGING)
 #define     RANGING_MODE            "CDSR"
-#else
-#define     RANGING_MODE            "DSR"
 #endif
 
 #ifdef OPTIMAL_RANGING_SCHEDULE_ENABLE
@@ -302,14 +303,14 @@ void deregisterRangingTable(Ranging_Table_Set_t *rangingTableSet, uint16_t addre
     #ifdef COMPENSATE_ENABLE
         last_Dis[address] = NULL_DIS;
         his_avg_Dis[address] = NULL_DIS;
-        compensateDis[address] = NULL_DIS;
+        compensate_Dis[address] = NULL_DIS;
         last_Seq[address] = NULL_SEQ;
         last_SeqGap[address] = NULL_SEQ;
         turning_state[address] = false;
-        compensateRate = NULL_RATE;
+        compensation_factor = NULL_RATE;
         ONCE_Rr[address] = NULL_TIMESTAMP;
         ONCE_Tf[address] = NULL_TIMESTAMP;
-        compensated[address] = false;
+        ONCE_Re[address] = NULL_TIMESTAMP;
     #endif
 
     DEBUG_PRINT("Deregister ranging table entry: Address = %u\n", address);
@@ -591,7 +592,7 @@ float calculatePToF(Ranging_Table_t *rangingTable, Ranging_Table_Tr_Rr_Candidate
     // check completeness
     if(Tr.seqNumber == NULL_SEQ || Rr.seqNumber == NULL_SEQ || Tf.seqNumber == NULL_SEQ || Rf.seqNumber == NULL_SEQ) {
         #ifdef COMPENSATE_ENABLE
-            compensateRate = NULL_RATE;
+            compensation_factor = NULL_RATE;
         #endif
 
         /* type1
@@ -681,14 +682,15 @@ float calculatePToF(Ranging_Table_t *rangingTable, Ranging_Table_Tr_Rr_Candidate
             #ifdef COMPENSATE_ENABLE
                 ONCE_Rr[rangingTable->neighborAddress] = Rr.timestamp.full;
                 ONCE_Tf[rangingTable->neighborAddress] = Tf.timestamp.full;
+                ONCE_Re[rangingTable->neighborAddress] = Re.timestamp.full;
                 uint64_t diffReRr = (Re.timestamp.full - Rr.timestamp.full + UWB_MAX_TIMESTAMP) % UWB_MAX_TIMESTAMP;
                 uint64_t diffTfRr = (Tf.timestamp.full - Rr.timestamp.full + UWB_MAX_TIMESTAMP) % UWB_MAX_TIMESTAMP;
-                compensateRate = (double)(diffReRr - diffTfRr / 2.0) / (double)diffReRr;
+                compensation_factor = (double)(diffReRr - diffTfRr / 2.0) / (double)diffReRr;
                 #endif
         }
         else {
             #ifdef COMPENSATE_ENABLE
-                compensateRate = NULL_RATE;
+                compensation_factor = NULL_RATE;
             #endif
             return rangingTable->PToF;
         }
@@ -1613,16 +1615,14 @@ void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
         RangingTableEventHandler(rangingTable, RANGING_EVENT_RX_NO);
     }
 
-    /*  即使对于 dynamic swarm ranging(以下用 Dis 简称), 计算出的距离值仍然会存在一定的滞后性。
-        定义: ranging_i 为一次报文发送接收的动作, ToF_i 为该次报文传输所用的时间, Dis_i 为该次报文传输时双方的距离, Ti 和 Ri 为发送接收时间戳的时间。
-
+    /*  
             A   ···      Rp   <--Db-->   Tr      <--Rb-->      Rf
 
             B   ···   Tp      <--Ra-->      Rr   <--Da-->   Tf                    Re
 
                 #       *                  *                  *                  *
                     Ranging_p          Ranging_r          Ranging_f          Ranging_e
-                                          [SR]     [Dis]                        [CDSR]
+                                          [SR]     [Dis]                       [CDSR]
 
         禁用场景:
         1. 连续丢包场景下, 历史计算值的参考性对于当下结果借鉴性不大, 为避免可能引入的额外误差
@@ -1646,11 +1646,11 @@ void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
             DEBUG_PRINT("[local_%u <- neighbor_%u]: %s dist = %f", MY_UWB_ADDRESS, neighborAddress, RANGING_MODE, (double)Dis[neighborAddress]);
         }
         else {
-            // calculate compensateDis
+            // calculate compensate_Dis
             uint16_t seqGap = rangingMessage->header.msgSequence - last_Seq[neighborAddress];
             uint16_t total_SeqGap = seqGap + last_SeqGap[neighborAddress];
-            double delta_DSR = Dis[neighborAddress] - last_Dis[neighborAddress];
-            compensateDis[neighborAddress] = ((double)seqGap / total_SeqGap) * (2 * delta_DSR);
+            double delta_Dis = Dis[neighborAddress] - last_Dis[neighborAddress];
+            compensate_Dis[neighborAddress] = ((double)seqGap / total_SeqGap) * (2 * delta_Dis);
 
             // judge
             bool judge_static = abs(Dis[neighborAddress] - his_avg_Dis[neighborAddress]) < STATIC_BOUND;
@@ -1664,8 +1664,8 @@ void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
             his_avg_Dis[neighborAddress] = (his_avg_Dis[neighborAddress] + Dis[neighborAddress]) / 2;
             last_Seq[neighborAddress] = rangingMessage->header.msgSequence;
 
-            if(compensateRate != NULL_RATE) {
-                double CDSR = Dis[neighborAddress] + compensateDis[neighborAddress] * compensateRate;
+            if(compensation_factor != NULL_RATE) {
+                double CDSR = (double)Dis[neighborAddress] + compensate_Dis[neighborAddress] * compensation_factor;
                 if(seqGap > SEQGAP_THRESHOLD) {
                     if(seqGap > UINT16_MAX / 2) {
                         last_SeqGap[neighborAddress] = 0;
@@ -1685,12 +1685,14 @@ void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
                     compensated[neighborAddress] = true;
                     DEBUG_PRINT("[local_%u <- neighbor_%u]: %s dist = %f", MY_UWB_ADDRESS, neighborAddress, RANGING_MODE, CDSR);
                 }
+                compensation_factor = NULL_RATE;
             }
             else {
                 compensated[neighborAddress] = false;
             }
         }
     #else
+        last_Dis[neighborAddress] = Dis[neighborAddress];
         DEBUG_PRINT("[local_%u <- neighbor_%u]: %s dist = %f", MY_UWB_ADDRESS, neighborAddress, RANGING_MODE, (double)Dis[neighborAddress]);
     #endif
 
@@ -1705,24 +1707,33 @@ void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
 }
 
 double getCurDistance(uint16_t neighborAddress, uint64_t Rx) {
-    index_t neighborIndex = findRangingTable(rangingTableSet, neighborAddress);
+    #ifdef COMPENSATE_ENABLE
+        if(compensated[neighborAddress] == false) {
+            return (double)last_Dis[neighborAddress];
+        }
+        if(compensate_Dis[neighborAddress] == NULL_DIS) {
+            return (double)last_Dis[neighborAddress];
+        }
+        if(Rx == NULL_TIMESTAMP) {
+            return (double)last_Dis[neighborAddress];
+        }
+        index_t neighborIndex = findRangingTable(rangingTableSet, neighborAddress);
 
-    if(neighborIndex == NULL_INDEX) {
-        ASSERT(0 && "[getCurDistance]: Should not be called\n");
-    }
+        if(neighborIndex == NULL_INDEX) {
+            ASSERT(0 && "[getCurDistance]: Should not be called\n");
+        }
 
-    Ranging_Table_t rangingTable = rangingTableSet->rangingTable[neighborIndex];
+        Ranging_Table_t rangingTable = rangingTableSet->rangingTable[neighborIndex];
 
-    uint64_t diffRxRr = (Rx - ONCE_Rr[neighborAddress] + UWB_MAX_TIMESTAMP) % UWB_MAX_TIMESTAMP;
-    uint64_t diffTfRr = (ONCE_Tf[neighborAddress] - ONCE_Rr[neighborAddress] + UWB_MAX_TIMESTAMP) % UWB_MAX_TIMESTAMP;
-    compensateRate = (double)(diffRxRr - diffTfRr / 2.0) / (double)diffRxRr;
+        uint64_t diffRxRr = (Rx - ONCE_Rr[neighborAddress] + UWB_MAX_TIMESTAMP) % UWB_MAX_TIMESTAMP;
+        uint64_t diffReRr = (ONCE_Re[neighborAddress] - ONCE_Rr[neighborAddress] + UWB_MAX_TIMESTAMP) % UWB_MAX_TIMESTAMP;
+        uint64_t diffTfRr = (ONCE_Tf[neighborAddress] - ONCE_Rr[neighborAddress] + UWB_MAX_TIMESTAMP) % UWB_MAX_TIMESTAMP;
+        compensation_factor = (double)(diffRxRr - diffTfRr / 2.0) / (double)diffReRr;
 
-    double CDSR = last_Dis[neighborAddress] + compensateDis[neighborAddress] * compensateRate;
-    
-    if(compensated[neighborAddress] == false) {
-        return last_Dis[neighborAddress];
-    }
-    return CDSR;
+        return (double)last_Dis[neighborAddress] + (double)compensate_Dis[neighborAddress] * compensation_factor;
+    #else
+        return (double)last_Dis[neighborAddress];
+    #endif
 }
 
 
