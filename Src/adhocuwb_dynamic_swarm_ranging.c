@@ -19,6 +19,11 @@
 #endif
 #endif
 
+/*
+OPTIMAL_RANGING_SCHEDULE_ENABLE     -> Enable Midpoint_Adjustment to ensure equal message-sending intervals among drones within the swarm
+COMPENSATE_ENABLE                   -> Perform compensation after each received packet calculation
+getCurDistance                      -> Obtain the real-time distance at any moment based on compensation
+*/
 
 static uint16_t MY_UWB_ADDRESS;
 Ranging_Table_Set_t *rangingTableSet;
@@ -1526,7 +1531,7 @@ void generateDSRMessage(Ranging_Message_t *rangingMessage) {
         checkExpirationCallback(rangingTableSet);
     }
 
-     DEBUG_PRINT("[generate]\n");
+    // DEBUG_PRINT("[generate]\n");
     // printRangingMessage(rangingMessage);
 }
 
