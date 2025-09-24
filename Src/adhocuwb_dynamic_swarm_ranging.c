@@ -316,6 +316,7 @@ void deregisterRangingTable(Ranging_Table_Set_t *rangingTableSet, uint16_t addre
         ONCE_Rr[address] = NULL_TIMESTAMP;
         ONCE_Tf[address] = NULL_TIMESTAMP;
         ONCE_Re[address] = NULL_TIMESTAMP;
+        compensated[address] = false;
     #endif
 
     DEBUG_PRINT("Deregister ranging table entry: Address = %u\n", address);
@@ -690,8 +691,13 @@ float calculatePToF(Ranging_Table_t *rangingTable, Ranging_Table_Tr_Rr_Candidate
                 ONCE_Re[rangingTable->neighborAddress] = Re.timestamp.full;
                 uint64_t diffReRr = (Re.timestamp.full - Rr.timestamp.full + UWB_MAX_TIMESTAMP) % UWB_MAX_TIMESTAMP;
                 uint64_t diffTfRr = (Tf.timestamp.full - Rr.timestamp.full + UWB_MAX_TIMESTAMP) % UWB_MAX_TIMESTAMP;
-                compensation_factor = (double)(diffReRr - diffTfRr / 2.0) / (double)diffReRr;
-                #endif
+                if(Rr.timestamp.full > Tf.timestamp.full || Tf.timestamp.full > Re.timestamp.full) {
+                    compensation_factor = NULL_RATE;
+                }
+                else {
+                    compensation_factor = (double)(diffReRr - diffTfRr / 2.0) / (double)diffReRr;
+                }
+            #endif
         }
         else {
             #ifdef COMPENSATE_ENABLE
@@ -1693,6 +1699,7 @@ void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
                 compensation_factor = NULL_RATE;
             }
             else {
+                DEBUG_PRINT("[local_%u <- neighbor_%u]: %s dist = %f", MY_UWB_ADDRESS, neighborAddress, RANGING_MODE, (double)Dis[neighborAddress]);
                 compensated[neighborAddress] = false;
             }
         }
