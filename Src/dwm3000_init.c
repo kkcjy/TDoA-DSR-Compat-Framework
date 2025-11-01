@@ -19,6 +19,9 @@
 #include "adhocuwb_platform.h"
 #include "adhocuwb_init.h"
 
+// 定义用于存储 UWB 地址的 FLASH 内存地址
+#define UWB_ADDRESS_FLASH_ADDR 0x081FFFF0
+
 #if defined(CONFIG_ADHOCUWB_PLATFORM_ADHOCUWBH7) || defined(CONFIG_ADHOCUWB_PLATFORM_ATHENA)
   #include "main.h"
   static uint16_t MY_UWB_ADDRESS;
@@ -317,11 +320,31 @@ int dw3000_init()
 
   uwbIrqSemaphore = xSemaphoreCreateMutex();
 
+  MY_UWB_ADDRESS = uwbGetAddress();
+  DEBUG_PRINT("My UWB Address in dwm3000_init: 0x%04X\r\n", MY_UWB_ADDRESS);
+
   return DWT_SUCCESS;
 }
 
-uint16_t uwbGetAddress() {
-  return MY_UWB_ADDRESS;
+/**
+ * @brief 获取烧录在 FLASH 中的 UWB 设备唯一地址。
+ * @details
+ * 该函数会从宏 UWB_ADDRESS_FLASH_ADDR 定义的 FLASH 地址读取一个32位的值。
+ * 如果读取的值是 0xFFFFFFFF 或 0x00000000，
+ * 则返回一个默认地址 0。否则，返回该值的低16位作为设备地址。
+ * @date 2025-11-01
+ * @return uint16_t 返回16位的设备地址。
+ */
+uint16_t uwbGetAddress(void)
+{
+    uint32_t flash_value = *(volatile uint32_t*)UWB_ADDRESS_FLASH_ADDR;
+
+    if (flash_value == 0xFFFFFFFF || flash_value == 0x00000000)
+    {
+        return 0;
+    }
+
+    return (uint16_t)(flash_value & 0xFFFF);
 }
 
 void uwbISRTask(void *parameters) {
