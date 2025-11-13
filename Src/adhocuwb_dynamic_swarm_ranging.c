@@ -1,6 +1,5 @@
 #include "adhocuwb_dynamic_swarm_ranging.h"
 
-#if !defined(DYNAMIC_RANGING) && !defined(COMPENSATE_DYNAMIC_RANGING)
 #ifndef SIMULATION_COMPILE
 #include "FreeRTOS.h"
 #include "queue.h"
@@ -16,7 +15,6 @@
 
 #ifdef CONFIG_ADHOCUWB_PLATFORM_ADHOCUWBH7
 #include "uwb_send_print.h"
-#endif
 #endif
 
 /*
@@ -54,12 +52,6 @@ static uint64_t ONCE_Rr[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX
 static uint64_t ONCE_Tf[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = NULL_TIMESTAMP};
 static uint64_t ONCE_Re[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = NULL_TIMESTAMP};
 static bool compensated[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = false};
-#endif
-
-#if defined(DYNAMIC_RANGING)
-#define     RANGING_MODE            "DSR"
-#elif defined(COMPENSATE_DYNAMIC_RANGING)
-#define     RANGING_MODE            "CDSR"
 #endif
 
 #ifdef OPTIMAL_RANGING_SCHEDULE_ENABLE
@@ -1633,7 +1625,7 @@ void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
 
                 #       *                  *                  *                  *
                     Ranging_p          Ranging_r          Ranging_f          Ranging_e
-                                          [SR]     [Dis]                       [CDSR]
+                                          [SR]     [DSR]                       [CDSR]
 
         禁用场景:
         1. 连续丢包场景下, 历史计算值的参考性对于当下结果借鉴性不大, 为避免可能引入的额外误差

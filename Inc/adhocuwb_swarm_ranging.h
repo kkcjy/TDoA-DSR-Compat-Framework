@@ -42,10 +42,16 @@
 /* Ranging Struct Constants */
 #define     RANGING_MESSAGE_SIZE_MAX            UWB_PAYLOAD_SIZE_MAX
 #define     RANGING_MESSAGE_PAYLOAD_SIZE_MAX    (RANGING_MESSAGE_SIZE_MAX - sizeof(Ranging_Message_Header_t))
-#if defined(IEEE_802_15_4Z) || defined(SWARM_RANGING_V1)
-#define     RANGING_MAX_Tr_UNIT                 1
-#elif defined(SWARM_RANGING_V2)
-#define     RANGING_MAX_Tr_UNIT                 5
+// simulation mode
+#ifdef SIMULATION_COMPILE
+    #if defined(IEEE_802_15_4Z) || defined(SWARM_RANGING_V1)
+    #define     RANGING_MAX_Tr_UNIT                 1
+    #elif defined(SWARM_RANGING_V2)
+    #define     RANGING_MAX_Tr_UNIT                 5
+    #endif
+// crazyflie-firmware mode
+#else
+    #define     RANGING_MAX_Tr_UNIT                 5
 #endif
 #define     RANGING_MAX_BODY_UNIT               (RANGING_MESSAGE_PAYLOAD_SIZE_MAX / sizeof(Body_Unit_t))
 

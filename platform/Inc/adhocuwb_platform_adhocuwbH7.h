@@ -28,7 +28,6 @@
 #define ADHOC_UWB_RANGING_TX_TASK_NAME "uwbRangingTxTask"
 #define ADHOC_UWB_RANGING_RX_TASK_NAME "uwbRangingRxTask"
 #define ADHOC_UWB_TASK_PRI osPriorityNormal
-#define DYNAMIC_RANGING
 
 /* 涉及到DW3000模组选择模式，参考如下文档：
  * 1. https://seunetsi.feishu.cn/docx/Nlu9d3ndgoFnPixKRMTcsR1Yn7b , Drive DW3000 for Atherna

@@ -25,8 +25,14 @@
 
 /* -------------------- Define -------------------- */
 #define         CLASSIC_SUPPORT_ENABLE
-#ifdef COMPENSATE_DYNAMIC_RANGING
-#define COMPENSATE_ENABLE
+// simulation mode
+#ifdef SIMULATION_COMPILE
+    #ifdef COMPENSATE_DYNAMIC_RANGING
+    #define         COMPENSATE_ENABLE
+    #endif
+// crazyflie-firmware mode
+#else
+    #define         COMPENSATE_ENABLE
 #endif
 // #define         COORDINATE_SEND_ENABLE
 // #define         PACKET_LOSS_ENABLE
@@ -61,6 +67,11 @@
 #define         RANGING_RX_QUEUE_ITEM_SIZE  sizeof(Ranging_Message_With_Additional_Info_t)
 
 /* Else */
+#ifdef COMPENSATE_ENABLE
+    #define         RANGING_MODE                "CDSR"
+#else
+    #define         RANGING_MODE                "DSR"
+#endif
 #define         CHECK_PERIOD                15
 #define         CONVERGENCE_THRESHOLD       0.989f
 #define         NEIGHBOR_ADDRESS_MAX        32
