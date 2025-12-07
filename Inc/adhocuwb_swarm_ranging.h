@@ -13,7 +13,7 @@
 #include "dwTypes.h"
 #endif
 
-#if !defined(SNIFFER_COMPILE) && !defined(SIMULATION_COMPILE)
+#if !defined(SNIFFER_STORAGE_COMPILE) && !defined(SIMULATION_COMPILE)
 #include "adhocuwb_platform.h"
 #include "dwm3000_init.h"
 #endif
@@ -241,7 +241,7 @@ typedef struct {
     RANGING_TABLE_STATE state;
 } __attribute__((packed)) Ranging_Table_t;
 
-#ifndef SNIFFER_COMPILE
+#ifndef SNIFFER_STORAGE_COMPILE
 typedef struct {
     int size;
     SemaphoreHandle_t mu;

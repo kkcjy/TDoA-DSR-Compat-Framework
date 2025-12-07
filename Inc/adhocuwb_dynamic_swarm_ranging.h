@@ -10,14 +10,14 @@
 #include <stdio.h>
 #include <string.h>
 
-#if defined(SNIFFER_COMPILE) || defined(SIMULATION_COMPILE)
+#if defined(SNIFFER_STORAGE_COMPILE) || defined(SIMULATION_COMPILE)
 #include "../../support.h"
 #else
 #include "adhocuwb_init.h"
 #include "dwTypes.h"
 #endif
 
-#if !defined(SNIFFER_COMPILE) && !defined(SIMULATION_COMPILE)
+#if !defined(SNIFFER_STORAGE_COMPILE) && !defined(SIMULATION_COMPILE)
 #include "adhocuwb_platform.h"
 #include "dwm3000_init.h"
 #endif
@@ -250,7 +250,7 @@ typedef struct {
     Ranging_Table_t rangingTable[RANGING_TABLE_SIZE];
     Timestamp_Tuple_t lastRxtimestamp[RANGING_TABLE_SIZE];  // timestamps of last received messages from neighbors
     index_t priorityQueue[RANGING_TABLE_SIZE];              // circular priority queue used for choosing neighbors to send messages
-    #ifndef SNIFFER_COMPILE
+    #ifndef SNIFFER_STORAGE_COMPILE
     SemaphoreHandle_t mutex;
     #endif
 } __attribute__((packed)) Ranging_Table_Set_t;
