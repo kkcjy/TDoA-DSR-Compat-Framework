@@ -8,10 +8,8 @@
 // #define UWB_FLOODING_ENABLE
 // #define SNIFFER_ENABLE
 
-#ifndef SNIFFER_COMPILE
 #include "adhocuwb_platform.h"
 #include "dwm3000_init.h"
-#endif
 
 #if defined(CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE) || defined(CONFIG_ADHOCUWB_PLATFORM_ATHENA)
   #include "FreeRTOS.h"
@@ -71,7 +69,6 @@ typedef struct {
 
 typedef void (*UWBCallback)(void *);
 
-#ifndef SNIFFER_COMPILE
 typedef struct {
   UWB_MESSAGE_TYPE type;
   QueueHandle_t rxQueue;
@@ -89,6 +86,5 @@ int uwbReceivePacketBlock(UWB_MESSAGE_TYPE type, UWB_Packet_t *packet);
 int uwbReceivePacketWait(UWB_MESSAGE_TYPE type, UWB_Packet_t *packet, int wait);
 void uwbRegisterListener(UWB_Message_Listener_t *listener);
 void adhocuwbInit();
-#endif
 
 #endif

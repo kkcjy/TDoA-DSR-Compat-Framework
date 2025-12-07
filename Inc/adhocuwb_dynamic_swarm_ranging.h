@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#ifdef SIMULATION_COMPILE
+#if defined(SNIFFER_COMPILE) || defined(SIMULATION_COMPILE)
 #include "../../support.h"
 #else
 #include "adhocuwb_init.h"
