@@ -31,9 +31,11 @@
 #ifdef CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE
   #include "deck.h"
   #include "param.h"
+  static TaskHandle_t uwbISRTaskHandle =  0;
+  static SemaphoreHandle_t uwbIrqSemaphore;
 #endif
 
-#if defined(CONFIG_ADHOCUWB_PLATFORM_ADHOCUWBH7) || defined(CONFIG_ADHOCUWB_PLATFORM_ATHENA)
+#if defined(CONFIG_ADHOCUWB_PLATFORM_CRAZYFLIE) || defined(CONFIG_ADHOCUWB_PLATFORM_ADHOCUWBH7) || defined(CONFIG_ADHOCUWB_PLATFORM_ATHENA)
   static uint16_t MY_UWB_ADDRESS;
   static bool isInit = false;
 #endif
