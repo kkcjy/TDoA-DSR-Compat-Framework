@@ -34,14 +34,18 @@
     #define DEBUG_PRINT
 #endif
 
-#if defined(IEEE_802_15_4Z)
-#define     RANGING_MODE            "IEEE"
-#elif defined(SWARM_RANGING_V1)
-#define     RANGING_MODE            "SR_V1"
-#elif defined(SWARM_RANGING_V2)
-#define     RANGING_MODE            "SR_V2"
+// simulation mode
+#ifdef SIMULATION_COMPILE
+    #if defined(IEEE_802_15_4Z)
+    #define     RANGING_MODE            "IEEE"
+    #elif defined(SWARM_RANGING_V1)
+    #define     RANGING_MODE            "SR_V1"
+    #elif defined(SWARM_RANGING_V2)
+    #define     RANGING_MODE            "SR_V2"
+    #endif
+// crazyflie-firmware mode
 #else
-#define     RANGING_MODE            "SR"
+    #define     RANGING_MODE            "SR"
 #endif
 
 #define     MIN(a, b)               ((a) < (b) ? (a) : (b))
@@ -1269,7 +1273,7 @@ static void S3_Tf(Ranging_Table_t *rangingTable) {
 }
 
 static void S3_RX_NO_Rf(Ranging_Table_t *rangingTable) {
-    #ifdef SWARM_RANGING_V2
+    #if !defined(SIMULATION_COMPILE) || defined(SWARM_RANGING_V2)
         Ranging_Table_Tr_Rr_Candidate_t Tr_Rr_Candidate = rangingTableBufferGetLatest(&rangingTable->TrRrBuffer);
         int16_t distance = computeDistance2(rangingTable->TxRxHistory.Tx, rangingTable->TxRxHistory.Rx,
                                             rangingTable->Tp, rangingTable->Rp,
@@ -1303,7 +1307,7 @@ static void S3_RX_NO_Rf(Ranging_Table_t *rangingTable) {
 }
 
 static void S3_RX_Rf(Ranging_Table_t *rangingTable) {
-    #ifdef SWARM_RANGING_V2
+    #if !defined(SIMULATION_COMPILE) || defined(SWARM_RANGING_V2)
         Ranging_Table_Tr_Rr_Candidate_t Tr_Rr_Candidate = rangingTableBufferGetLatest(&rangingTable->TrRrBuffer);
         int16_t distance = computeDistance2(rangingTable->TxRxHistory.Tx, rangingTable->TxRxHistory.Rx,
                                             rangingTable->Tp, rangingTable->Rp,
@@ -1344,7 +1348,7 @@ static void S4_Tf(Ranging_Table_t *rangingTable) {
 }
 
 static void S4_RX_NO_Rf(Ranging_Table_t *rangingTable) {
-    #ifdef SWARM_RANGING_V2
+    #if !defined(SIMULATION_COMPILE) || defined(SWARM_RANGING_V2)
         /*use history tx,rx to compute distance*/
         Ranging_Table_Tr_Rr_Candidate_t Tr_Rr_Candidate = rangingTableBufferGetLatest(&rangingTable->TrRrBuffer);
         int16_t distance = computeDistance2(rangingTable->TxRxHistory.Tx, rangingTable->TxRxHistory.Rx,
@@ -1416,12 +1420,21 @@ static void S4_RX_Rf(Ranging_Table_t *rangingTable) {
     * Tp <- Tf  Rr <- Re
     */
     Timestamp_Tuple_t empty = {.timestamp.full = 0, .seqNumber = 0};
-    #if defined(IEEE_802_15_4Z) 
-        rangingTable->Rp = empty;
-        rangingTable->Tp = empty;
-        rangingTable->TrRrBuffer.candidates[rangingTable->TrRrBuffer.cur].Rr = empty;
-        rangingTable->state = RANGING_STATE_S1;
-    #elif defined(SWARM_RANGING_V1) || defined(SWARM_RANGING_V2)
+    // simulation mode
+    #ifdef SIMULATION_COMPILE
+        #if defined(IEEE_802_15_4Z) 
+            rangingTable->Rp = empty;
+            rangingTable->Tp = empty;
+            rangingTable->TrRrBuffer.candidates[rangingTable->TrRrBuffer.cur].Rr = empty;
+            rangingTable->state = RANGING_STATE_S1;
+        #elif defined(SWARM_RANGING_V1) || defined(SWARM_RANGING_V2)
+            rangingTable->Rp = rangingTable->Rf;
+            rangingTable->Tp = rangingTable->Tf;
+            rangingTable->TrRrBuffer.candidates[rangingTable->TrRrBuffer.cur].Rr = rangingTable->Re;
+            rangingTable->state = RANGING_STATE_S3;
+        #endif
+    // crazyflie-firmware mode
+    #else
         rangingTable->Rp = rangingTable->Rf;
         rangingTable->Tp = rangingTable->Tf;
         rangingTable->TrRrBuffer.candidates[rangingTable->TrRrBuffer.cur].Rr = rangingTable->Re;
