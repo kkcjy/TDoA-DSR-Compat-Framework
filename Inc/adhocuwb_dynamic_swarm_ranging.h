@@ -149,8 +149,9 @@ typedef struct {
     uint16_t msgSequence;               // sequence of message
     Timestamp_Tuple_t Txtimestamps[MESSAGE_TX_POOL_SIZE];
                                         // last local Txtimestamps when message is sent
+    uint8_t msgLength;                  // size of message
+    uint8_t type;                       // type of message: default DSR-0
     uint16_t filter;                    // bloom filter
-    uint16_t msgLength;                 // size of message
 } __attribute__((packed)) Ranging_Message_Header_t;     // 8 + 10 * MESSAGE_TX_POOL_SIZE byte = 38 byte
 
 typedef union{
@@ -249,8 +250,35 @@ typedef struct {
 
 /* -------------------- TDoA -------------------- */
 #ifdef TDOA_COMPAT_ENABLE
+#define         TYPE_DSR                    0
+#define         TYPE_TDOA                   1
+#define         ANCHOR_SIZE                 2
+#define         TIMESTAMP_LIST_SIZE         3
 
 
+typedef struct {
+    uint16_t neighborAnchorAddress;
+    uint8_t topIndex;
+    Timestamp_Tuple_t receivedLog[TIMESTAMP_LIST_SIZE];
+    TableState tableState;
+} __attribute__((packed)) Anchor_Table_t;
+
+typedef struct {
+    uint16_t localAnchorAddress;
+    uint8_t topIndex;
+    Timestamp_Tuple_t broadcastLog[TIMESTAMP_LIST_SIZE];
+    Anchor_Table_t anchorTables[ANCHOR_SIZE - 1];
+    uint32_t localSeqNumber;
+    uint8_t size;
+} __attribute__((packed)) Anchor_Table_Set_t;
+
+
+void AnchorTableSetInit();
+index_t registerAnchorTable(uint16_t neighborAnchorAddress);
+void updateBroadcastLog(Timestamp_Tuple_t timestampTuple);
+void updateReceivedLog(Anchor_Table_t anchorTable, Timestamp_Tuple_t timestampTuple);
+void generateTDoAMessage(Ranging_Message_t *rangingMessage);
+void processTDoAMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWithAdditionalInfo);
 
 #endif
 
@@ -267,7 +295,6 @@ bool COMPARE_TIME(uint64_t time_a, uint64_t time_b);
 /* -------------------- Ranging Table Set Operation -------------------- */
 index_t findSendList(SendList_t *sendList, uint16_t seqNumber);
 void updateSendList(SendList_t *sendList, Timestamp_Tuple_t timestampTuple);
-#endif
 #ifdef OPTIMAL_RANGING_SCHEDULE_ENABLE
 void updateReceiveList(ReceiveList_t *receiveList, dwTime_t timestamp);
 #endif
@@ -318,6 +345,6 @@ typedef void (*EventHandlerTable)(Ranging_Table_t*);
 /* -------------------- Generate and Process -------------------- */
 void generateDSRMessage(Ranging_Message_t *rangingMessage);
 void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWithAdditionalInfo);
-double getCurDistance(uint16_t neighborAddress, uint64_t Rx);
+float getCurDistance(uint16_t neighborAddress, uint64_t Rx);
 
 #endif

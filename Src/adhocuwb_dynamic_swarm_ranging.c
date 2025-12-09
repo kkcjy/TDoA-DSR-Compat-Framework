@@ -40,17 +40,33 @@ static int16_t d_prev[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] 
 
 #ifdef COMPENSATE_ENABLE
 // used for compensation
-static double d_temp[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = NULL_DIS};
+static float d_temp[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = NULL_DIS};
 static int16_t d_his_avg[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = NULL_DIS};
 static int16_t last_Seq[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = NULL_SEQ};
 static int16_t last_SeqGap[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = NULL_SEQ};
 static bool turning_state[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = false};
-static double compensation_factor = NULL_RATE;
+static float compensation_factor = NULL_RATE;
 // used for getting current distance
 static uint64_t ONCE_Rr[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = NULL_TIMESTAMP};
 static uint64_t ONCE_Tf[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = NULL_TIMESTAMP};
 static uint64_t ONCE_Re[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = NULL_TIMESTAMP};
 static bool compensated[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX] = false};
+#endif
+
+#ifdef TDOA_COMPAT_ENABLE
+/* Attention
+1. First column: anchor addresses; first row: placeholder
+2. Remaining cells: distances between anchors, manually filled for TDoA usage
+3. Each distance should be entered twice to maintain symmetry (d_ij = d_ji)
+*/
+float anchor_distance_matrix[ANCHOR_SIZE + 1][ANCHOR_SIZE + 1] = {
+    {NULL_ADDRESS, NULL_DIS, NULL_DIS, NULL_DIS, NULL_DIS},
+    {1        , 0.0     , NULL_DIS, NULL_DIS, NULL_DIS},
+    {2        , NULL_DIS, 0.0     , NULL_DIS, NULL_DIS},
+    {NULL_ADDRESS, NULL_DIS, NULL_DIS, 0.0     , NULL_DIS},
+    {NULL_ADDRESS, NULL_DIS, NULL_DIS, NULL_DIS, 0.0     }
+};
+Anchor_Table_Set_t *anchorTableSet;
 #endif
 
 #ifdef OPTIMAL_RANGING_SCHEDULE_ENABLE
@@ -369,7 +385,7 @@ void shiftRangingTable(Ranging_Table_t *rangingTable, Timestamp_Tuple_t Tr, Time
             // correcting PToF
             float correctPToF = classicCalculatePToF(rangingTable->ETp, rangingTable->ERp, rangingTable->Tb, rangingTable->Rb, rangingTable->Tp, rangingTable->Rp);
             rangingTable->PToF = correctPToF;
-            // DEBUG_PRINT("[correct PToF]: correct PToF = %f\n", (double)correctPToF);
+            // DEBUG_PRINT("[correct PToF]: correct PToF = %f\n", (float)correctPToF);
         }
     }
     else {
@@ -434,10 +450,10 @@ void rangingTableSetInit() {
     }
 
     #ifdef OPTIMAL_RANGING_SCHEDULE_ENABLE
-    rangingTableSet->receiveList.topIndex = NULL_INDEX;
-    for (int i = 0; i < RECEIVE_LIST_SIZE; i++) {
-        rangingTableSet->receiveList.Rxtimestamps[i].full = NULL_TIMESTAMP;
-    }
+        rangingTableSet->receiveList.topIndex = NULL_INDEX;
+        for (int i = 0; i < RECEIVE_LIST_SIZE; i++) {
+            rangingTableSet->receiveList.Rxtimestamps[i].full = NULL_TIMESTAMP;
+        }
     #endif
 
     for (int i = 0; i < RANGING_TABLE_SIZE; i++) {
@@ -676,7 +692,7 @@ float calculatePToF(Ranging_Table_t *rangingTable, Ranging_Table_Tr_Rr_Candidate
                     compensation_factor = NULL_RATE;
                 }
                 else {
-                    compensation_factor = (double)(diffReRr - diffTfRr / 2.0) / (double)diffReRr;
+                    compensation_factor = (float)(diffReRr - diffTfRr / 2.0) / (float)diffReRr;
                 }
             #endif
         }
@@ -764,7 +780,7 @@ void printRangingTable(Ranging_Table_t *rangingTable) {
     DEBUG_PRINT("(Rf) seqNumber: %u, timestamp: %llu\n", rangingTable->Rf.seqNumber, rangingTable->Rf.timestamp.full % UWB_MAX_TIMESTAMP);
     DEBUG_PRINT("(Re) seqNumber: %u, timestamp: %llu\n", rangingTable->Re.seqNumber, rangingTable->Re.timestamp.full % UWB_MAX_TIMESTAMP);
     
-    DEBUG_PRINT("PToF = %f, EPToF = %f, continuitySign = %s\n", (double)rangingTable->PToF, (double)rangingTable->EPToF, rangingTable->continuitySign == true ? "true" : "false");
+    DEBUG_PRINT("PToF = %f, EPToF = %f, continuitySign = %s\n", (float)rangingTable->PToF, (float)rangingTable->EPToF, rangingTable->continuitySign == true ? "true" : "false");
 }
 
 void printPriorityQueue(Ranging_Table_Set_t *rangingTableSet) {
@@ -1460,7 +1476,7 @@ void RangingTableEventHandler(Ranging_Table_t *rangingTable, RANGING_TABLE_EVENT
 
 /* -------------------- Generate and Process -------------------- */
 void generateDSRMessage(Ranging_Message_t *rangingMessage) {
-    int8_t bodyUnitCount = 0;     
+    int8_t bodyUnitCount = 0;
     rangingTableSet->localSeqNumber++;
     rangingMessage->header.filter = 0;
 
@@ -1484,6 +1500,10 @@ void generateDSRMessage(Ranging_Message_t *rangingMessage) {
     updatePriorityQueue(rangingTableSet, bodyUnitCount);
 
     rangingMessage->header.msgLength = sizeof(Ranging_Message_Header_t) + sizeof(Ranging_Message_Body_Unit_t) * bodyUnitCount;
+
+    #ifdef TDOA_COMPAT_ENABLE
+        rangingMessage->header.type = TYPE_DSR;
+    #endif
 
     // fill in empty info
     while(bodyUnitCount < MESSAGE_BODYUNIT_SIZE) {
@@ -1609,7 +1629,7 @@ void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
             d_prev[neighborAddress] = d_curr[neighborAddress];
             d_his_avg[neighborAddress] = d_curr[neighborAddress];
             last_Seq[neighborAddress] = rangingMessage->header.msgSequence;
-            DEBUG_PRINT("[local_%u <- neighbor_%u]: %s dist = %f", MY_UWB_ADDRESS, neighborAddress, RANGING_MODE, (double)d_curr[neighborAddress]);
+            DEBUG_PRINT("[local_%u <- neighbor_%u]: %s dist = %f", MY_UWB_ADDRESS, neighborAddress, RANGING_MODE, (float)d_curr[neighborAddress]);
         }
         else if(last_SeqGap[neighborAddress] == NULL_SEQ) {
             turning_state[neighborAddress] = (d_curr[neighborAddress] - d_prev[neighborAddress]) >= 0;
@@ -1617,15 +1637,15 @@ void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
             d_prev[neighborAddress] = d_curr[neighborAddress];
             d_his_avg[neighborAddress] = (d_his_avg[neighborAddress] + d_curr[neighborAddress]) / 2;
             last_Seq[neighborAddress] = rangingMessage->header.msgSequence;
-            DEBUG_PRINT("[local_%u <- neighbor_%u]: %s dist = %f", MY_UWB_ADDRESS, neighborAddress, RANGING_MODE, (double)d_curr[neighborAddress]);
+            DEBUG_PRINT("[local_%u <- neighbor_%u]: %s dist = %f", MY_UWB_ADDRESS, neighborAddress, RANGING_MODE, (float)d_curr[neighborAddress]);
         }
         else {
             // calculate d_temp
             uint16_t seqGap = rangingMessage->header.msgSequence - last_Seq[neighborAddress];
             uint16_t total_SeqGap = seqGap + last_SeqGap[neighborAddress];
-            double d_delta = d_curr[neighborAddress] - d_prev[neighborAddress];
-            d_temp[neighborAddress] = ((double)seqGap / total_SeqGap) * (2 * d_delta);
-            double d_comp = d_temp[neighborAddress] * compensation_factor;
+            float d_delta = d_curr[neighborAddress] - d_prev[neighborAddress];
+            d_temp[neighborAddress] = ((float)seqGap / total_SeqGap) * (2 * d_delta);
+            float d_comp = d_temp[neighborAddress] * compensation_factor;
 
             // judge
             bool judge_static = abs(d_curr[neighborAddress] - d_his_avg[neighborAddress]) < STATIC_BOUND;
@@ -1640,21 +1660,21 @@ void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
             last_Seq[neighborAddress] = rangingMessage->header.msgSequence;
 
             if(compensation_factor != NULL_RATE) {
-                double d_corr = (double)d_curr[neighborAddress] + d_comp;
+                float d_corr = (float)d_curr[neighborAddress] + d_comp;
                 if(seqGap > SEQGAP_THRESHOLD) {
                     if(seqGap > UINT16_MAX / 2) {
                         last_SeqGap[neighborAddress] = 0;
                     }
                     compensated[neighborAddress] = false;
-                    DEBUG_PRINT("[local_%u <- neighbor_%u]: %s dist = %f", MY_UWB_ADDRESS, neighborAddress, RANGING_MODE, (double)d_curr[neighborAddress]);
+                    DEBUG_PRINT("[local_%u <- neighbor_%u]: %s dist = %f", MY_UWB_ADDRESS, neighborAddress, RANGING_MODE, (float)d_curr[neighborAddress]);
                 }
                 else if(judge_static) {
                     compensated[neighborAddress] = false;
-                    DEBUG_PRINT("[local_%u <- neighbor_%u]: %s dist = %f", MY_UWB_ADDRESS, neighborAddress, RANGING_MODE, (double)d_curr[neighborAddress]);
+                    DEBUG_PRINT("[local_%u <- neighbor_%u]: %s dist = %f", MY_UWB_ADDRESS, neighborAddress, RANGING_MODE, (float)d_curr[neighborAddress]);
                 }
                 else if(judge_deceleration || judge_turning) {
                     compensated[neighborAddress] = false;
-                    DEBUG_PRINT("[local_%u <- neighbor_%u]: %s dist = %f", MY_UWB_ADDRESS, neighborAddress, RANGING_MODE, (double)d_curr[neighborAddress]);
+                    DEBUG_PRINT("[local_%u <- neighbor_%u]: %s dist = %f", MY_UWB_ADDRESS, neighborAddress, RANGING_MODE, (float)d_curr[neighborAddress]);
                 }
                 else {
                     compensated[neighborAddress] = true;
@@ -1663,13 +1683,13 @@ void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
                 compensation_factor = NULL_RATE;
             }
             else {
-                DEBUG_PRINT("[local_%u <- neighbor_%u]: %s dist = %f", MY_UWB_ADDRESS, neighborAddress, RANGING_MODE, (double)d_curr[neighborAddress]);
+                DEBUG_PRINT("[local_%u <- neighbor_%u]: %s dist = %f", MY_UWB_ADDRESS, neighborAddress, RANGING_MODE, (float)d_curr[neighborAddress]);
                 compensated[neighborAddress] = false;
             }
         }
     #else
         d_prev[neighborAddress] = d_curr[neighborAddress];
-        DEBUG_PRINT("[local_%u <- neighbor_%u]: %s dist = %f", MY_UWB_ADDRESS, neighborAddress, RANGING_MODE, (double)d_curr[neighborAddress]);
+        DEBUG_PRINT("[local_%u <- neighbor_%u]: %s dist = %f", MY_UWB_ADDRESS, neighborAddress, RANGING_MODE, (float)d_curr[neighborAddress]);
     #endif
 
     DEBUG_PRINT(", time = %llu\n", Re.timestamp.full % UWB_MAX_TIMESTAMP);
@@ -1679,16 +1699,16 @@ void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
     // printRangingTableSet(rangingTableSet);
 }
 
-double getCurDistance(uint16_t neighborAddress, uint64_t Rt) {
+float getCurDistance(uint16_t neighborAddress, uint64_t Rt) {
     #ifdef COMPENSATE_ENABLE
         if(compensated[neighborAddress] == false) {
-            return (double)d_prev[neighborAddress];
+            return (float)d_prev[neighborAddress];
         }
         if(d_temp[neighborAddress] == NULL_DIS) {
-            return (double)d_prev[neighborAddress];
+            return (float)d_prev[neighborAddress];
         }
         if(Rt == NULL_TIMESTAMP) {
-            return (double)d_prev[neighborAddress];
+            return (float)d_prev[neighborAddress];
         }
         index_t neighborIndex = findRangingTable(rangingTableSet, neighborAddress);
 
@@ -1701,12 +1721,109 @@ double getCurDistance(uint16_t neighborAddress, uint64_t Rt) {
         uint64_t diffRxRr = (Rt - ONCE_Rr[neighborAddress] + UWB_MAX_TIMESTAMP) % UWB_MAX_TIMESTAMP;
         uint64_t diffReRr = (ONCE_Re[neighborAddress] - ONCE_Rr[neighborAddress] + UWB_MAX_TIMESTAMP) % UWB_MAX_TIMESTAMP;
         uint64_t diffTfRr = (ONCE_Tf[neighborAddress] - ONCE_Rr[neighborAddress] + UWB_MAX_TIMESTAMP) % UWB_MAX_TIMESTAMP;
-        compensation_factor = (double)(diffRxRr - diffTfRr / 2.0) / (double)diffReRr;
+        compensation_factor = (float)(diffRxRr - diffTfRr / 2.0) / (float)diffReRr;
 
-        return (double)d_prev[neighborAddress] + (double)d_temp[neighborAddress] * compensation_factor;
+        return (float)d_prev[neighborAddress] + (float)d_temp[neighborAddress] * compensation_factor;
     #else
-        return (double)d_prev[neighborAddress];
+        return (float)d_prev[neighborAddress];
     #endif
+}
+
+
+/* -------------------- TDoA -------------------- */
+void AnchorTableSetInit() {
+    anchorTableSet = (Anchor_Table_Set_t*)malloc(sizeof(Anchor_Table_Set_t));
+    anchorTableSet->localAnchorAddress = MY_UWB_ADDRESS;
+    anchorTableSet->topIndex = NULL_INDEX;
+    for(int i = 0; i < TIMESTAMP_LIST_SIZE; i++) {
+        anchorTableSet->broadcastLog[i].timestamp = NULL_TIMESTAMP;
+        anchorTableSet->broadcastLog[i].seqNumber = NULL_SEQ;
+    }
+    for(int i = 0; i < ANCHOR_SIZE - 1; i++) {
+        anchorTableSet->anchorTables[i].neighborAnchorAddress = NULL_ADDRESS;
+        anchorTableSet->anchorTables[i].topIndex = NULL_INDEX;
+        for(int j = 0; j < TIMESTAMP_LIST_SIZE; j++) {
+            anchorTableSet->anchorTables[i].receivedLog[j].timestamp = NULL_TIMESTAMP;
+            anchorTableSet->anchorTables[i].receivedLog[j].seqNumber = NULL_SEQ;
+        }
+        anchorTableSet->anchorTables[i].tableState = UNUSED;
+    }
+    anchorTableSet->localSeqNumber = NULL_SEQ;
+    anchorTableSet->size = 0;
+}
+
+index_t registerAnchorTable(uint16_t neighborAnchorAddress) {
+    if(anchorTableSet->size >= ANCHOR_SIZE - 1) {
+        DEBUG_PRINT("Anchor table Set is full, cannot register new table\n");
+        return NULL_INDEX;
+    }
+
+    for (int index = 0; index < ANCHOR_SIZE - 1; index++) {
+        if(anchorTableSet->anchorTables[index].tableState == UNUSED) {
+            anchorTableSet->anchorTables[index].neighborAnchorAddress = neighborAnchorAddress;
+            anchorTableSet->anchorTables[index].tableState = USING;            
+            anchorTableSet->size++;
+            return index;
+        }
+    }
+
+    ASSERT(0 && "Warning: Should not be called\n");
+    return NULL_INDEX;
+}
+
+void updateBroadcastLog(Timestamp_Tuple_t timestampTuple) {
+    anchorTableSet->topIndex = (anchorTableSet->topIndex + 1) % TIMESTAMP_LIST_SIZE;
+    anchorTableSet->broadcastLog[anchorTableSet->topIndex] = timestampTuple;
+}
+
+void updateReceivedLog(Anchor_Table_t anchorTable, Timestamp_Tuple_t timestampTuple) {
+    anchorTable.topIndex = (anchorTable.topIndex + 1) % TIMESTAMP_LIST_SIZE;
+    anchorTable.receivedLog[anchorTable.topIndex] = timestampTuple;
+}
+
+void generateTDoAMessage(Ranging_Message_t *rangingMessage) {
+    int8_t bodyUnitCount = 0;
+    anchorTableSet->localSeqNumber++;
+
+    /* generate bodyUnit */
+    while (bodyUnitCount < MESSAGE_BODYUNIT_SIZE && bodyUnitCount < anchorTableSet->size) {
+        rangingMessage->bodyUnits[bodyUnitCount].timestamp = anchorTableSet->anchorTables->receivedLog[anchorTableSet->anchorTables->topIndex].timestamp;
+        rangingMessage->bodyUnits[bodyUnitCount].seqNumber = anchorTableSet->anchorTables->receivedLog[anchorTableSet->anchorTables->topIndex].seqNumber;
+        rangingMessage->bodyUnits[bodyUnitCount].address = anchorTableSet->anchorTables->neighborAnchorAddress;
+        bodyUnitCount++;
+    }
+
+    // fill in empty info
+    while(bodyUnitCount < MESSAGE_BODYUNIT_SIZE) {
+        rangingMessage->bodyUnits[bodyUnitCount].timestamp.full = NULL_TIMESTAMP;
+        rangingMessage->bodyUnits[bodyUnitCount].seqNumber = NULL_SEQ;
+        rangingMessage->bodyUnits[bodyUnitCount].address = NULL_ADDR;
+        bodyUnitCount++;
+    }
+
+    /* generate header */
+    rangingMessage->header.srcAddress = MY_UWB_ADDRESS;
+    rangingMessage->header.msgSequence = rangingTableSet->localSeqNumber;
+    index_t index = anchorTableSet->topIndex;
+    for(int i = 0; i < MESSAGE_TX_POOL_SIZE; i++) {
+        if(anchorTableSet->broadcastLog[index].seqNumber != NULL_SEQ) {
+            rangingMessage->header.Txtimestamps[i] = anchorTableSet->broadcastLog[index];
+            index = (index - 1 + TIMESTAMP_LIST_SIZE) % TIMESTAMP_LIST_SIZE;
+        }
+        else {
+            rangingMessage->header.Txtimestamps[i] = nullTimestampTuple;
+        }
+    }
+
+    rangingMessage->header.msgLength = sizeof(Ranging_Message_Header_t) + sizeof(Ranging_Message_Body_Unit_t) * bodyUnitCount;
+    rangingMessage->header.type = TYPE_DSR;
+
+    // broadcast (16 bits)
+    rangingMessage->header.filter = NULL_ADDRESS;
+}
+
+void processTDoAMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWithAdditionalInfo) {
+
 }
 
 
