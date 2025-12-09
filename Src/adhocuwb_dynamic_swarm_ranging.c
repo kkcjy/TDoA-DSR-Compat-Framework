@@ -140,20 +140,11 @@ index_t findSendList(SendList_t *sendList, uint16_t seqNumber) {
     return NULL_INDEX;
 }
 
-#ifdef COORDINATE_SEND_ENABLE
-// update the send list with new Tx and Rx timestamps with coordinate
-void updateSendList(SendList_t *sendList, Timestamp_Tuple_t timestampTuple, Coordinate_Tuple_t coordinateTuple) {
-    sendList->topIndex = (sendList->topIndex + 1) % SEND_LIST_SIZE;
-    sendList->Txtimestamps[sendList->topIndex] = timestampTuple;
-    sendList->TxCoordinate = coordinateTuple;
-}
-#else
 // update the send list with new Tx and Rx timestamps without coordinate
 void updateSendList(SendList_t *sendList, Timestamp_Tuple_t timestampTuple) {
     sendList->topIndex = (sendList->topIndex + 1) % SEND_LIST_SIZE;
     sendList->Txtimestamps[sendList->topIndex] = timestampTuple;
 }
-#endif
 
 #ifdef OPTIMAL_RANGING_SCHEDULE_ENABLE
 void updateReceiveList(ReceiveList_t *receiveList, dwTime_t timestamp) {
@@ -442,15 +433,14 @@ void rangingTableSetInit() {
     for (int i = 0; i < SEND_LIST_SIZE; i++) {
         rangingTableSet->sendList.Txtimestamps[i] = nullTimestampTuple;
     }
+
     #ifdef OPTIMAL_RANGING_SCHEDULE_ENABLE
     rangingTableSet->receiveList.topIndex = NULL_INDEX;
     for (int i = 0; i < RECEIVE_LIST_SIZE; i++) {
         rangingTableSet->receiveList.Rxtimestamps[i].full = NULL_TIMESTAMP;
     }
     #endif
-    #ifdef COORDINATE_SEND_ENABLE
-        rangingTableSet->sendList.TxCoordinate = nullCoordinateTuple;
-    #endif
+
     for (int i = 0; i < RANGING_TABLE_SIZE; i++) {
         rangingTableInit(&rangingTableSet->rangingTable[i]);
         rangingTableSet->lastRxtimestamp[i] = nullTimestampTuple;
@@ -747,9 +737,6 @@ void printRangingMessage(Ranging_Message_t *rangingMessage) {
 void printSendList(SendList_t *sendList) {
     DEBUG_PRINT("\n[sendList]\n");
     index_t index = sendList->topIndex;
-    #ifdef COORDINATE_SEND_ENABLE
-        DEBUG_PRINT("location: x = %u, y = %u, z = %u\n", sendList->TxCoordinate.x,  sendList->TxCoordinate.y,  sendList->TxCoordinate.z);
-    #endif
     for(int i = 0; i < SEND_LIST_SIZE; i++) {
         DEBUG_PRINT("seqNumber: %u, timestamp: %llu\n", sendList->Txtimestamps[index].seqNumber, sendList->Txtimestamps[index].timestamp.full % UWB_MAX_TIMESTAMP);
         index = (index - 1 + SEND_LIST_SIZE) % SEND_LIST_SIZE;
@@ -1520,9 +1507,6 @@ void generateDSRMessage(Ranging_Message_t *rangingMessage) {
             rangingMessage->header.Txtimestamps[i] = nullTimestampTuple;
         }
     }
-    #ifdef COORDINATE_SEND_ENABLE
-        rangingMessage->header.TxCoordinate = rangingTableSet->sendList.TxCoordinate;
-    #endif
 
     // clear expired rangingTable
     if(rangingTableSet->localSeqNumber % CHECK_PERIOD == 0) {
@@ -1564,16 +1548,6 @@ void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
     Re.seqNumber = rangingMessage->header.msgSequence;
     rangingTableSet->lastRxtimestamp[neighborIndex] = Re;
     
-    #ifdef COORDINATE_SEND_ENABLE
-        Coordinate_Tuple_t TxCoordinate = rangingMessage->header.TxCoordinate;
-        Coordinate_Tuple_t RxCoordinate = rangingMessageWithAdditionalInfo->RxCoordinate;
-        float Dx = (RxCoordinate.x - TxCoordinate.x);
-        float Dy = (RxCoordinate.y - TxCoordinate.y);
-        float Dz = (RxCoordinate.z - TxCoordinate.z);
-        float distance = sqrtf(Dx * Dx + Dy * Dy + Dz * Dz);
-        dis_Real[neighborAddress] = distance;
-    #endif
-
     /* process bodyUnit */
     Timestamp_Tuple_t Rf = nullTimestampTuple;
     if (rangingMessage->header.filter & (1 << (MY_UWB_ADDRESS % 16))) {
@@ -1700,9 +1674,6 @@ void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
         DEBUG_PRINT("[local_%u <- neighbor_%u]: %s dist = %f", MY_UWB_ADDRESS, neighborAddress, RANGING_MODE, (double)Dis[neighborAddress]);
     #endif
 
-    #ifdef COORDINATE_SEND_ENABLE
-        DEBUG_PRINT(", TrueD = %f", dis_Real[neighborAddress]);
-    #endif
     DEBUG_PRINT(", time = %llu\n", Re.timestamp.full % UWB_MAX_TIMESTAMP);
 
     rangingTableSet->rangingTable[neighborIndex].expirationSign = false;

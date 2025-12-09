@@ -34,7 +34,6 @@
 #else
     #define         COMPENSATE_ENABLE
 #endif
-// #define         COORDINATE_SEND_ENABLE
 // #define         PACKET_LOSS_ENABLE
 #define         OPTIMAL_RANGING_SCHEDULE_ENABLE
 
@@ -149,9 +148,6 @@ typedef struct {
     uint16_t msgSequence;               // sequence of message
     Timestamp_Tuple_t Txtimestamps[MESSAGE_TX_POOL_SIZE];
                                         // last local Txtimestamps when message is sent
-    #ifdef COORDINATE_SEND_ENABLE
-    Coordinate_Tuple_t TxCoordinate;    // local coordinate when message is sent
-    #endif
     uint16_t filter;                    // bloom filter
     uint16_t msgLength;                 // size of message
 } __attribute__((packed)) Ranging_Message_Header_t;     // 8 + 10 * MESSAGE_TX_POOL_SIZE byte = 38 byte
@@ -173,9 +169,6 @@ typedef struct {
 typedef struct {
     Ranging_Message_t rangingMessage;
     dwTime_t timestamp;                 // local timestamp when message is received
-    #ifdef COORDINATE_SEND_ENABLE
-    Coordinate_Tuple_t RxCoordinate;    // local coordinate when message is received
-    #endif
 } __attribute__((packed)) Ranging_Message_With_Additional_Info_t;
 
 
@@ -183,9 +176,6 @@ typedef struct {
 typedef struct {
     index_t topIndex;
     Timestamp_Tuple_t Txtimestamps[SEND_LIST_SIZE];
-    #ifdef COORDINATE_SEND_ENABLE
-    Coordinate_Tuple_t TxCoordinate;    // local coordinate when message is sent
-    #endif
 } __attribute__((packed)) SendList_t;
 
 typedef struct {
@@ -258,9 +248,6 @@ typedef struct {
 
 /* -------------------- Null Struct -------------------- */
 static const Timestamp_Tuple_t nullTimestampTuple = {.timestamp.full = NULL_TIMESTAMP, .seqNumber = NULL_SEQ};
-#ifdef COORDINATE_SEND_ENABLE
-static const Coordinate_Tuple_t nullCoordinateTuple = {.x = -1, .y = -1, .z = -1};
-#endif
 static const Ranging_Table_Tr_Rr_Candidate_t nullCandidate = {.Tr.timestamp.full = NULL_TIMESTAMP, .Tr.seqNumber = NULL_SEQ, .Rr.timestamp.full = NULL_TIMESTAMP, .Rr.seqNumber = NULL_SEQ,};
 
 
@@ -270,9 +257,6 @@ bool COMPARE_TIME(uint64_t time_a, uint64_t time_b);
 
 /* -------------------- Ranging Table Set Operation -------------------- */
 index_t findSendList(SendList_t *sendList, uint16_t seqNumber);
-#ifdef COORDINATE_SEND_ENABLE
-void updateSendList(SendList_t *sendList, Timestamp_Tuple_t timestampTuple, Coordinate_Tuple_t coordinateTuple);
-#else
 void updateSendList(SendList_t *sendList, Timestamp_Tuple_t timestampTuple);
 #endif
 #ifdef OPTIMAL_RANGING_SCHEDULE_ENABLE
