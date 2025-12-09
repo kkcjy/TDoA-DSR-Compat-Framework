@@ -36,6 +36,7 @@
 #endif
 // #define         PACKET_LOSS_ENABLE
 #define         OPTIMAL_RANGING_SCHEDULE_ENABLE
+#define         TDOA_COMPAT_ENABLE
 
 /* Ranging Constants */
 #define         RANGING_PERIOD              200
@@ -244,6 +245,14 @@ typedef struct {
     SemaphoreHandle_t mutex;
     #endif
 } __attribute__((packed)) Ranging_Table_Set_t;
+
+
+/* -------------------- TDoA -------------------- */
+#ifdef TDOA_COMPAT_ENABLE
+
+
+
+#endif
 
 
 /* -------------------- Null Struct -------------------- */
