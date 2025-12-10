@@ -54,17 +54,17 @@ static bool compensated[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX
 #endif
 
 #ifdef TDOA_COMPAT_ENABLE
-/* Attention
-1. First column: anchor addresses; first row: placeholder
-2. Remaining cells: distances between anchors, manually filled for TDoA usage
-3. Each distance should be entered twice to maintain symmetry (d_ij = d_ji)
+/* Attention (cm)
+1. The first row and first column are left unused because anchor addresses cannot be zero.
+2. The matrix is indexed directly by anchor addresses to obtain distances, so it is recommended to assign smaller address values to anchors, or enlarge anchor_distance_matrix if needed.
+3. Each distance entry must be filled twice to maintain symmetry (d_ij = d_ji).
 */
 float anchor_distance_matrix[ANCHOR_SIZE + 1][ANCHOR_SIZE + 1] = {
-    {NULL_ADDRESS, NULL_DIS, NULL_DIS, NULL_DIS, NULL_DIS},
-    {1        , 0.0     , NULL_DIS, NULL_DIS, NULL_DIS},
-    {2        , NULL_DIS, 0.0     , NULL_DIS, NULL_DIS},
-    {NULL_ADDRESS, NULL_DIS, NULL_DIS, 0.0     , NULL_DIS},
-    {NULL_ADDRESS, NULL_DIS, NULL_DIS, NULL_DIS, 0.0     }
+    {NULL_ADDRESS, NULL_ADDRESS, NULL_ADDRESS, NULL_ADDRESS, NULL_ADDRESS},
+    {NULL_ADDRESS, 0.0         , NULL_DIS    , NULL_DIS    , NULL_DIS    },
+    {NULL_ADDRESS, NULL_DIS    , 0.0         , NULL_DIS    , NULL_DIS    },
+    {NULL_ADDRESS, NULL_DIS    , NULL_DIS    , 0.0         , NULL_DIS    },
+    {NULL_ADDRESS, NULL_DIS    , NULL_DIS    , NULL_DIS    , 0.0         }
 };
 Anchor_Table_Set_t *anchorTableSet;
 Tag_Table_Set_t *tagTableSet;
@@ -1296,11 +1296,11 @@ static void S5_RX_NO(Ranging_Table_t *rangingTable) {
 
         case RANGING_SUBSTATE_S3: {
             /* dynamic swarm ranging    ===>    calculate and update
-                +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+      
-                | ETb  | ERp  |  Tb  |  Rp  |      |      | S4.3 |            | ETb  | ERp  |  Tb  |  Rp  | [Tr] |      | S4.3 |          
-                +------+------+------+------+------+------+------+    ===>    +------+------+------+------+------+------+------+         
-                | ERb  | ETp  |  Rb  |  Tp  |  Rr  |  Tf  |      |            | ERb  | ETp  |  Rb  |  Tp  |  Rr  |  Tf  | [Re] |   
-                +------+------+------+------+------+------+------+    <===    +------+------+------+------+------+------+------+          
+                +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+
+                | ETb  | ERp  |  Tb  |  Rp  |      |      | S4.3 |            | ETb  | ERp  |  Tb  |  Rp  | [Tr] |      | S4.3 |
+                +------+------+------+------+------+------+------+    ===>    +------+------+------+------+------+------+------+
+                | ERb  | ETp  |  Rb  |  Tp  |  Rr  |  Tf  |      |            | ERb  | ETp  |  Rb  |  Tp  |  Rr  |  Tf  | [Re] |
+                +------+------+------+------+------+------+------+    <===    +------+------+------+------+------+------+------+
                 |    EPToF    |    PToF     |                                 |    EPToF    |    PToF     |                                
                 +------+------+------+------+                                 +------+------+------+------+ 
             */
@@ -1760,6 +1760,9 @@ void tagTableSetInit() {
             tagTableSet->tagTables[i].broadcastLog[j] = nullTimestampTuple;
             tagTableSet->tagTables[i].receiveLog[j] = nullTimestampTuple;
         }
+        for(int j = 0; j < NEIGHBOR_ADDRESS_MAX; j++) {
+            tagTableSet->tagTables[i].anchorLastReceiveLog[j] = nullTimestampTuple;
+        }
         tagTableSet->tagTables[i].tableState = UNUSED;
     }
     tagTableSet->size = 0;
@@ -1827,6 +1830,10 @@ void updateReceivedLogForTag(Tag_Table_t *tagTable, Timestamp_Tuple_t timestampT
     tagTable->broadcastLog[tagTable->topIndex] = nullTimestampTuple;
 }
 
+void updateAnchorLastReceiveLog(Tag_Table_t *tagTable,uint16_t address, Timestamp_Tuple_t timestampTuple) {
+    tagTable->anchorLastReceiveLog[address] = timestampTuple;
+}
+
 table_index_t findAnchorTable(Anchor_Table_Set_t *anchorTableSet, uint16_t address) {
     if(anchorTableSet->size == 0) {
         // DEBUG_PRINT("Anchor table Set is empty, cannot find table\n");
@@ -1857,6 +1864,42 @@ table_index_t findTagTable(Tag_Table_Set_t *tagTableSet, uint16_t address) {
     return NULL_INDEX;
 }
 
+table_index_t getCollaboratorAnchor(Tag_Table_Set_t *tagTableSet, uint16_t anchorIndex) {
+    if(tagTableSet->size < 2) {
+        DEBUG_PRINT("At least 2 Anchors are needed to calculate TDoA\n");
+        return NULL_INDEX;
+    }
+
+    uint64_t baseTimestamp = tagTableSet->tagTables[anchorIndex].receiveLog[(tagTableSet->tagTables[anchorIndex].topIndex - 1 + TIMESTAMP_LIST_SIZE) % TIMESTAMP_LIST_SIZE].timestamp.full;
+    if(baseTimestamp == NULL_TIMESTAMP) {
+        DEBUG_PRINT("Initialization in progress");
+        return NULL_INDEX;
+    }
+
+    index_t collaboratorIndex = NULL_INDEX;
+    dwtime_t collaboratorTimestamp = NULL_TIMESTAMP;
+    for(int i = 0; i < tagTableSet->size; i++) {
+        if(collaboratorIndex == NULL_INDEX && tagTableSet->tagTables[i].tableState == USING) {
+            index_t lastReceiveIndex = (tagTableSet->tagTables[i].topIndex - 1 + TIMESTAMP_LIST_SIZE) % TIMESTAMP_LIST_SIZE;
+
+            if(COMPARE_TIME(tagTableSet->tagTables[i].receiveLog[lastReceiveIndex].timestamp.full, baseTimestamp)) {
+                collaboratorIndex = i;
+                collaboratorTimestamp = tagTableSet->tagTables[i].receiveLog[lastReceiveIndex].timestamp;
+            }
+        }
+        else if(collaboratorIndex != NULL_INDEX && tagTableSet->tagTables[i].tableState == USING) {
+            index_t lastReceiveIndex = (tagTableSet->tagTables[i].topIndex - 1 + TIMESTAMP_LIST_SIZE) % TIMESTAMP_LIST_SIZE;
+
+            if(COMPARE_TIME(tagTableSet->tagTables[i].receiveLog[lastReceiveIndex].timestamp.full, baseTimestamp) 
+            && COMPARE_TIME(collaboratorTimestamp, tagTableSet->tagTables[i].receiveLog[lastReceiveIndex].timestamp.full)) {
+                collaboratorIndex = i;
+                collaboratorTimestamp = tagTableSet->tagTables[i].receiveLog[lastReceiveIndex].timestamp;
+            }
+        }
+    }
+    return collaboratorIndex;
+}
+
 void generateTDoAMessage(Ranging_Message_t *rangingMessage) {
     int8_t bodyUnitCount = 0;
     anchorTableSet->localSeqNumber++;
@@ -1877,7 +1920,7 @@ void generateTDoAMessage(Ranging_Message_t *rangingMessage) {
 
     // fill in empty info
     while(bodyUnitCount < MESSAGE_BODYUNIT_SIZE) {
-        rangingMessage->bodyUnits[bodyUnitCount].timestamp.full = NULL_TIMESTAMP;
+        rangingMessage->bodyUnits[bodyUnitCount].timestamp = NULL_TIMESTAMP;
         rangingMessage->bodyUnits[bodyUnitCount].seqNumber = NULL_SEQ;
         rangingMessage->bodyUnits[bodyUnitCount].address = NULL_ADDR;
         bodyUnitCount++;
@@ -1920,7 +1963,7 @@ void processTDoAMessageForAnchor(Ranging_Message_With_Additional_Info_t *ranging
 
     Anchor_Table_t *anchorTable = &anchorTableSet->anchorTables[anchorIndex];
     Timestamp_Tuple_t timestampTuple = nullTimestampTuple;
-    timestampTuple.timestamp = rangingMessageWithAdditionalInfo->timestamp;
+    timestampTuple.timestamp.full = rangingMessageWithAdditionalInfo->timestamp.full % UWB_MAX_TIMESTAMP;
     timestampTuple.seqNumber = rangingMessage->header.msgSequence;
     updateReceivedLogForAnchor(anchorTable, timestampTuple);
 }
@@ -1949,24 +1992,75 @@ void processTDoAMessageForTag(Ranging_Message_With_Additional_Info_t *rangingMes
 
     // update receiveLog
     Timestamp_Tuple_t receiveTimestampTuple = nullTimestampTuple;
-    receiveTimestampTuple.timestamp = rangingMessageWithAdditionalInfo->timestamp;
+    receiveTimestampTuple.timestamp.full = rangingMessageWithAdditionalInfo->timestamp.full % UWB_MAX_TIMESTAMP;
     receiveTimestampTuple.seqNumber = rangingMessage->header.msgSequence;
     updateReceivedLogForTag(tagTable, receiveTimestampTuple);
 
     // update broadcastLog
-    for(int i = 0; i < MESSAGE_BODYUNIT_SIZE; i++) {
+    for(int i = 0; i < MESSAGE_TX_POOL_SIZE; i++) {
         Timestamp_Tuple_t broadcastTimestampTuple = nullTimestampTuple;
-        broadcastTimestampTuple.timestamp = rangingMessage->bodyUnits[i].timestamp;
-        broadcastTimestampTuple.seqNumber = rangingMessage->bodyUnits[i].seqNumber;
+        broadcastTimestampTuple.timestamp.full = rangingMessage->header.Txtimestamps[i].timestamp.full % UWB_MAX_TIMESTAMP;
+        broadcastTimestampTuple.seqNumber = rangingMessage->header.Txtimestamps[i].seqNumber;
         updateBroadcastLogForTag(tagTable, broadcastTimestampTuple);
     }
 
+    // calculate TDoA
     if(tagTableSet->size < 2) {
         DEBUG_PRINT("At least 2 Anchors are needed to calculate TDoA\n");
         return;
     }
 
-    // todo: calculate TDoA
+    table_index_t collaboratorIndex = getCollaboratorAnchor(tagTableSet, anchorIndex);
+    Tag_Table_t collaboratorTable = tagTableSet->tagTables[collaboratorIndex];
+    /*
+    collaborator    -----------*------------------------------------------------
+                       /       |\                /        \                /
+                      /        | \              /          \              /
+    anchor          -*---------+--*------------*--------------------------------
+                      \            \            \            \            \
+                       \            \            \            \            \
+    tag             ----*------------*------------*-----------------------------
+                        P1           P2           P3           P4           P5
+    */
+
+    Timestamp_Tuple_t anchor_P3 = tagTable->broadcastLog[(tagTable->topIndex - 1 + TIMESTAMP_LIST_SIZE) % TIMESTAMP_LIST_SIZE];
+    Timestamp_Tuple_t tag_P3 = tagTable->receiveLog[(tagTable->topIndex - 1 + TIMESTAMP_LIST_SIZE) % TIMESTAMP_LIST_SIZE];
+
+    Timestamp_Tuple_t collaborator_P2 = collaboratorTable.broadcastLog[(collaboratorTable.topIndex - 1 + TIMESTAMP_LIST_SIZE) % TIMESTAMP_LIST_SIZE];
+    Timestamp_Tuple_t anchor_P2 = tagTable->anchorLastReceiveLog[collaboratorTable.anchorAddress];
+    Timestamp_Tuple_t tag_P2 = collaboratorTable.receiveLog[(collaboratorTable.topIndex - 1 + TIMESTAMP_LIST_SIZE) % TIMESTAMP_LIST_SIZE];
+
+    Timestamp_Tuple_t anchor_P1 = tagTable->broadcastLog[(tagTable->topIndex - 2 + TIMESTAMP_LIST_SIZE) % TIMESTAMP_LIST_SIZE];
+    Timestamp_Tuple_t tag_P1 = tagTable->receiveLog[(tagTable->topIndex - 2 + TIMESTAMP_LIST_SIZE) % TIMESTAMP_LIST_SIZE];
+
+    float TDoA = NULL_DIS;
+    if(anchor_P3.seqNumber == NULL_SEQ || tag_P3.seqNumber == NULL_SEQ || collaborator_P2.seqNumber == NULL_SEQ ||
+       anchor_P2.seqNumber == NULL_SEQ || tag_P2.seqNumber == NULL_SEQ || anchor_P1.seqNumber == NULL_SEQ || tag_P1.seqNumber == NULL_SEQ) {
+        DEBUG_PRINT("Insufficient data for calculation\n");
+    }
+    else if(anchor_P3.seqNumber != tag_P3.seqNumber || collaborator_P2.seqNumber != anchor_P2.seqNumber ||
+            anchor_P2.seqNumber != tag_P2.seqNumber || anchor_P1.seqNumber != tag_P1.seqNumber) {
+        DEBUG_PRINT("Computation aborted: sequence numbers misaligned\n");
+    }
+    else {
+        uint64_t Rx1_delta = (tag_P3.timestamp.full - tag_P1.timestamp.full + UWB_MAX_TIMESTAMP) % UWB_MAX_TIMESTAMP;
+        uint64_t Tx1_delta = (anchor_P3.timestamp.full - anchor_P1.timestamp.full + UWB_MAX_TIMESTAMP) % UWB_MAX_TIMESTAMP;
+        float alpha = (float)Rx1_delta / (float)Tx1_delta;
+
+        uint64_t Rx_delta = (tag_P3.timestamp.full - tag_P2.timestamp.full + UWB_MAX_TIMESTAMP) % UWB_MAX_TIMESTAMP;
+        uint64_t Tx_delta = (anchor_P3.timestamp.full - anchor_P2.timestamp.full + UWB_MAX_TIMESTAMP) % UWB_MAX_TIMESTAMP + anchor_distance_matrix[tagTable->anchorAddress][collaboratorTable.anchorAddress] / VELOCITY;
+
+        TDoA = Rx_delta - alpha * Tx_delta;
+    }
+    DEBUG_PRINT("TDoA dist diff = %f, time = %llu\n", TDoA, rangingMessageWithAdditionalInfo->timestamp.full % UWB_MAX_TIMESTAMP;);
+
+    // update anchorLastReceiveLog
+    for(int i = 0; i < MESSAGE_BODYUNIT_SIZE; i++) {
+        Timestamp_Tuple_t anchorLastReceiveTimestampTuple = nullTimestampTuple;
+        anchorLastReceiveTimestampTuple.timestamp.full = rangingMessage->bodyUnits[i].timestamp.full % UWB_MAX_TIMESTAMP;
+        anchorLastReceiveTimestampTuple.seqNumber = rangingMessage->bodyUnits[i].seqNumber;
+        updateAnchorLastReceiveLog(tagTable, rangingMessage->bodyUnits[i].address, anchorLastReceiveTimestampTuple);
+    }
 }
 
 #ifndef SIMULATION_COMPILE

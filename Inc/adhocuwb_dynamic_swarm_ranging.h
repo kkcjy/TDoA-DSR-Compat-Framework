@@ -250,6 +250,9 @@ typedef struct {
 
 /* -------------------- TDoA -------------------- */
 #ifdef TDOA_COMPAT_ENABLE
+// anchor must remain static, tag can move arbitrarily, but only one of two modes can be selected at a time
+#define         ANCHOR_MODE_ENABLE
+#define         TAG_MODE_ENABLE
 #define         TYPE_DSR                    0
 #define         TYPE_TDOA                   1
 #define         ANCHOR_SIZE                 2
@@ -275,8 +278,9 @@ typedef struct {
 typedef struct {
     uint16_t anchorAddress;
     uint8_t topIndex;
-    Timestamp_Tuple_t broadcastLog[TIMESTAMP_LIST_SIZE];
-    Timestamp_Tuple_t receiveLog[TIMESTAMP_LIST_SIZE];
+    Timestamp_Tuple_t broadcastLog[TIMESTAMP_LIST_SIZE];            // anchor's broadcast timestamps
+    Timestamp_Tuple_t receiveLog[TIMESTAMP_LIST_SIZE];              // tag's reception timestamps
+    Timestamp_Tuple_t anchorLastReceiveLog[NEIGHBOR_ADDRESS_MAX];   // last reception timestamps from neighbor anchors
     TableState tableState;
 } __attribute__((packed)) Tag_Table_t;
 
@@ -294,8 +298,10 @@ void updateBroadcastLogForAnchor(Anchor_Table_Set_t *anchorTableSet, Timestamp_T
 void updateBroadcastLogForTag(Tag_Table_t *tagTable, Timestamp_Tuple_t timestampTuple);
 void updateReceivedLogForAnchor(Anchor_Table_t *anchorTable, Timestamp_Tuple_t timestampTuple);
 void updateReceivedLogForTag(Tag_Table_t *tagTable, Timestamp_Tuple_t timestampTuple);
+void updateAnchorLastReceiveLog(Tag_Table_t *tagTable,uint16_t address, Timestamp_Tuple_t timestampTuple);
 table_index_t findAnchorTable(Anchor_Table_Set_t *anchorTableSet, uint16_t address);
 table_index_t findTagTable(Tag_Table_Set_t *tagTableSet, uint16_t address);
+table_index_t getCollaboratorAnchor(Tag_Table_Set_t *tagTableSet, Timestamp_Tuple_t timestampTuple);
 void generateTDoAMessage(Ranging_Message_t *rangingMessage);
 void processTDoAMessageForAnchor(Ranging_Message_With_Additional_Info_t *rangingMessageWithAdditionalInfo);
 void processTDoAMessageForTag(Ranging_Message_With_Additional_Info_t *rangingMessageWithAdditionalInfo);
