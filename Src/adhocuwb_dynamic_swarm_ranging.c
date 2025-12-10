@@ -60,12 +60,10 @@ static bool compensated[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX
 3. Each distance entry must be filled twice to maintain symmetry (d_ij = d_ji).
 */
 float anchor_distance_matrix[ANCHOR_SIZE + 1][ANCHOR_SIZE + 1] = {
-    {NULL_ADDRESS, NULL_ADDRESS, NULL_ADDRESS, NULL_ADDRESS, NULL_ADDRESS},
-    {NULL_ADDRESS, 0.0         , NULL_DIS    , NULL_DIS    , NULL_DIS    },
-    {NULL_ADDRESS, NULL_DIS    , 0.0         , NULL_DIS    , NULL_DIS    },
-    {NULL_ADDRESS, NULL_DIS    , NULL_DIS    , 0.0         , NULL_DIS    },
-    {NULL_ADDRESS, NULL_DIS    , NULL_DIS    , NULL_DIS    , 0.0         }
-};
+    {NULL_DIS, NULL_DIS    , NULL_DIS},
+    {NULL_DIS, 0.0         , NULL_DIS},
+    {NULL_DIS, NULL_DIS    , 0.0     }};
+
 Anchor_Table_Set_t *anchorTableSet;
 Tag_Table_Set_t *tagTableSet;
 #endif
@@ -781,7 +779,7 @@ void printRangingTable(Ranging_Table_t *rangingTable) {
     DEBUG_PRINT("(Rf) seqNumber: %u, timestamp: %llu\n", rangingTable->Rf.seqNumber, rangingTable->Rf.timestamp.full % UWB_MAX_TIMESTAMP);
     DEBUG_PRINT("(Re) seqNumber: %u, timestamp: %llu\n", rangingTable->Re.seqNumber, rangingTable->Re.timestamp.full % UWB_MAX_TIMESTAMP);
     
-    DEBUG_PRINT("PToF = %f, EPToF = %f, continuitySign = %s\n", (float)rangingTable->PToF, (float)rangingTable->EPToF, rangingTable->continuitySign == true ? "true" : "false");
+    DEBUG_PRINT("PToF = %f, EPToF = %f, continuitySign = %s\n", (double)rangingTable->PToF, (double)rangingTable->EPToF, rangingTable->continuitySign == true ? "true" : "false");
 }
 
 void printPriorityQueue(Ranging_Table_Set_t *rangingTableSet) {
@@ -1630,7 +1628,7 @@ void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
             d_prev[neighborAddress] = d_curr[neighborAddress];
             d_his_avg[neighborAddress] = d_curr[neighborAddress];
             last_Seq[neighborAddress] = rangingMessage->header.msgSequence;
-            DEBUG_PRINT("[local_%u <- neighbor_%u]: %s dist = %f", MY_UWB_ADDRESS, neighborAddress, RANGING_MODE, (float)d_curr[neighborAddress]);
+            DEBUG_PRINT("[local_%u <- neighbor_%u]: %s dist = %f", MY_UWB_ADDRESS, neighborAddress, RANGING_MODE, (double)d_curr[neighborAddress]);
         }
         else if(last_SeqGap[neighborAddress] == NULL_SEQ) {
             turning_state[neighborAddress] = (d_curr[neighborAddress] - d_prev[neighborAddress]) >= 0;
@@ -1638,7 +1636,7 @@ void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
             d_prev[neighborAddress] = d_curr[neighborAddress];
             d_his_avg[neighborAddress] = (d_his_avg[neighborAddress] + d_curr[neighborAddress]) / 2;
             last_Seq[neighborAddress] = rangingMessage->header.msgSequence;
-            DEBUG_PRINT("[local_%u <- neighbor_%u]: %s dist = %f", MY_UWB_ADDRESS, neighborAddress, RANGING_MODE, (float)d_curr[neighborAddress]);
+            DEBUG_PRINT("[local_%u <- neighbor_%u]: %s dist = %f", MY_UWB_ADDRESS, neighborAddress, RANGING_MODE, (double)d_curr[neighborAddress]);
         }
         else {
             // calculate d_temp
@@ -1667,30 +1665,30 @@ void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
                         last_SeqGap[neighborAddress] = 0;
                     }
                     compensated[neighborAddress] = false;
-                    DEBUG_PRINT("[local_%u <- neighbor_%u]: %s dist = %f", MY_UWB_ADDRESS, neighborAddress, RANGING_MODE, (float)d_curr[neighborAddress]);
+                    DEBUG_PRINT("[local_%u <- neighbor_%u]: %s dist = %f", MY_UWB_ADDRESS, neighborAddress, RANGING_MODE, (double)d_curr[neighborAddress]);
                 }
                 else if(judge_static) {
                     compensated[neighborAddress] = false;
-                    DEBUG_PRINT("[local_%u <- neighbor_%u]: %s dist = %f", MY_UWB_ADDRESS, neighborAddress, RANGING_MODE, (float)d_curr[neighborAddress]);
+                    DEBUG_PRINT("[local_%u <- neighbor_%u]: %s dist = %f", MY_UWB_ADDRESS, neighborAddress, RANGING_MODE, (double)d_curr[neighborAddress]);
                 }
                 else if(judge_deceleration || judge_turning) {
                     compensated[neighborAddress] = false;
-                    DEBUG_PRINT("[local_%u <- neighbor_%u]: %s dist = %f", MY_UWB_ADDRESS, neighborAddress, RANGING_MODE, (float)d_curr[neighborAddress]);
+                    DEBUG_PRINT("[local_%u <- neighbor_%u]: %s dist = %f", MY_UWB_ADDRESS, neighborAddress, RANGING_MODE, (double)d_curr[neighborAddress]);
                 }
                 else {
                     compensated[neighborAddress] = true;
-                    DEBUG_PRINT("[local_%u <- neighbor_%u]: %s dist = %f", MY_UWB_ADDRESS, neighborAddress, RANGING_MODE, d_corr);
+                    DEBUG_PRINT("[local_%u <- neighbor_%u]: %s dist = %f", MY_UWB_ADDRESS, neighborAddress, RANGING_MODE, (double)d_corr);
                 }
                 compensation_factor = NULL_RATE;
             }
             else {
-                DEBUG_PRINT("[local_%u <- neighbor_%u]: %s dist = %f", MY_UWB_ADDRESS, neighborAddress, RANGING_MODE, (float)d_curr[neighborAddress]);
+                DEBUG_PRINT("[local_%u <- neighbor_%u]: %s dist = %f", MY_UWB_ADDRESS, neighborAddress, RANGING_MODE, (double)d_curr[neighborAddress]);
                 compensated[neighborAddress] = false;
             }
         }
     #else
         d_prev[neighborAddress] = d_curr[neighborAddress];
-        DEBUG_PRINT("[local_%u <- neighbor_%u]: %s dist = %f", MY_UWB_ADDRESS, neighborAddress, RANGING_MODE, (float)d_curr[neighborAddress]);
+        DEBUG_PRINT("[local_%u <- neighbor_%u]: %s dist = %f", MY_UWB_ADDRESS, neighborAddress, RANGING_MODE, (double)d_curr[neighborAddress]);
     #endif
 
     DEBUG_PRINT(", time = %llu\n", Re.timestamp.full % UWB_MAX_TIMESTAMP);
@@ -1877,7 +1875,7 @@ table_index_t getCollaboratorAnchor(Tag_Table_Set_t *tagTableSet, uint16_t ancho
     }
 
     index_t collaboratorIndex = NULL_INDEX;
-    dwtime_t collaboratorTimestamp = NULL_TIMESTAMP;
+    dwTime_t collaboratorTimestamp;
     for(int i = 0; i < tagTableSet->size; i++) {
         if(collaboratorIndex == NULL_INDEX && tagTableSet->tagTables[i].tableState == USING) {
             index_t lastReceiveIndex = (tagTableSet->tagTables[i].topIndex - 1 + TIMESTAMP_LIST_SIZE) % TIMESTAMP_LIST_SIZE;
@@ -1891,7 +1889,7 @@ table_index_t getCollaboratorAnchor(Tag_Table_Set_t *tagTableSet, uint16_t ancho
             index_t lastReceiveIndex = (tagTableSet->tagTables[i].topIndex - 1 + TIMESTAMP_LIST_SIZE) % TIMESTAMP_LIST_SIZE;
 
             if(COMPARE_TIME(tagTableSet->tagTables[i].receiveLog[lastReceiveIndex].timestamp.full, baseTimestamp) 
-            && COMPARE_TIME(collaboratorTimestamp, tagTableSet->tagTables[i].receiveLog[lastReceiveIndex].timestamp.full)) {
+            && COMPARE_TIME(collaboratorTimestamp.full, tagTableSet->tagTables[i].receiveLog[lastReceiveIndex].timestamp.full)) {
                 collaboratorIndex = i;
                 collaboratorTimestamp = tagTableSet->tagTables[i].receiveLog[lastReceiveIndex].timestamp;
             }
@@ -1920,7 +1918,7 @@ void generateTDoAMessage(Ranging_Message_t *rangingMessage) {
 
     // fill in empty info
     while(bodyUnitCount < MESSAGE_BODYUNIT_SIZE) {
-        rangingMessage->bodyUnits[bodyUnitCount].timestamp = NULL_TIMESTAMP;
+        rangingMessage->bodyUnits[bodyUnitCount].timestamp.full = NULL_TIMESTAMP;
         rangingMessage->bodyUnits[bodyUnitCount].seqNumber = NULL_SEQ;
         rangingMessage->bodyUnits[bodyUnitCount].address = NULL_ADDR;
         bodyUnitCount++;
@@ -2052,7 +2050,7 @@ void processTDoAMessageForTag(Ranging_Message_With_Additional_Info_t *rangingMes
 
         TDoA = Rx_delta - alpha * Tx_delta;
     }
-    DEBUG_PRINT("TDoA dist diff = %f, time = %llu\n", TDoA, rangingMessageWithAdditionalInfo->timestamp.full % UWB_MAX_TIMESTAMP;);
+    DEBUG_PRINT("TDoA dist diff = %f, time = %llu\n", (double)TDoA, rangingMessageWithAdditionalInfo->timestamp.full % UWB_MAX_TIMESTAMP);
 
     // update anchorLastReceiveLog
     for(int i = 0; i < MESSAGE_BODYUNIT_SIZE; i++) {

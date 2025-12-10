@@ -301,7 +301,7 @@ void updateReceivedLogForTag(Tag_Table_t *tagTable, Timestamp_Tuple_t timestampT
 void updateAnchorLastReceiveLog(Tag_Table_t *tagTable,uint16_t address, Timestamp_Tuple_t timestampTuple);
 table_index_t findAnchorTable(Anchor_Table_Set_t *anchorTableSet, uint16_t address);
 table_index_t findTagTable(Tag_Table_Set_t *tagTableSet, uint16_t address);
-table_index_t getCollaboratorAnchor(Tag_Table_Set_t *tagTableSet, Timestamp_Tuple_t timestampTuple);
+table_index_t getCollaboratorAnchor(Tag_Table_Set_t *tagTableSet, uint16_t anchorIndex);
 void generateTDoAMessage(Ranging_Message_t *rangingMessage);
 void processTDoAMessageForAnchor(Ranging_Message_With_Additional_Info_t *rangingMessageWithAdditionalInfo);
 void processTDoAMessageForTag(Ranging_Message_With_Additional_Info_t *rangingMessageWithAdditionalInfo);
