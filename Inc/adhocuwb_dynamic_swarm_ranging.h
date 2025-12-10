@@ -274,23 +274,28 @@ typedef struct {
 
 typedef struct {
     uint16_t anchorAddress;
-    uint8_t broadcastIndex;
-    uint8_t receiveIndex;
+    uint8_t topIndex;
     Timestamp_Tuple_t broadcastLog[TIMESTAMP_LIST_SIZE];
     Timestamp_Tuple_t receiveLog[TIMESTAMP_LIST_SIZE];
     TableState tableState;
 } __attribute__((packed)) Tag_Table_t;
 
 typedef struct {
-    Tag_Table_t tagTables[ANCHOR_SIZE - 1];
+    Tag_Table_t tagTables[ANCHOR_SIZE];
     uint8_t size;
 } __attribute__((packed)) Tag_Table_Set_t;
 
 
-void AnchorTableSetInit();
+void anchorTableSetInit();
+void tagTableSetInit();
 index_t registerAnchorTable(Anchor_Table_Set_t *anchorTableSet, uint16_t neighborAnchorAddress);
-void updateBroadcastLog(Timestamp_Tuple_t timestampTuple);
-void updateReceivedLog(Anchor_Table_t *anchorTable, Timestamp_Tuple_t timestampTuple);
+index_t registerTagTable(Tag_Table_Set_t *tagTableSet, uint16_t anchorAddress);
+void updateBroadcastLogForAnchor(Anchor_Table_Set_t *anchorTableSet, Timestamp_Tuple_t timestampTuple);
+void updateBroadcastLogForTag(Tag_Table_t *tagTable, Timestamp_Tuple_t timestampTuple);
+void updateReceivedLogForAnchor(Anchor_Table_t *anchorTable, Timestamp_Tuple_t timestampTuple);
+void updateReceivedLogForTag(Tag_Table_t *tagTable, Timestamp_Tuple_t timestampTuple);
+table_index_t findAnchorTable(Anchor_Table_Set_t *anchorTableSet, uint16_t address);
+table_index_t findTagTable(Tag_Table_Set_t *tagTableSet, uint16_t address);
 void generateTDoAMessage(Ranging_Message_t *rangingMessage);
 void processTDoAMessageForAnchor(Ranging_Message_With_Additional_Info_t *rangingMessageWithAdditionalInfo);
 void processTDoAMessageForTag(Ranging_Message_With_Additional_Info_t *rangingMessageWithAdditionalInfo);
