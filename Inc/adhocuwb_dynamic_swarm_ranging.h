@@ -272,13 +272,28 @@ typedef struct {
     uint8_t size;
 } __attribute__((packed)) Anchor_Table_Set_t;
 
+typedef struct {
+    uint16_t anchorAddress;
+    uint8_t broadcastIndex;
+    uint8_t receiveIndex;
+    Timestamp_Tuple_t broadcastLog[TIMESTAMP_LIST_SIZE];
+    Timestamp_Tuple_t receiveLog[TIMESTAMP_LIST_SIZE];
+    TableState tableState;
+} __attribute__((packed)) Tag_Table_t;
+
+typedef struct {
+    Tag_Table_t tagTables[ANCHOR_SIZE - 1];
+    uint8_t size;
+} __attribute__((packed)) Tag_Table_Set_t;
+
 
 void AnchorTableSetInit();
-index_t registerAnchorTable(uint16_t neighborAnchorAddress);
+index_t registerAnchorTable(Anchor_Table_Set_t *anchorTableSet, uint16_t neighborAnchorAddress);
 void updateBroadcastLog(Timestamp_Tuple_t timestampTuple);
-void updateReceivedLog(Anchor_Table_t anchorTable, Timestamp_Tuple_t timestampTuple);
+void updateReceivedLog(Anchor_Table_t *anchorTable, Timestamp_Tuple_t timestampTuple);
 void generateTDoAMessage(Ranging_Message_t *rangingMessage);
-void processTDoAMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWithAdditionalInfo);
+void processTDoAMessageForAnchor(Ranging_Message_With_Additional_Info_t *rangingMessageWithAdditionalInfo);
+void processTDoAMessageForTag(Ranging_Message_With_Additional_Info_t *rangingMessageWithAdditionalInfo);
 
 #endif
 

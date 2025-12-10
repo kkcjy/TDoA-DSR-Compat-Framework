@@ -1752,7 +1752,7 @@ void AnchorTableSetInit() {
     anchorTableSet->size = 0;
 }
 
-index_t registerAnchorTable(uint16_t neighborAnchorAddress) {
+index_t registerAnchorTable(Anchor_Table_Set_t *anchorTableSet, uint16_t neighborAnchorAddress) {
     if(anchorTableSet->size >= ANCHOR_SIZE - 1) {
         DEBUG_PRINT("Anchor table Set is full, cannot register new table\n");
         return NULL_INDEX;
@@ -1776,9 +1776,24 @@ void updateBroadcastLog(Timestamp_Tuple_t timestampTuple) {
     anchorTableSet->broadcastLog[anchorTableSet->topIndex] = timestampTuple;
 }
 
-void updateReceivedLog(Anchor_Table_t anchorTable, Timestamp_Tuple_t timestampTuple) {
-    anchorTable.topIndex = (anchorTable.topIndex + 1) % TIMESTAMP_LIST_SIZE;
-    anchorTable.receivedLog[anchorTable.topIndex] = timestampTuple;
+void updateReceivedLog(Anchor_Table_t *anchorTable, Timestamp_Tuple_t timestampTuple) {
+    anchorTable->topIndex = (anchorTable->topIndex + 1) % TIMESTAMP_LIST_SIZE;
+    anchorTable->receivedLog[anchorTable->topIndex] = timestampTuple;
+}
+
+table_index_t findAnchorTable(Anchor_Table_Set_t *anchorTableSet, uint16_t address) {
+    if(anchorTableSet->size == 0) {
+        // DEBUG_PRINT("Anchor table Set is empty, cannot find table\n");
+        return NULL_INDEX;
+    }
+
+    for (table_index_t index = 0; index < ANCHOR_SIZE - 1; index++) {
+        if (anchorTableSet->anchorTables[index].neighborAnchorAddress == address && anchorTableSet->anchorTables[index].tableState == USING) {
+            return index;
+        }
+    }
+    // DEBUG_PRINT("Anchor table Set does not contain the address: %u\n", address);
+    return NULL_INDEX;
 }
 
 void generateTDoAMessage(Ranging_Message_t *rangingMessage) {
@@ -1792,6 +1807,12 @@ void generateTDoAMessage(Ranging_Message_t *rangingMessage) {
         rangingMessage->bodyUnits[bodyUnitCount].address = anchorTableSet->anchorTables->neighborAnchorAddress;
         bodyUnitCount++;
     }
+
+    rangingMessage->header.msgLength = sizeof(Ranging_Message_Header_t) + sizeof(Ranging_Message_Body_Unit_t) * bodyUnitCount;
+    rangingMessage->header.type = TYPE_TDOA;
+
+    // broadcast (16 bits)
+    rangingMessage->header.filter = NULL_ADDRESS;
 
     // fill in empty info
     while(bodyUnitCount < MESSAGE_BODYUNIT_SIZE) {
@@ -1814,18 +1835,38 @@ void generateTDoAMessage(Ranging_Message_t *rangingMessage) {
             rangingMessage->header.Txtimestamps[i] = nullTimestampTuple;
         }
     }
-
-    rangingMessage->header.msgLength = sizeof(Ranging_Message_Header_t) + sizeof(Ranging_Message_Body_Unit_t) * bodyUnitCount;
-    rangingMessage->header.type = TYPE_DSR;
-
-    // broadcast (16 bits)
-    rangingMessage->header.filter = NULL_ADDRESS;
 }
 
-void processTDoAMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWithAdditionalInfo) {
+void processTDoAMessageForAnchor(Ranging_Message_With_Additional_Info_t *rangingMessageWithAdditionalInfo) {
+    Ranging_Message_t *rangingMessage = &rangingMessageWithAdditionalInfo->rangingMessage;
+    uint16_t neighborAddress = rangingMessage->header.srcAddress;
 
+    if(neighborAddress > NEIGHBOR_ADDRESS_MAX) {
+        DEBUG_PRINT("[processDSRMessage]: neighborAddress > NEIGHBOR_ADDRESS_MAX\n");
+        return;
+    }
+
+    index_t neighborIndex = findAnchorTable(anchorTableSet, neighborAddress);
+
+    // handle new neighbor
+    if(neighborIndex == NULL_INDEX) {
+        neighborIndex = registerAnchorTable(anchorTableSet, neighborAddress);
+        if(neighborIndex == NULL_INDEX) {
+            DEBUG_PRINT("Warning: Failed to register new neighbor.\n");
+            return;
+        }
+    }
+
+    Anchor_Table_t *anchorTable = &anchorTableSet->anchorTables[neighborIndex];
+    Timestamp_Tuple_t timestampTuple = nullTimestampTuple;
+    timestampTuple.timestamp = rangingMessageWithAdditionalInfo->timestamp;
+    timestampTuple.seqNumber = rangingMessage->header.msgSequence;
+    updateReceivedLog(anchorTable, timestampTuple);
 }
 
+void processTDoAMessageForTag(Ranging_Message_With_Additional_Info_t *rangingMessageWithAdditionalInfo) {
+    
+}
 
 #ifndef SIMULATION_COMPILE
 /* -------------------- Call back -------------------- */
