@@ -9,6 +9,8 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdatomic.h>
+
 
 #if defined(SNIFFER_STORAGE_COMPILE) || defined(SIMULATION_COMPILE)
 #include "../../support.h"
@@ -252,11 +254,13 @@ typedef struct {
 #ifdef TDOA_COMPAT_ENABLE
 // anchor must remain static, tag can move arbitrarily, but only one of two modes can be selected at a time
 #define         ANCHOR_MODE_ENABLE
-#define         TAG_MODE_ENABLE
+// #define         TAG_MODE_ENABLE
+#define         TDOA_BROADCAST_PERIOD       20
 #define         TYPE_DSR                    0
 #define         TYPE_TDOA                   1
 #define         ANCHOR_SIZE                 2
 #define         TIMESTAMP_LIST_SIZE         3
+#define         TDOA_LOSS_TIME_THRESHOLD    15000000000
 
 
 typedef struct {
@@ -273,6 +277,7 @@ typedef struct {
     Anchor_Table_t anchorTables[ANCHOR_SIZE - 1];
     uint32_t localSeqNumber;
     uint8_t size;
+    SemaphoreHandle_t mutex;
 } __attribute__((packed)) Anchor_Table_Set_t;
 
 typedef struct {
@@ -287,25 +292,29 @@ typedef struct {
 typedef struct {
     Tag_Table_t tagTables[ANCHOR_SIZE];
     uint8_t size;
+    SemaphoreHandle_t mutex;
 } __attribute__((packed)) Tag_Table_Set_t;
 
 
-void anchorTableSetInit();
-void tagTableSetInit();
-index_t registerAnchorTable(Anchor_Table_Set_t *anchorTableSet, uint16_t neighborAnchorAddress);
-index_t registerTagTable(Tag_Table_Set_t *tagTableSet, uint16_t anchorAddress);
-void updateBroadcastLogForAnchor(Anchor_Table_Set_t *anchorTableSet, Timestamp_Tuple_t timestampTuple);
-void updateBroadcastLogForTag(Tag_Table_t *tagTable, Timestamp_Tuple_t timestampTuple);
-void updateReceivedLogForAnchor(Anchor_Table_t *anchorTable, Timestamp_Tuple_t timestampTuple);
-void updateReceivedLogForTag(Tag_Table_t *tagTable, Timestamp_Tuple_t timestampTuple);
-void updateAnchorLastReceiveLog(Tag_Table_t *tagTable,uint16_t address, Timestamp_Tuple_t timestampTuple);
-table_index_t findAnchorTable(Anchor_Table_Set_t *anchorTableSet, uint16_t address);
-table_index_t findTagTable(Tag_Table_Set_t *tagTableSet, uint16_t address);
-table_index_t getCollaboratorAnchor(Tag_Table_Set_t *tagTableSet, uint16_t anchorIndex);
-void generateTDoAMessage(Ranging_Message_t *rangingMessage);
-void processTDoAMessageForAnchor(Ranging_Message_With_Additional_Info_t *rangingMessageWithAdditionalInfo);
-void processTDoAMessageForTag(Ranging_Message_With_Additional_Info_t *rangingMessageWithAdditionalInfo);
-
+#if defined(ANCHOR_MODE_ENABLE)
+    void anchorTableSetInit();
+    index_t registerAnchorTable(Anchor_Table_Set_t *anchorTableSet, uint16_t neighborAnchorAddress);
+    void updateBroadcastLogForAnchor(Anchor_Table_Set_t *anchorTableSet, Timestamp_Tuple_t timestampTuple);
+    void updateReceivedLogForAnchor(Anchor_Table_t *anchorTable, Timestamp_Tuple_t timestampTuple);
+    table_index_t findAnchorTable(Anchor_Table_Set_t *anchorTableSet, uint16_t address);
+    void generateTDoAMessage(Ranging_Message_t *rangingMessage);
+    void processTDoAMessageForAnchor(Ranging_Message_With_Additional_Info_t *rangingMessageWithAdditionalInfo);
+#elif defined(TAG_MODE_ENABLE)
+    void tagTableSetInit();
+    index_t registerTagTable(Tag_Table_Set_t *tagTableSet, uint16_t anchorAddress);
+    void updateBroadcastLogForTag(Tag_Table_t *tagTable, Timestamp_Tuple_t timestampTuple);
+    void updateReceivedLogForTag(Tag_Table_t *tagTable, Timestamp_Tuple_t timestampTuple);
+    void updateAnchorLastReceiveLogForTag(Tag_Table_t *tagTable,uint16_t address, Timestamp_Tuple_t timestampTuple);
+    table_index_t findTagTable(Tag_Table_Set_t *tagTableSet, uint16_t address);
+    table_index_t getCollaboratorAnchor(Tag_Table_Set_t *tagTableSet, uint16_t anchorIndex);
+    void processTDoAMessageForTag(Ranging_Message_With_Additional_Info_t *rangingMessageWithAdditionalInfo);
+    void dispatchTagClusterMode(Ranging_Message_With_Additional_Info_t *rangingMessageWithAdditionalInfo);
+#endif
 #endif
 
 
