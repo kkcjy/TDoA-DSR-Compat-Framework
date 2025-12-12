@@ -38,7 +38,7 @@
 #endif
 // #define         PACKET_LOSS_ENABLE
 #define         OPTIMAL_RANGING_SCHEDULE_ENABLE
-// #define         TDOA_COMPAT_ENABLE
+#define         TDOA_COMPAT_ENABLE
 
 /* Ranging Constants */
 #define         RANGING_PERIOD              200
@@ -69,6 +69,7 @@
 #define         RANGING_RX_QUEUE_ITEM_SIZE  sizeof(Ranging_Message_With_Additional_Info_t)
 
 /* Else */
+#define         TYPE_DSR                    0
 #ifdef COMPENSATE_ENABLE
     #define         RANGING_MODE                "CDSR"
 #else
@@ -253,11 +254,10 @@ typedef struct {
 /* -------------------- TDoA -------------------- */
 #ifdef TDOA_COMPAT_ENABLE
 // anchor must remain static, tag can move arbitrarily, but only one of two modes can be selected at a time
-#define         ANCHOR_MODE_ENABLE
-// #define         TAG_MODE_ENABLE
-#define         TDOA_BROADCAST_PERIOD       20
-#define         TYPE_DSR                    0
+// #define         ANCHOR_MODE_ENABLE
+#define         TAG_MODE_ENABLE
 #define         TYPE_TDOA                   1
+#define         TDOA_BROADCAST_PERIOD       50
 #define         ANCHOR_SIZE                 2
 #define         TIMESTAMP_LIST_SIZE         3
 #define         TDOA_LOSS_TIME_THRESHOLD    15000000000

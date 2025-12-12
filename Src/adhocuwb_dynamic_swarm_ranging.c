@@ -1505,9 +1505,7 @@ void generateDSRMessage(Ranging_Message_t *rangingMessage) {
 
     rangingMessage->header.msgLength = sizeof(Ranging_Message_Header_t) + sizeof(Ranging_Message_Body_Unit_t) * bodyUnitCount;
 
-    #ifdef TDOA_COMPAT_ENABLE
-        rangingMessage->header.type = TYPE_DSR;
-    #endif
+    rangingMessage->header.type = TYPE_DSR;
 
     // fill in empty info
     while(bodyUnitCount < MESSAGE_BODYUNIT_SIZE) {
@@ -1545,6 +1543,10 @@ void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
 
     // DEBUG_PRINT("[process]\n");
     // printRangingMessage(rangingMessage);
+
+    if(rangingMessage->header.type != TYPE_DSR) {
+        return;
+    }
 
     uint16_t neighborAddress = rangingMessage->header.srcAddress;
 
@@ -2165,6 +2167,8 @@ static void uwbRangingTxTask(void *parameters) {
             // DEBUG_PRINT("[uwbRangingTxTask]: Acquired mutex, generating ranging message\n");
 
             generateDSRMessage(rangingMessage);
+            // temp
+            printRangingMessage(rangingMessage);
             
             txPacketCache.header.seqNumber++;
             txPacketCache.header.length = sizeof(UWB_Packet_Header_t) + rangingMessage->header.msgLength;
@@ -2188,6 +2192,8 @@ static void uwbRangingTxTask(void *parameters) {
             #if defined(ANCHOR_MODE_ENABLE)
                 xSemaphoreTake(anchorTableSet->mutex, portMAX_DELAY);
                 generateTDoAMessage(rangingMessage);
+                // temp
+                printRangingMessage(rangingMessage);
                 
                 txPacketCache.header.seqNumber++;
                 txPacketCache.header.length = sizeof(UWB_Packet_Header_t) + rangingMessage->header.msgLength;
@@ -2205,8 +2211,11 @@ static void uwbRangingTxTask(void *parameters) {
             #elif defined(TAG_MODE_ENABLE)
                 // 1> DSR clustered
                 if(atomic_load(&ranging_cluster) == TYPE_DSR) {
+                    DEBUG_PRINT("***ranging_cluster == TYPE_DSR***\n");
                     xSemaphoreTake(rangingTableSet->mutex, portMAX_DELAY);
                     generateDSRMessage(rangingMessage);
+                    // temp
+                    printRangingMessage(rangingMessage);
                     
                     txPacketCache.header.seqNumber++;
                     txPacketCache.header.length = sizeof(UWB_Packet_Header_t) + rangingMessage->header.msgLength;
@@ -2228,6 +2237,7 @@ static void uwbRangingTxTask(void *parameters) {
 
                 // 2> TDoA clustered
                 else if(atomic_load(&ranging_cluster) == TYPE_TDOA) {
+                    DEBUG_PRINT("***ranging_cluster == TYPE_TDOA***\n");
                     Time_t rangingPeriod = RANGING_PERIOD;
                     vTaskDelay(rangingPeriod);
                 }
@@ -2294,14 +2304,14 @@ void rangingTxCallback(void *parameters) {
     dwt_readtxtimestamp((uint8_t*)&txTime.raw);
     Timestamp_Tuple_t timestamp = {.timestamp = txTime, .seqNumber = rangingMessage->header.msgSequence};
 
-    #if !defined(TDOA_COMPAT_ENABLE)
+    #if !defined(TDOA_COMPAT_ENABLE) || (defined(TDOA_COMPAT_ENABLE) && defined(TAG_MODE_ENABLE))
         updateSendList(&rangingTableSet->sendList, timestamp);
 
         #ifdef OPTIMAL_RANGING_SCHEDULE_ENABLE
             Midpoint_Adjustment(rangingTableSet->sendList.Txtimestamps[rangingTableSet->sendList.topIndex].timestamp, &rangingTableSet->receiveList);
         #endif
 
-    #elif defined(ANCHOR_MODE_ENABLE)
+    #elif defined(TDOA_COMPAT_ENABLE) && defined(ANCHOR_MODE_ENABLE)
         updateBroadcastLogForAnchor(anchorTableSet, timestamp);
     #endif
 }
