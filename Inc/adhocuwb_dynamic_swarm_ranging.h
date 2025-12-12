@@ -38,7 +38,7 @@
 #endif
 // #define         PACKET_LOSS_ENABLE
 #define         OPTIMAL_RANGING_SCHEDULE_ENABLE
-#define         TDOA_COMPAT_ENABLE
+// #define         TDOA_COMPAT_ENABLE
 
 /* Ranging Constants */
 #define         RANGING_PERIOD              200
@@ -283,9 +283,11 @@ typedef struct {
 typedef struct {
     uint16_t anchorAddress;
     uint8_t topIndex;
-    Timestamp_Tuple_t broadcastLog[TIMESTAMP_LIST_SIZE];            // anchor's broadcast timestamps
-    Timestamp_Tuple_t receiveLog[TIMESTAMP_LIST_SIZE];              // tag's reception timestamps
-    Timestamp_Tuple_t anchorLastReceiveLog[NEIGHBOR_ADDRESS_MAX];   // last reception timestamps from neighbor anchors
+    Timestamp_Tuple_t broadcastLog[TIMESTAMP_LIST_SIZE];                // anchor's broadcast timestamps
+    Timestamp_Tuple_t receiveLog[TIMESTAMP_LIST_SIZE];                  // tag's reception timestamps
+    Timestamp_Tuple_t anchorLastReceiveLog[2 * NEIGHBOR_ADDRESS_MAX]; 
+    /*  [0 ... NEIGHBOR_ADDRESS_MAX - 1]                                store the second most recent timestamp
+        [NEIGHBOR_ADDRESS_MAX ... 2 * NEIGHBOR_ADDRESS_MAX - 1]         store the most recent reception timestamp */
     TableState tableState;
 } __attribute__((packed)) Tag_Table_t;
 

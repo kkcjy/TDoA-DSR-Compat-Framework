@@ -1726,7 +1726,7 @@ float getCurDistance(uint16_t neighborAddress, uint64_t Rt) {
         uint64_t diffTfRr = (ONCE_Tf[neighborAddress] - ONCE_Rr[neighborAddress] + UWB_MAX_TIMESTAMP) % UWB_MAX_TIMESTAMP;
         compensation_factor = (float)(diffRxRr - diffTfRr / 2.0) / (float)diffReRr;
 
-        return (float)d_prev[neighborAddress] + (float)d_temp[neighborAddress] * compensation_factor;
+        return (float)d_prev[neighborAddress] + d_temp[neighborAddress] * compensation_factor;
     #else
         return (float)d_prev[neighborAddress];
     #endif
@@ -1805,11 +1805,16 @@ void generateTDoAMessage(Ranging_Message_t *rangingMessage) {
     anchorTableSet->localSeqNumber++;
 
     /* generate bodyUnit */
-    while (bodyUnitCount < MESSAGE_BODYUNIT_SIZE && bodyUnitCount < anchorTableSet->size) {
-        rangingMessage->bodyUnits[bodyUnitCount].timestamp = anchorTableSet->anchorTables->receivedLog[anchorTableSet->anchorTables->topIndex].timestamp;
-        rangingMessage->bodyUnits[bodyUnitCount].seqNumber = anchorTableSet->anchorTables->receivedLog[anchorTableSet->anchorTables->topIndex].seqNumber;
-        rangingMessage->bodyUnits[bodyUnitCount].address = anchorTableSet->anchorTables->neighborAnchorAddress;
-        bodyUnitCount++;
+    // select the nearest anchors first (if the number of available anchors is large, a priority mechanism may be required to further refine the selection)
+    index_t tableIndex = 0;
+    while (bodyUnitCount < MESSAGE_BODYUNIT_SIZE && tableIndex < ANCHOR_SIZE - 1) {
+        if(anchorTableSet->anchorTables[tableIndex].tableState == USING) {
+            rangingMessage->bodyUnits[bodyUnitCount].timestamp = anchorTableSet->anchorTables[tableIndex].receivedLog[anchorTableSet->anchorTables->topIndex].timestamp;
+            rangingMessage->bodyUnits[bodyUnitCount].seqNumber = anchorTableSet->anchorTables[tableIndex].receivedLog[anchorTableSet->anchorTables->topIndex].seqNumber;
+            rangingMessage->bodyUnits[bodyUnitCount].address = anchorTableSet->anchorTables[tableIndex].neighborAnchorAddress;
+            bodyUnitCount++;
+        }
+        tableIndex++;
     }
 
     rangingMessage->header.msgLength = sizeof(Ranging_Message_Header_t) + sizeof(Ranging_Message_Body_Unit_t) * bodyUnitCount;
@@ -1829,11 +1834,11 @@ void generateTDoAMessage(Ranging_Message_t *rangingMessage) {
     /* generate header */
     rangingMessage->header.srcAddress = MY_UWB_ADDRESS;
     rangingMessage->header.msgSequence = rangingTableSet->localSeqNumber;
-    index_t index = anchorTableSet->topIndex;
+    index_t TxIndex = anchorTableSet->topIndex;
     for(int i = 0; i < MESSAGE_TX_POOL_SIZE; i++) {
-        if(anchorTableSet->broadcastLog[index].seqNumber != NULL_SEQ) {
-            rangingMessage->header.Txtimestamps[i] = anchorTableSet->broadcastLog[index];
-            index = (index - 1 + TIMESTAMP_LIST_SIZE) % TIMESTAMP_LIST_SIZE;
+        if(anchorTableSet->broadcastLog[TxIndex].seqNumber != NULL_SEQ) {
+            rangingMessage->header.Txtimestamps[i] = anchorTableSet->broadcastLog[TxIndex];
+            TxIndex = (TxIndex - 1 + TIMESTAMP_LIST_SIZE) % TIMESTAMP_LIST_SIZE;
         }
         else {
             rangingMessage->header.Txtimestamps[i] = nullTimestampTuple;
@@ -1878,7 +1883,7 @@ void tagTableSetInit() {
             tagTableSet->tagTables[i].broadcastLog[j] = nullTimestampTuple;
             tagTableSet->tagTables[i].receiveLog[j] = nullTimestampTuple;
         }
-        for(int j = 0; j < NEIGHBOR_ADDRESS_MAX; j++) {
+        for(int j = 0; j < 2 * NEIGHBOR_ADDRESS_MAX; j++) {
             tagTableSet->tagTables[i].anchorLastReceiveLog[j] = nullTimestampTuple;
         }
         tagTableSet->tagTables[i].tableState = UNUSED;
@@ -1921,7 +1926,11 @@ void updateReceivedLogForTag(Tag_Table_t *tagTable, Timestamp_Tuple_t timestampT
 }
 
 void updateAnchorLastReceiveLogForTag(Tag_Table_t *tagTable,uint16_t address, Timestamp_Tuple_t timestampTuple) {
-    tagTable->anchorLastReceiveLog[address] = timestampTuple;
+    if(address > NEIGHBOR_ADDRESS_MAX) {
+        ASSERT(0 && "Warning: Anchor address exceeds NEIGHBOR_ADDRESS_MAX\n");
+    }
+    tagTable->anchorLastReceiveLog[address] = tagTable->anchorLastReceiveLog[address + NEIGHBOR_ADDRESS_MAX];
+    tagTable->anchorLastReceiveLog[address + NEIGHBOR_ADDRESS_MAX] = timestampTuple;
 }
 
 table_index_t findTagTable(Tag_Table_Set_t *tagTableSet, uint16_t address) {
@@ -1945,6 +1954,7 @@ table_index_t getCollaboratorAnchor(Tag_Table_Set_t *tagTableSet, uint16_t ancho
         return NULL_INDEX;
     }
 
+    // timestamp of last packet received from this anchor
     uint64_t baseTimestamp = tagTableSet->tagTables[anchorIndex].receiveLog[(tagTableSet->tagTables[anchorIndex].topIndex - 1 + TIMESTAMP_LIST_SIZE) % TIMESTAMP_LIST_SIZE].timestamp.full;
     if(baseTimestamp == NULL_TIMESTAMP) {
         DEBUG_PRINT("Initialization in progress");
@@ -1953,7 +1963,7 @@ table_index_t getCollaboratorAnchor(Tag_Table_Set_t *tagTableSet, uint16_t ancho
 
     index_t collaboratorIndex = NULL_INDEX;
     dwTime_t collaboratorTimestamp;
-    for(int i = 0; i < tagTableSet->size; i++) {
+    for(int i = 0; i < ANCHOR_SIZE; i++) {
         if(collaboratorIndex == NULL_INDEX && tagTableSet->tagTables[i].tableState == USING) {
             index_t lastReceiveIndex = (tagTableSet->tagTables[i].topIndex - 1 + TIMESTAMP_LIST_SIZE) % TIMESTAMP_LIST_SIZE;
 
@@ -2005,10 +2015,12 @@ void processTDoAMessageForTag(Ranging_Message_With_Additional_Info_t *rangingMes
 
     // update broadcastLog
     for(int i = 0; i < MESSAGE_TX_POOL_SIZE; i++) {
-        Timestamp_Tuple_t broadcastTimestampTuple = nullTimestampTuple;
-        broadcastTimestampTuple.timestamp.full = rangingMessage->header.Txtimestamps[i].timestamp.full % UWB_MAX_TIMESTAMP;
-        broadcastTimestampTuple.seqNumber = rangingMessage->header.Txtimestamps[i].seqNumber;
-        updateBroadcastLogForTag(tagTable, broadcastTimestampTuple);
+        if(rangingMessage->header.Txtimestamps[i].seqNumber != NULL_SEQ) {
+            Timestamp_Tuple_t broadcastTimestampTuple = nullTimestampTuple;
+            broadcastTimestampTuple.timestamp.full = rangingMessage->header.Txtimestamps[i].timestamp.full % UWB_MAX_TIMESTAMP;
+            broadcastTimestampTuple.seqNumber = rangingMessage->header.Txtimestamps[i].seqNumber;
+            updateBroadcastLogForTag(tagTable, broadcastTimestampTuple);
+        }
     }
 
     // calculate TDoA
@@ -2027,7 +2039,7 @@ void processTDoAMessageForTag(Ranging_Message_With_Additional_Info_t *rangingMes
                       \            \            \            \            \
                        \            \            \            \            \
     tag             ----*------------*------------*-----------------------------
-                        P1           P2           P3           P4           P5
+                        P1           P2           P3           P4           P5 (current)
     */
 
     Timestamp_Tuple_t anchor_P3 = tagTable->broadcastLog[(tagTable->topIndex - 1 + TIMESTAMP_LIST_SIZE) % TIMESTAMP_LIST_SIZE];

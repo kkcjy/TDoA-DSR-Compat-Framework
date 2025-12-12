@@ -19,12 +19,12 @@
 #include "adhocuwb_platform.h"
 #include "adhocuwb_init.h"
 
-// 定义用于存储 UWB 地址的 FLASH 内存地址
-#define UWB_ADDRESS_FLASH_ADDR 0x081FFFF0
 
 #if defined(CONFIG_ADHOCUWB_PLATFORM_ADHOCUWBH7) || defined(CONFIG_ADHOCUWB_PLATFORM_ATHENA)
   #include "main.h"
   static uint16_t MY_UWB_ADDRESS;
+  #define UWB_ADDRESS_FLASH_ADDR 0x081FFFF0     // 定义用于存储 UWB 地址的 FLASH 内存地址
+
   #define DEBUG_PRINT printf
 #endif
 

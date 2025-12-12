@@ -124,7 +124,9 @@ static void adhocuwbTxTask(void *parameters) {
 }
 
 void adhocuwbInit() {
+#ifdef CONFIG_ADHOCUWB_PLATFORM_ADHOCUWBH7
   MY_UWB_ADDRESS = uwbGetAddress();
+#endif
 
   adhocuwb_set_hdw_cbs(adhocuwb_txCallback, adhocuwb_rxCallback);
   txQueue = xQueueCreate(UWB_TX_QUEUE_SIZE, UWB_TX_QUEUE_ITEM_SIZE);
