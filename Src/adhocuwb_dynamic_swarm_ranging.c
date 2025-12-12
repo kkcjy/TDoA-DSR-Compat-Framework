@@ -61,8 +61,8 @@ static bool compensated[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX
 */
 float anchor_distance_matrix[ANCHOR_SIZE + 1][ANCHOR_SIZE + 1] = {
     {NULL_DIS, NULL_DIS    , NULL_DIS},
-    {NULL_DIS, 0.0         , NULL_DIS},
-    {NULL_DIS, NULL_DIS    , 0.0     }};
+    {NULL_DIS, 10.0        , NULL_DIS},
+    {NULL_DIS, NULL_DIS    , 10.0    }};
 
 #if defined(ANCHOR_MODE_ENABLE)
 Anchor_Table_Set_t *anchorTableSet;
@@ -1835,7 +1835,7 @@ void generateTDoAMessage(Ranging_Message_t *rangingMessage) {
 
     /* generate header */
     rangingMessage->header.srcAddress = MY_UWB_ADDRESS;
-    rangingMessage->header.msgSequence = rangingTableSet->localSeqNumber;
+    rangingMessage->header.msgSequence = anchorTableSet->localSeqNumber;
     index_t TxIndex = anchorTableSet->topIndex;
     for(int i = 0; i < MESSAGE_TX_POOL_SIZE; i++) {
         if(anchorTableSet->broadcastLog[TxIndex].seqNumber != NULL_SEQ) {
@@ -1850,6 +1850,11 @@ void generateTDoAMessage(Ranging_Message_t *rangingMessage) {
 
 void processTDoAMessageForAnchor(Ranging_Message_With_Additional_Info_t *rangingMessageWithAdditionalInfo) {
     Ranging_Message_t *rangingMessage = &rangingMessageWithAdditionalInfo->rangingMessage;
+
+    if(rangingMessage->header.type != TYPE_TDOA) {
+        return;
+    }
+
     uint16_t anchorAddress = rangingMessage->header.srcAddress;
 
     if(anchorAddress > NEIGHBOR_ADDRESS_MAX) {
@@ -1989,6 +1994,11 @@ table_index_t getCollaboratorAnchor(Tag_Table_Set_t *tagTableSet, uint16_t ancho
 
 void processTDoAMessageForTag(Ranging_Message_With_Additional_Info_t *rangingMessageWithAdditionalInfo) {
     Ranging_Message_t *rangingMessage = &rangingMessageWithAdditionalInfo->rangingMessage;
+
+    if(rangingMessage->header.type != TYPE_TDOA) {
+        return;
+    }
+    
     uint16_t anchorAddress = rangingMessage->header.srcAddress;
 
     if(anchorAddress > NEIGHBOR_ADDRESS_MAX) {
@@ -2032,48 +2042,60 @@ void processTDoAMessageForTag(Ranging_Message_With_Additional_Info_t *rangingMes
     }
 
     table_index_t collaboratorIndex = getCollaboratorAnchor(tagTableSet, anchorIndex);
-    Tag_Table_t collaboratorTable = tagTableSet->tagTables[collaboratorIndex];
-    /*
-    collaborator    -----------*------------------------------------------------
-                       /       |\                /        \                /
-                      /        | \              /          \              /
-    anchor          -*---------+--*------------*--------------------------------
-                      \            \            \            \            \
-                       \            \            \            \            \
-    tag             ----*------------*------------*-----------------------------
-                        P1           P2           P3           P4           P5 (current)
-    */
+    if(collaboratorIndex != NULL_INDEX) {
+        Tag_Table_t collaboratorTable = tagTableSet->tagTables[collaboratorIndex];
+        /*
+        collaborator    -----------*------------------------------------------------
+                           /       |\                /        \                /
+                          /        | \              /          \              /
+        anchor          -*---------+--*------------*--------------------------------
+                          \            \            \            \            \
+                           \            \            \            \            \
+        tag             ----*------------*------------*-----------------------------
+                            P1           P2           P3           P4           P5 (current)
+        */
 
-    Timestamp_Tuple_t anchor_P3 = tagTable->broadcastLog[(tagTable->topIndex - 1 + TIMESTAMP_LIST_SIZE) % TIMESTAMP_LIST_SIZE];
-    Timestamp_Tuple_t tag_P3 = tagTable->receiveLog[(tagTable->topIndex - 1 + TIMESTAMP_LIST_SIZE) % TIMESTAMP_LIST_SIZE];
+        Timestamp_Tuple_t anchor_P3 = tagTable->broadcastLog[(tagTable->topIndex - 1 + TIMESTAMP_LIST_SIZE) % TIMESTAMP_LIST_SIZE];
+        Timestamp_Tuple_t tag_P3 = tagTable->receiveLog[(tagTable->topIndex - 1 + TIMESTAMP_LIST_SIZE) % TIMESTAMP_LIST_SIZE];
 
-    Timestamp_Tuple_t collaborator_P2 = collaboratorTable.broadcastLog[(collaboratorTable.topIndex - 1 + TIMESTAMP_LIST_SIZE) % TIMESTAMP_LIST_SIZE];
-    Timestamp_Tuple_t anchor_P2 = tagTable->anchorLastReceiveLog[collaboratorTable.anchorAddress];
-    Timestamp_Tuple_t tag_P2 = collaboratorTable.receiveLog[(collaboratorTable.topIndex - 1 + TIMESTAMP_LIST_SIZE) % TIMESTAMP_LIST_SIZE];
+        Timestamp_Tuple_t collaborator_P2 = collaboratorTable.broadcastLog[(collaboratorTable.topIndex - 1 + TIMESTAMP_LIST_SIZE) % TIMESTAMP_LIST_SIZE];
+        Timestamp_Tuple_t anchor_P2 = tagTable->anchorLastReceiveLog[collaboratorTable.anchorAddress];
+        Timestamp_Tuple_t tag_P2 = collaboratorTable.receiveLog[(collaboratorTable.topIndex - 1 + TIMESTAMP_LIST_SIZE) % TIMESTAMP_LIST_SIZE];
 
-    Timestamp_Tuple_t anchor_P1 = tagTable->broadcastLog[(tagTable->topIndex - 2 + TIMESTAMP_LIST_SIZE) % TIMESTAMP_LIST_SIZE];
-    Timestamp_Tuple_t tag_P1 = tagTable->receiveLog[(tagTable->topIndex - 2 + TIMESTAMP_LIST_SIZE) % TIMESTAMP_LIST_SIZE];
+        Timestamp_Tuple_t anchor_P1 = tagTable->broadcastLog[(tagTable->topIndex - 2 + TIMESTAMP_LIST_SIZE) % TIMESTAMP_LIST_SIZE];
+        Timestamp_Tuple_t tag_P1 = tagTable->receiveLog[(tagTable->topIndex - 2 + TIMESTAMP_LIST_SIZE) % TIMESTAMP_LIST_SIZE];
 
-    float TDoA = NULL_DIS;
-    if(anchor_P3.seqNumber == NULL_SEQ || tag_P3.seqNumber == NULL_SEQ || collaborator_P2.seqNumber == NULL_SEQ ||
-       anchor_P2.seqNumber == NULL_SEQ || tag_P2.seqNumber == NULL_SEQ || anchor_P1.seqNumber == NULL_SEQ || tag_P1.seqNumber == NULL_SEQ) {
-        DEBUG_PRINT("Insufficient data for calculation\n");
+        DEBUG_PRINT("P3  anchor: ts=%u  seq=%u\n", anchor_P3.timestamp, anchor_P3.seqNumber);
+        DEBUG_PRINT("P3     tag: ts=%u  seq=%u\n", tag_P3.timestamp,    tag_P3.seqNumber);
+
+        DEBUG_PRINT("P2  collab: ts=%u  seq=%u\n", collaborator_P2.timestamp, collaborator_P2.seqNumber);
+        DEBUG_PRINT("P2  anchor: ts=%u  seq=%u\n", anchor_P2.timestamp,       anchor_P2.seqNumber);
+        DEBUG_PRINT("P2     tag: ts=%u  seq=%u\n", tag_P2.timestamp,           tag_P2.seqNumber);
+
+        DEBUG_PRINT("P1  anchor: ts=%u  seq=%u\n", anchor_P1.timestamp, anchor_P1.seqNumber);
+        DEBUG_PRINT("P1     tag: ts=%u  seq=%u\n", tag_P1.timestamp,    tag_P1.seqNumber);
+
+        float TDoA = NULL_DIS;
+        if(anchor_P3.seqNumber == NULL_SEQ || tag_P3.seqNumber == NULL_SEQ || collaborator_P2.seqNumber == NULL_SEQ ||
+        anchor_P2.seqNumber == NULL_SEQ || tag_P2.seqNumber == NULL_SEQ || anchor_P1.seqNumber == NULL_SEQ || tag_P1.seqNumber == NULL_SEQ) {
+            DEBUG_PRINT("Insufficient data for calculation\n");
+        }
+        else if(anchor_P3.seqNumber != tag_P3.seqNumber || collaborator_P2.seqNumber != anchor_P2.seqNumber ||
+                anchor_P2.seqNumber != tag_P2.seqNumber || anchor_P1.seqNumber != tag_P1.seqNumber) {
+            DEBUG_PRINT("Computation aborted: sequence numbers misaligned\n");
+        }
+        else {
+            uint64_t Rx1_delta = (tag_P3.timestamp.full - tag_P1.timestamp.full + UWB_MAX_TIMESTAMP) % UWB_MAX_TIMESTAMP;
+            uint64_t Tx1_delta = (anchor_P3.timestamp.full - anchor_P1.timestamp.full + UWB_MAX_TIMESTAMP) % UWB_MAX_TIMESTAMP;
+            float alpha = (float)Rx1_delta / (float)Tx1_delta;
+
+            uint64_t Rx_delta = (tag_P3.timestamp.full - tag_P2.timestamp.full + UWB_MAX_TIMESTAMP) % UWB_MAX_TIMESTAMP;
+            uint64_t Tx_delta = (anchor_P3.timestamp.full - anchor_P2.timestamp.full + UWB_MAX_TIMESTAMP) % UWB_MAX_TIMESTAMP + anchor_distance_matrix[tagTable->anchorAddress][collaboratorTable.anchorAddress] / VELOCITY;
+
+            TDoA = Rx_delta - alpha * Tx_delta;
+        }
+        DEBUG_PRINT("TDoA dist diff = %f, time = %llu\n", (double)TDoA, rangingMessageWithAdditionalInfo->timestamp.full % UWB_MAX_TIMESTAMP);
     }
-    else if(anchor_P3.seqNumber != tag_P3.seqNumber || collaborator_P2.seqNumber != anchor_P2.seqNumber ||
-            anchor_P2.seqNumber != tag_P2.seqNumber || anchor_P1.seqNumber != tag_P1.seqNumber) {
-        DEBUG_PRINT("Computation aborted: sequence numbers misaligned\n");
-    }
-    else {
-        uint64_t Rx1_delta = (tag_P3.timestamp.full - tag_P1.timestamp.full + UWB_MAX_TIMESTAMP) % UWB_MAX_TIMESTAMP;
-        uint64_t Tx1_delta = (anchor_P3.timestamp.full - anchor_P1.timestamp.full + UWB_MAX_TIMESTAMP) % UWB_MAX_TIMESTAMP;
-        float alpha = (float)Rx1_delta / (float)Tx1_delta;
-
-        uint64_t Rx_delta = (tag_P3.timestamp.full - tag_P2.timestamp.full + UWB_MAX_TIMESTAMP) % UWB_MAX_TIMESTAMP;
-        uint64_t Tx_delta = (anchor_P3.timestamp.full - anchor_P2.timestamp.full + UWB_MAX_TIMESTAMP) % UWB_MAX_TIMESTAMP + anchor_distance_matrix[tagTable->anchorAddress][collaboratorTable.anchorAddress] / VELOCITY;
-
-        TDoA = Rx_delta - alpha * Tx_delta;
-    }
-    DEBUG_PRINT("TDoA dist diff = %f, time = %llu\n", (double)TDoA, rangingMessageWithAdditionalInfo->timestamp.full % UWB_MAX_TIMESTAMP);
 
     // update anchorLastReceiveLog
     int bodyUnitCount = (rangingMessage->header.msgLength - sizeof(Ranging_Message_Header_t)) / sizeof(Ranging_Message_Body_Unit_t);
@@ -2101,6 +2123,7 @@ void dispatchTagClusterMode(Ranging_Message_With_Additional_Info_t *rangingMessa
             atomic_store(&ranging_cluster, TYPE_TDOA);
             lastTDoAReceptionTime = rangingMessageWithAdditionalInfo->timestamp;
             xSemaphoreTake(tagTableSet->mutex, portMAX_DELAY);
+            rangingTableSetInit(rangingTableSet);
             processTDoAMessageForTag(rangingMessageWithAdditionalInfo);
             xSemaphoreGive(tagTableSet->mutex);
         }
@@ -2113,6 +2136,7 @@ void dispatchTagClusterMode(Ranging_Message_With_Additional_Info_t *rangingMessa
             if(COMPARE_TIME(lastTDoAReceptionTime.full + TDOA_LOSS_TIME_THRESHOLD, rangingMessageWithAdditionalInfo->timestamp.full)) {
                 atomic_store(&ranging_cluster, TYPE_DSR);
                 xSemaphoreTake(rangingTableSet->mutex, portMAX_DELAY);
+                tagTableSetInit(tagTableSet);
                 processDSRMessage(rangingMessageWithAdditionalInfo);
                 xSemaphoreGive(rangingTableSet->mutex);
             }
