@@ -447,6 +447,7 @@ void rangingTableSetInit() {
 
     if (rangingTableSet == NULL) {
         rangingTableSet = (Ranging_Table_Set_t *)malloc(sizeof(Ranging_Table_Set_t));
+        rangingTableSet->mutex = xSemaphoreCreateMutex();
     }
     rangingTableSet->size = 0;
     rangingTableSet->localSeqNumber = NULL_SEQ;
@@ -467,7 +468,6 @@ void rangingTableSetInit() {
         rangingTableSet->lastRxtimestamp[i] = nullTimestampTuple;
         rangingTableSet->priorityQueue[i] = NULL_INDEX;
     }
-    rangingTableSet->mutex = xSemaphoreCreateMutex();
 }
 
 // check expirationSign of rangingTables and deregister rangingTable expired
@@ -1741,9 +1741,7 @@ float getCurDistance(uint16_t neighborAddress, uint64_t Rt) {
 #ifdef TDOA_COMPAT_ENABLE
 #if defined(ANCHOR_MODE_ENABLE)
 void anchorTableSetInit() {
-    if (anchorTableSet == NULL) {
-        anchorTableSet = (Anchor_Table_Set_t*)malloc(sizeof(Anchor_Table_Set_t));
-    }
+    anchorTableSet = (Anchor_Table_Set_t*)malloc(sizeof(Anchor_Table_Set_t));
     anchorTableSet->localAnchorAddress = MY_UWB_ADDRESS;
     anchorTableSet->topIndex = NULL_INDEX;
     for(int i = 0; i < TIMESTAMP_LIST_SIZE; i++) {
@@ -1886,7 +1884,10 @@ void processTDoAMessageForAnchor(Ranging_Message_With_Additional_Info_t *ranging
 
 #elif defined(TAG_MODE_ENABLE)
 void tagTableSetInit() {
-    tagTableSet = (Tag_Table_Set_t*)malloc(sizeof(Tag_Table_Set_t));
+    if (tagTableSet == NULL) {
+        tagTableSet = (Tag_Table_Set_t*)malloc(sizeof(Tag_Table_Set_t));
+        tagTableSet->mutex = xSemaphoreCreateMutex();
+    }
     for(int i = 0; i < ANCHOR_SIZE; i++) {
         tagTableSet->tagTables[i].anchorAddress = NULL_ADDRESS;
         tagTableSet->tagTables[i].topIndex = NULL_INDEX;
@@ -1900,7 +1901,6 @@ void tagTableSetInit() {
         tagTableSet->tagTables[i].tableState = UNUSED;
     }
     tagTableSet->size = 0;
-    tagTableSet->mutex = xSemaphoreCreateMutex();
 }
 
 index_t registerTagTable(Tag_Table_Set_t *tagTableSet, uint16_t anchorAddress) {
@@ -1960,11 +1960,6 @@ table_index_t findTagTable(Tag_Table_Set_t *tagTableSet, uint16_t address) {
 }
 
 table_index_t getCollaboratorAnchor(Tag_Table_Set_t *tagTableSet, uint16_t anchorIndex, Timestamp_Tuple_t tag_P1, Timestamp_Tuple_t tag_P3, index_t *logIndex) {
-    if(tagTableSet->size < 2) {
-        DEBUG_PRINT("At least 2 Anchors are needed to calculate TDoA\n");
-        return NULL_INDEX;
-    }
-
     if(tag_P1.seqNumber == NULL_SEQ || tag_P3.seqNumber == NULL_SEQ) {
         DEBUG_PRINT("Initialization in progress\n");
         return NULL_INDEX;
@@ -2122,7 +2117,6 @@ void processTDoAMessageForTag(Ranging_Message_With_Additional_Info_t *rangingMes
 
     if(collaboratorIndex != NULL_INDEX) {
         Tag_Table_t collaboratorTable = tagTableSet->tagTables[collaboratorIndex];
-        DEBUG_PRINT("collaboratorAddress = %u\n", collaboratorTable.anchorAddress);
 
         Timestamp_Tuple_t tag_P2 = collaboratorTable.receiveLog[logIndex];
         Timestamp_Tuple_t anchor_P2;
@@ -2137,12 +2131,11 @@ void processTDoAMessageForTag(Ranging_Message_With_Additional_Info_t *rangingMes
             anchor_P2 = nullTimestampTuple;
         }
 
+        // DEBUG_PRINT("collaboratorAddress = %u\n", collaboratorTable.anchorAddress);
         // DEBUG_PRINT("P3  anchor: ts=%llu  seq=%u\n", anchor_P3.timestamp.full, anchor_P3.seqNumber);
         // DEBUG_PRINT("P3     tag: ts=%llu  seq=%u\n", tag_P3.timestamp.full, tag_P3.seqNumber);
-
         // DEBUG_PRINT("P2  anchor: ts=%llu  seq=%u\n", anchor_P2.timestamp.full, anchor_P2.seqNumber);
         // DEBUG_PRINT("P2     tag: ts=%llu  seq=%u\n", tag_P2.timestamp.full, tag_P2.seqNumber);
-
         // DEBUG_PRINT("P1  anchor: ts=%llu  seq=%u\n", anchor_P1.timestamp.full, anchor_P1.seqNumber);
         // DEBUG_PRINT("P1     tag: ts=%llu  seq=%u\n", tag_P1.timestamp.full, tag_P1.seqNumber);
 
@@ -2193,7 +2186,6 @@ void dispatchTagClusterMode(Ranging_Message_With_Additional_Info_t *rangingMessa
             atomic_store(&ranging_cluster, TYPE_TDOA);
             lastTDoAReceptionTime = rangingMessageWithAdditionalInfo->timestamp;
             xSemaphoreTake(tagTableSet->mutex, portMAX_DELAY);
-            DEBUG_PRINT("***DSR -> TDoA***\n");
             rangingTableSetInit(rangingTableSet);
             tagTableSetInit(tagTableSet);
             processTDoAMessageForTag(rangingMessageWithAdditionalInfo);
@@ -2204,12 +2196,10 @@ void dispatchTagClusterMode(Ranging_Message_With_Additional_Info_t *rangingMessa
     // 2> TDoA clustered
     else if(atomic_load(&ranging_cluster) == TYPE_TDOA) {
         if(messageType == TYPE_DSR) {
-            DEBUG_PRINT("TYPE_DSR\n");
             // TDoA -> DSR
             if(COMPARE_TIME(lastTDoAReceptionTime.full + TDOA_LOSS_TIME_THRESHOLD, rangingMessageWithAdditionalInfo->timestamp.full)) {
                 atomic_store(&ranging_cluster, TYPE_DSR);
                 xSemaphoreTake(rangingTableSet->mutex, portMAX_DELAY);
-                DEBUG_PRINT("***TDoA -> DSR***\n");
                 rangingTableSetInit(rangingTableSet);
                 tagTableSetInit(tagTableSet);
                 processDSRMessage(rangingMessageWithAdditionalInfo);
@@ -2217,7 +2207,6 @@ void dispatchTagClusterMode(Ranging_Message_With_Additional_Info_t *rangingMessa
             }
         }
         else if(messageType == TYPE_TDOA) {
-            DEBUG_PRINT("TYPE_TDOA\n");
             lastTDoAReceptionTime = rangingMessageWithAdditionalInfo->timestamp;
             xSemaphoreTake(tagTableSet->mutex, portMAX_DELAY);
             processTDoAMessageForTag(rangingMessageWithAdditionalInfo);
@@ -2267,8 +2256,6 @@ static void uwbRangingTxTask(void *parameters) {
             // DEBUG_PRINT("[uwbRangingTxTask]: Acquired mutex, generating ranging message\n");
 
             generateDSRMessage(rangingMessage);
-            // temp
-            printRangingMessage(rangingMessage);
             
             txPacketCache.header.seqNumber++;
             txPacketCache.header.length = sizeof(UWB_Packet_Header_t) + rangingMessage->header.msgLength;
@@ -2292,8 +2279,6 @@ static void uwbRangingTxTask(void *parameters) {
             #if defined(ANCHOR_MODE_ENABLE)
                 xSemaphoreTake(anchorTableSet->mutex, portMAX_DELAY);
                 generateTDoAMessage(rangingMessage);
-                // temp
-                printRangingMessage(rangingMessage);
                 
                 txPacketCache.header.seqNumber++;
                 txPacketCache.header.length = sizeof(UWB_Packet_Header_t) + rangingMessage->header.msgLength;
@@ -2314,8 +2299,6 @@ static void uwbRangingTxTask(void *parameters) {
                     DEBUG_PRINT("***ranging_cluster == TYPE_DSR***\n");
                     xSemaphoreTake(rangingTableSet->mutex, portMAX_DELAY);
                     generateDSRMessage(rangingMessage);
-                    // temp
-                    printRangingMessage(rangingMessage);
                     
                     txPacketCache.header.seqNumber++;
                     txPacketCache.header.length = sizeof(UWB_Packet_Header_t) + rangingMessage->header.msgLength;
