@@ -259,7 +259,7 @@ typedef struct {
 #define         TYPE_TDOA                   1
 #define         TDOA_BROADCAST_PERIOD       50
 #define         ANCHOR_SIZE                 2
-#define         TIMESTAMP_LIST_SIZE         3
+#define         TIMESTAMP_LIST_SIZE         5
 #define         TDOA_LOSS_TIME_THRESHOLD    15000000000
 
 
@@ -313,7 +313,8 @@ typedef struct {
     void updateReceivedLogForTag(Tag_Table_t *tagTable, Timestamp_Tuple_t timestampTuple);
     void updateAnchorLastReceiveLogForTag(Tag_Table_t *tagTable,uint16_t address, Timestamp_Tuple_t timestampTuple);
     table_index_t findTagTable(Tag_Table_Set_t *tagTableSet, uint16_t address);
-    table_index_t getCollaboratorAnchor(Tag_Table_Set_t *tagTableSet, uint16_t anchorIndex);
+    table_index_t getCollaboratorAnchor(Tag_Table_Set_t *tagTableSet, uint16_t anchorIndex, Timestamp_Tuple_t tag_P1, Timestamp_Tuple_t tag_P3, index_t *logIndex);
+    void printTagTable(Tag_Table_t *tagTable);
     void processTDoAMessageForTag(Ranging_Message_With_Additional_Info_t *rangingMessageWithAdditionalInfo);
     void dispatchTagClusterMode(Ranging_Message_With_Additional_Info_t *rangingMessageWithAdditionalInfo);
 #endif
