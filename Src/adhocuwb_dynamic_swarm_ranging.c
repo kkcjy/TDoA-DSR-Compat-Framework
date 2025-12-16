@@ -61,8 +61,8 @@ static bool compensated[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX
 */
 float anchor_distance_matrix[ANCHOR_SIZE + 1][ANCHOR_SIZE + 1] = {
     {NULL_DIS, NULL_DIS    , NULL_DIS},
-    {NULL_DIS, 10.0        , NULL_DIS},
-    {NULL_DIS, NULL_DIS    , 10.0    }};
+    {NULL_DIS, 0           , 89.45   },
+    {NULL_DIS, 89.45       , 0       }};
 
 #if defined(ANCHOR_MODE_ENABLE)
 Anchor_Table_Set_t *anchorTableSet;
@@ -2131,13 +2131,15 @@ void processTDoAMessageForTag(Ranging_Message_With_Additional_Info_t *rangingMes
             anchor_P2 = nullTimestampTuple;
         }
 
-        // DEBUG_PRINT("collaboratorAddress = %u\n", collaboratorTable.anchorAddress);
-        // DEBUG_PRINT("P3  anchor: ts=%llu  seq=%u\n", anchor_P3.timestamp.full, anchor_P3.seqNumber);
-        // DEBUG_PRINT("P3     tag: ts=%llu  seq=%u\n", tag_P3.timestamp.full, tag_P3.seqNumber);
-        // DEBUG_PRINT("P2  anchor: ts=%llu  seq=%u\n", anchor_P2.timestamp.full, anchor_P2.seqNumber);
-        // DEBUG_PRINT("P2     tag: ts=%llu  seq=%u\n", tag_P2.timestamp.full, tag_P2.seqNumber);
-        // DEBUG_PRINT("P1  anchor: ts=%llu  seq=%u\n", anchor_P1.timestamp.full, anchor_P1.seqNumber);
-        // DEBUG_PRINT("P1     tag: ts=%llu  seq=%u\n", tag_P1.timestamp.full, tag_P1.seqNumber);
+        DEBUG_PRINT("\n====================================================================================\n");
+        DEBUG_PRINT("collaboratorAddress = %u\n", collaboratorTable.anchorAddress);
+        DEBUG_PRINT("P3  anchor: ts=%llu  seq=%u\n", anchor_P3.timestamp.full, anchor_P3.seqNumber);
+        DEBUG_PRINT("P3     tag: ts=%llu  seq=%u\n", tag_P3.timestamp.full, tag_P3.seqNumber);
+        DEBUG_PRINT("P2  anchor: ts=%llu  seq=%u\n", anchor_P2.timestamp.full, anchor_P2.seqNumber);
+        DEBUG_PRINT("P2     tag: ts=%llu  seq=%u\n", tag_P2.timestamp.full, tag_P2.seqNumber);
+        DEBUG_PRINT("P1  anchor: ts=%llu  seq=%u\n", anchor_P1.timestamp.full, anchor_P1.seqNumber);
+        DEBUG_PRINT("P1     tag: ts=%llu  seq=%u\n", tag_P1.timestamp.full, tag_P1.seqNumber);
+        DEBUG_PRINT("====================================================================================\n\n");
 
         float TDoA = NULL_DIS;
         if(anchor_P3.seqNumber == NULL_SEQ || tag_P3.seqNumber == NULL_SEQ || anchor_P2.seqNumber == NULL_SEQ || 
