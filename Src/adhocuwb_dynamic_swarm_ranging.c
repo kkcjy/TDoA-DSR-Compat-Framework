@@ -61,8 +61,8 @@ static bool compensated[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX
 */
 float anchor_distance_matrix[ANCHOR_SIZE + 1][ANCHOR_SIZE + 1] = {
     {NULL_DIS, NULL_DIS    , NULL_DIS},
-    {NULL_DIS, 0           , 89.45   },
-    {NULL_DIS, 89.45       , 0       }};
+    {NULL_DIS, 0           , 36.60   },
+    {NULL_DIS, 36.60       , 0       }};
 
 #if defined(ANCHOR_MODE_ENABLE)
 Anchor_Table_Set_t *anchorTableSet;
@@ -2007,25 +2007,29 @@ table_index_t getCollaboratorAnchor(Tag_Table_Set_t *tagTableSet, uint16_t ancho
 }
 
 void printTagTable(Tag_Table_t *tagTable) {
+    DEBUG_PRINT("\n{TagTable}\n");
     DEBUG_PRINT("anchorAddress = %u\n", tagTable->anchorAddress);
     index_t topIndex = tagTable->topIndex;
     for (int i = 0; i < TIMESTAMP_LIST_SIZE; i++) {
         index_t idx = (topIndex - i + TIMESTAMP_LIST_SIZE) % TIMESTAMP_LIST_SIZE;
-        DEBUG_PRINT("broadcastLog[%d].seqNumber = %u\n", idx, tagTable->broadcastLog[idx].seqNumber);
-        DEBUG_PRINT("receiveLog[%d].seqNumber   = %u\n", idx, tagTable->receiveLog[idx].seqNumber);
+        DEBUG_PRINT("broadcastLog[%d].seqNumber = %u, timestamp = %llu\n", idx, tagTable->broadcastLog[idx].seqNumber, tagTable->broadcastLog[idx].timestamp.full);
+        DEBUG_PRINT("receiveLog[%d].seqNumber   = %u, timestamp = %llu\n", idx, tagTable->receiveLog[idx].seqNumber, tagTable->receiveLog[idx].timestamp.full);
     }
 
     for (int i = 0; i < NEIGHBOR_ADDRESS_MAX; i++) {
         Timestamp_Tuple_t prev = tagTable->anchorLastReceiveLog[i];
         Timestamp_Tuple_t curr = tagTable->anchorLastReceiveLog[i + NEIGHBOR_ADDRESS_MAX];
         if (curr.seqNumber != NULL_SEQ) {
-            DEBUG_PRINT("another anchorAddress = %u, prevSeq = %u, currSeq = %u\n", i, prev.seqNumber, curr.seqNumber);
+            DEBUG_PRINT("another anchorAddress = %u, prevSeq = %u, pretime = %llu, currSeq = %u, currtime = %llu\n", i, prev.seqNumber, prev.timestamp.full, curr.seqNumber, curr.timestamp.full);
         }
     }
+    DEBUG_PRINT("\n");
 }
 
 void processTDoAMessageForTag(Ranging_Message_With_Additional_Info_t *rangingMessageWithAdditionalInfo) {
     Ranging_Message_t *rangingMessage = &rangingMessageWithAdditionalInfo->rangingMessage;
+
+    // printRangingMessage(rangingMessage);
 
     if(rangingMessage->header.type != TYPE_TDOA) {
         return;
@@ -2131,23 +2135,23 @@ void processTDoAMessageForTag(Ranging_Message_With_Additional_Info_t *rangingMes
             anchor_P2 = nullTimestampTuple;
         }
 
-        DEBUG_PRINT("\n====================================================================================\n");
-        DEBUG_PRINT("collaboratorAddress = %u\n", collaboratorTable.anchorAddress);
-        DEBUG_PRINT("P3  anchor: ts=%llu  seq=%u\n", anchor_P3.timestamp.full, anchor_P3.seqNumber);
-        DEBUG_PRINT("P3     tag: ts=%llu  seq=%u\n", tag_P3.timestamp.full, tag_P3.seqNumber);
-        DEBUG_PRINT("P2  anchor: ts=%llu  seq=%u\n", anchor_P2.timestamp.full, anchor_P2.seqNumber);
-        DEBUG_PRINT("P2     tag: ts=%llu  seq=%u\n", tag_P2.timestamp.full, tag_P2.seqNumber);
-        DEBUG_PRINT("P1  anchor: ts=%llu  seq=%u\n", anchor_P1.timestamp.full, anchor_P1.seqNumber);
-        DEBUG_PRINT("P1     tag: ts=%llu  seq=%u\n", tag_P1.timestamp.full, tag_P1.seqNumber);
-        DEBUG_PRINT("====================================================================================\n\n");
+        // DEBUG_PRINT("\n====================================================================================\n");
+        // DEBUG_PRINT("collaboratorAddress = %u\n", collaboratorTable.anchorAddress);
+        // DEBUG_PRINT("P3  anchor: ts=%llu  seq=%u\n", anchor_P3.timestamp.full, anchor_P3.seqNumber);
+        // DEBUG_PRINT("P3     tag: ts=%llu  seq=%u\n", tag_P3.timestamp.full, tag_P3.seqNumber);
+        // DEBUG_PRINT("P2  anchor: ts=%llu  seq=%u\n", anchor_P2.timestamp.full, anchor_P2.seqNumber);
+        // DEBUG_PRINT("P2     tag: ts=%llu  seq=%u\n", tag_P2.timestamp.full, tag_P2.seqNumber);
+        // DEBUG_PRINT("P1  anchor: ts=%llu  seq=%u\n", anchor_P1.timestamp.full, anchor_P1.seqNumber);
+        // DEBUG_PRINT("P1     tag: ts=%llu  seq=%u\n", tag_P1.timestamp.full, tag_P1.seqNumber);
+        // DEBUG_PRINT("====================================================================================\n\n");
 
         float TDoA = NULL_DIS;
         if(anchor_P3.seqNumber == NULL_SEQ || tag_P3.seqNumber == NULL_SEQ || anchor_P2.seqNumber == NULL_SEQ || 
             tag_P2.seqNumber == NULL_SEQ || anchor_P1.seqNumber == NULL_SEQ || tag_P1.seqNumber == NULL_SEQ) {
-            DEBUG_PRINT("Insufficient data for calculation\n");
+            // DEBUG_PRINT("Insufficient data for calculation\n");
         }
         else if(anchor_P3.seqNumber != tag_P3.seqNumber || anchor_P2.seqNumber != tag_P2.seqNumber || anchor_P1.seqNumber != tag_P1.seqNumber) {
-            DEBUG_PRINT("Computation aborted: sequence numbers misaligned\n");
+            // DEBUG_PRINT("Computation aborted: sequence numbers misaligned\n");
         }
         else {
             uint64_t Rx1_delta = (tag_P3.timestamp.full - tag_P1.timestamp.full + UWB_MAX_TIMESTAMP) % UWB_MAX_TIMESTAMP;
@@ -2155,11 +2159,15 @@ void processTDoAMessageForTag(Ranging_Message_With_Additional_Info_t *rangingMes
             float alpha = (float)Rx1_delta / (float)Tx1_delta;
 
             uint64_t Rx_delta = (tag_P3.timestamp.full - tag_P2.timestamp.full + UWB_MAX_TIMESTAMP) % UWB_MAX_TIMESTAMP;
-            uint64_t Tx_delta = (anchor_P3.timestamp.full - anchor_P2.timestamp.full + UWB_MAX_TIMESTAMP) % UWB_MAX_TIMESTAMP + anchor_distance_matrix[tagTable->anchorAddress][collaboratorTable.anchorAddress] / VELOCITY;
+            uint64_t Tx_diff = (anchor_P3.timestamp.full - anchor_P2.timestamp.full + UWB_MAX_TIMESTAMP) % UWB_MAX_TIMESTAMP;
+            float anchor_prop_time = anchor_distance_matrix[tagTable->anchorAddress][collaboratorTable.anchorAddress] / (float)VELOCITY;
+            float Tx_delta = (float)Tx_diff + anchor_prop_time;
+
+            // DEBUG_PRINT("Rx_delta = %llu, Tx_delta=%f\n", Rx_delta, Tx_delta);
 
             TDoA = Rx_delta - alpha * Tx_delta;
+            DEBUG_PRINT("TDoA dist diff = %f, anchor1 = %u, anchor2 = %u, time = %llu\n", (double)(TDoA * VELOCITY), tagTable->anchorAddress, collaboratorTable.anchorAddress, rangingMessageWithAdditionalInfo->timestamp.full % UWB_MAX_TIMESTAMP);
         }
-        DEBUG_PRINT("TDoA dist diff = %f, anchor1 = %u, anchor2 = %u, time = %llu\n", (double)TDoA, tagTable->anchorAddress, collaboratorTable.anchorAddress, rangingMessageWithAdditionalInfo->timestamp.full % UWB_MAX_TIMESTAMP);
     }
 
     // update anchorLastReceiveLog
@@ -2298,7 +2306,7 @@ static void uwbRangingTxTask(void *parameters) {
             #elif defined(TAG_MODE_ENABLE)
                 // 1> DSR clustered
                 if(atomic_load(&ranging_cluster) == TYPE_DSR) {
-                    DEBUG_PRINT("***ranging_cluster == TYPE_DSR***\n");
+                    // DEBUG_PRINT("***ranging_cluster == TYPE_DSR***\n");
                     xSemaphoreTake(rangingTableSet->mutex, portMAX_DELAY);
                     generateDSRMessage(rangingMessage);
                     
@@ -2322,7 +2330,7 @@ static void uwbRangingTxTask(void *parameters) {
 
                 // 2> TDoA clustered
                 else if(atomic_load(&ranging_cluster) == TYPE_TDOA) {
-                    DEBUG_PRINT("***ranging_cluster == TYPE_TDOA***\n");
+                    // DEBUG_PRINT("***ranging_cluster == TYPE_TDOA***\n");
                     Time_t rangingPeriod = RANGING_PERIOD;
                     vTaskDelay(rangingPeriod);
                 }

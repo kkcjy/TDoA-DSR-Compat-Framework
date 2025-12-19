@@ -1,7 +1,2 @@
 .DS_Store
-sniffer/data/
-sniffer/sniffer
-sniffer/TDoAtag
-simulation/data/
-simulation/center
-simulation/drone
+script/TDoA.log
