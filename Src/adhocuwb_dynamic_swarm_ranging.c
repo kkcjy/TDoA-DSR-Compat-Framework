@@ -61,8 +61,8 @@ static bool compensated[NEIGHBOR_ADDRESS_MAX + 1] = {[0 ... NEIGHBOR_ADDRESS_MAX
 */
 float anchor_distance_matrix[ANCHOR_SIZE + 1][ANCHOR_SIZE + 1] = {
     {NULL_DIS, NULL_DIS    , NULL_DIS},
-    {NULL_DIS, 0           , 36.60   },
-    {NULL_DIS, 36.60       , 0       }};
+    {NULL_DIS, 0           , 112.98  },
+    {NULL_DIS, 112.98      , 0       }};
 
 #if defined(ANCHOR_MODE_ENABLE)
 Anchor_Table_Set_t *anchorTableSet;

@@ -259,7 +259,7 @@ typedef struct {
 #define         TYPE_TDOA                   1
 #define         TDOA_BROADCAST_PERIOD       50
 #define         ANCHOR_SIZE                 2
-#define         TIMESTAMP_LIST_SIZE         5
+#define         TIMESTAMP_LIST_SIZE         7
 #define         TDOA_LOSS_TIME_THRESHOLD    15000000000
 
 

@@ -1,0 +1,1213 @@
+[local_3 <- neighbor_4]: CDSR dist = 124.0, time = 259919549353
+[local_3 <- neighbor_4]: CDSR dist = 121.0, time = 272763536850
+[local_3 <- neighbor_4]: CDSR dist = 116.0, time = 285594799065
+[local_3 <- neighbor_4]: CDSR dist = 115.0, time = 298434147309
+[local_3 <- neighbor_4]: CDSR dist = 124.0, time = 311260517314
+[local_3 <- neighbor_4]: CDSR dist = 117.0, time = 324098958740
+[local_3 <- neighbor_4]: CDSR dist = 122.0, time = 336931717446
+[local_3 <- neighbor_4]: CDSR dist = 121.0, time = 349768002259
+[local_3 <- neighbor_4]: CDSR dist = 120.0, time = 362608073314
+[local_3 <- neighbor_4]: CDSR dist = 120.0, time = 375439234524
+[local_3 <- neighbor_4]: CDSR dist = 116.0, time = 388283065201
+[local_3 <- neighbor_4]: CDSR dist = 123.0, time = 401108933842
+[local_3 <- neighbor_4]: CDSR dist = 116.0, time = 413946526782
+[local_3 <- neighbor_4]: CDSR dist = 118.0, time = 426790885804
+[local_3 <- neighbor_4]: CDSR dist = 120.0, time = 439617129220
+[local_3 <- neighbor_4]: CDSR dist = 119.0, time = 452457282130
+[local_3 <- neighbor_4]: CDSR dist = 118.0, time = 465285763985
+[local_3 <- neighbor_4]: CDSR dist = 115.0, time = 478122263266
+[local_3 <- neighbor_4]: CDSR dist = 115.0, time = 490959009823
+[local_3 <- neighbor_4]: CDSR dist = 116.0, time = 503798828384
+[local_3 <- neighbor_4]: CDSR dist = 116.0, time = 516635900052
+[local_3 <- neighbor_4]: CDSR dist = 115.0, time = 529467545548
+[local_3 <- neighbor_4]: CDSR dist = 116.0, time = 542301655271
+[local_3 <- neighbor_4]: CDSR dist = 115.0, time = 555072053718
+[local_3 <- neighbor_4]: CDSR dist = 117.0, time = 567907897067
+[local_3 <- neighbor_4]: CDSR dist = 117.0, time = 580749763602
+[local_3 <- neighbor_4]: CDSR dist = 117.0, time = 593577167630
+[local_3 <- neighbor_4]: CDSR dist = 118.0, time = 606418016794
+[local_3 <- neighbor_4]: CDSR dist = 119.0, time = 619249441547
+[local_3 <- neighbor_4]: CDSR dist = 115.0, time = 632086146555
+[local_3 <- neighbor_4]: CDSR dist = 119.0, time = 644917704402
+[local_3 <- neighbor_4]: CDSR dist = 115.0, time = 657755177909
+[local_3 <- neighbor_4]: CDSR dist = 118.0, time = 670595970190
+[local_3 <- neighbor_4]: CDSR dist = 117.0, time = 683426490712
+[local_3 <- neighbor_4]: CDSR dist = 115.0, time = 696272589855
+[local_3 <- neighbor_4]: CDSR dist = 116.0, time = 709106764501
+[local_3 <- neighbor_4]: CDSR dist = 119.0, time = 721934259070
+[local_3 <- neighbor_4]: CDSR dist = 118.0, time = 734768261655
+[local_3 <- neighbor_4]: CDSR dist = 121.0, time = 747603104937
+[local_3 <- neighbor_4]: CDSR dist = 117.0, time = 760445773620
+[local_3 <- neighbor_4]: CDSR dist = 117.0, time = 773272527775
+[local_3 <- neighbor_4]: CDSR dist = 116.0, time = 786114411007
+[local_3 <- neighbor_4]: CDSR dist = 116.0, time = 798943302739
+[local_3 <- neighbor_4]: CDSR dist = 116.0, time = 811778083485
+[local_3 <- neighbor_4]: CDSR dist = 117.0, time = 824623752927
+[local_3 <- neighbor_4]: CDSR dist = 117.0, time = 837456283404
+[local_3 <- neighbor_4]: CDSR dist = 117.0, time = 850289093409
+[local_3 <- neighbor_4]: CDSR dist = 116.0, time = 863059386622
+[local_3 <- neighbor_4]: CDSR dist = 120.0, time = 875896286957
+[local_3 <- neighbor_4]: CDSR dist = 117.0, time = 888727437535
+[local_3 <- neighbor_4]: CDSR dist = 119.0, time = 901566926022
+[local_3 <- neighbor_4]: CDSR dist = 117.0, time = 914346818158
+[local_3 <- neighbor_4]: CDSR dist = 119.0, time = 927175326786
+[local_3 <- neighbor_4]: CDSR dist = 120.0, time = 940014441991
+[local_3 <- neighbor_4]: CDSR dist = 121.0, time = 952842907042
+[local_3 <- neighbor_4]: CDSR dist = 116.0, time = 965681863497
+[local_3 <- neighbor_4]: CDSR dist = 118.0, time = 978520351980
+[local_3 <- neighbor_4]: CDSR dist = 118.0, time = 991347438206
+[local_3 <- neighbor_4]: CDSR dist = 121.0, time = 1004193325572
+[local_3 <- neighbor_4]: CDSR dist = 118.0, time = 1017022504327
+[local_3 <- neighbor_4]: CDSR dist = 118.0, time = 1029856775432
+[local_3 <- neighbor_4]: CDSR dist = 119.0, time = 1042693426814
+[local_3 <- neighbor_4]: CDSR dist = 117.0, time = 1055531376095
+[local_3 <- neighbor_4]: CDSR dist = 115.0, time = 1068370783556
+[local_3 <- neighbor_4]: CDSR dist = 116.0, time = 1081196866703
+[local_3 <- neighbor_4]: CDSR dist = 118.0, time = 1094034593757
+[local_3 <- neighbor_4]: CDSR dist = 119.0, time = 7287186656
+[local_3 <- neighbor_4]: CDSR dist = 117.0, time = 20059065812
+[local_3 <- neighbor_4]: CDSR dist = 117.0, time = 32832694470
+[local_3 <- neighbor_4]: CDSR dist = 117.0, time = 45612247981
+[local_3 <- neighbor_4]: CDSR dist = 121.0, time = 58447320220
+[local_3 <- neighbor_4]: CDSR dist = 115.0, time = 71276337032
+[local_3 <- neighbor_4]: CDSR dist = 117.0, time = 84057556002
+[local_3 <- neighbor_4]: CDSR dist = 119.0, time = 96884163797
+[local_3 <- neighbor_4]: CDSR dist = 118.0, time = 109718362979
+[local_3 <- neighbor_4]: CDSR dist = 118.0, time = 122554554326
+[local_3 <- neighbor_4]: CDSR dist = 115.0, time = 135393094213
+[local_3 <- neighbor_4]: CDSR dist = 118.0, time = 148231643296
+[local_3 <- neighbor_4]: CDSR dist = 118.0, time = 161061052115
+[local_3 <- neighbor_4]: CDSR dist = 117.0, time = 173901040393
+[local_3 <- neighbor_4]: CDSR dist = 116.0, time = 186666882780
+[local_3 <- neighbor_4]: CDSR dist = 116.0, time = 199438194855
+[local_3 <- neighbor_4]: CDSR dist = 115.0, time = 212222054511
+[local_3 <- neighbor_4]: CDSR dist = 124.0, time = 224983542252
+[local_3 <- neighbor_4]: CDSR dist = 135.0, time = 237823093068
+[local_3 <- neighbor_4]: CDSR dist = 148.0, time = 250717868662
+[local_3 <- neighbor_4]: CDSR dist = 163.0, time = 263554366220
+[local_3 <- neighbor_4]: CDSR dist = 188.0, time = 276396026187
+[local_3 <- neighbor_4]: CDSR dist = 200.0, time = 289225596763
+[local_3 <- neighbor_4]: CDSR dist = 208.0, time = 302005012809
+[local_3 <- neighbor_4]: CDSR dist = 227.0, time = 314833505612
+[local_3 <- neighbor_4]: CDSR dist = 241.0, time = 327672619269
+[local_3 <- neighbor_4]: CDSR dist = 248.0, time = 340505169546
+[local_3 <- neighbor_4]: CDSR dist = 261.0, time = 353339462100
+[local_3 <- neighbor_4]: CDSR dist = 271.0, time = 366179296011
+[local_3 <- neighbor_4]: CDSR dist = 280.0, time = 379006764564
+[local_3 <- neighbor_4]: CDSR dist = 276.0, time = 391784912594
+[local_3 <- neighbor_4]: CDSR dist = 274.0, time = 404615888787
+[local_3 <- neighbor_4]: CDSR dist = 265.0, time = 417451110964
+[local_3 <- neighbor_4]: CDSR dist = 254.0, time = 430284683934
+[local_3 <- neighbor_4]: CDSR dist = 238.0, time = 443059340482
+[local_3 <- neighbor_4]: CDSR dist = 223.0, time = 455901518084
+[local_3 <- neighbor_4]: CDSR dist = 214.0, time = 468729640181
+[local_3 <- neighbor_4]: CDSR dist = 199.0, time = 481571002069
+[local_3 <- neighbor_4]: CDSR dist = 188.0, time = 494399100043
+[local_3 <- neighbor_4]: CDSR dist = 184.0, time = 507235983897
+[local_3 <- neighbor_4]: CDSR dist = 169.0, time = 520083017098
+[local_3 <- neighbor_4]: CDSR dist = 155.0, time = 532911155903
+[local_3 <- neighbor_4]: CDSR dist = 144.0, time = 545749704124
+[local_3 <- neighbor_4]: CDSR dist = 128.0, time = 558579309700
+[local_3 <- neighbor_4]: CDSR dist = 118.0, time = 571418477335
+[local_3 <- neighbor_4]: CDSR dist = 105.0, time = 584256904055
+[local_3 <- neighbor_4]: CDSR dist = 90.0, time = 597082477977
+[local_3 <- neighbor_4]: CDSR dist = 79.0, time = 609924818841
+[local_3 <- neighbor_4]: CDSR dist = 73.0, time = 622753954141
+[local_3 <- neighbor_4]: CDSR dist = 64.0, time = 635525741264
+[local_3 <- neighbor_4]: CDSR dist = 62.0, time = 648296700420
+[local_3 <- neighbor_4]: CDSR dist = 65.0, time = 661137278739
+[local_3 <- neighbor_4]: CDSR dist = 62.0, time = 673979645458
+[local_3 <- neighbor_4]: CDSR dist = 74.0, time = 686805210849
+[local_3 <- neighbor_4]: CDSR dist = 86.0, time = 699648538033
+[local_3 <- neighbor_4]: CDSR dist = 100.0, time = 712474878020
+[local_3 <- neighbor_4]: CDSR dist = 117.0, time = 725310572219
+[local_3 <- neighbor_4]: CDSR dist = 135.0, time = 738080930000
+[local_3 <- neighbor_4]: CDSR dist = 153.0, time = 750861100726
+[local_3 <- neighbor_4]: CDSR dist = 172.0, time = 763698974341
+[local_3 <- neighbor_4]: CDSR dist = 191.0, time = 776528684552
+[local_3 <- neighbor_4]: CDSR dist = 207.0, time = 789365471054
+[local_3 <- neighbor_4]: CDSR dist = 214.0, time = 802205695081
+[local_3 <- neighbor_4]: CDSR dist = 229.0, time = 815031293245
+[local_3 <- neighbor_4]: CDSR dist = 243.0, time = 827865682903
+[local_3 <- neighbor_4]: CDSR dist = 259.0, time = 840702357570
+[local_3 <- neighbor_4]: CDSR dist = 272.0, time = 853541425761
+[local_3 <- neighbor_4]: CDSR dist = 277.0, time = 866373879865
+[local_3 <- neighbor_4]: CDSR dist = 278.0, time = 879215513048
+[local_3 <- neighbor_4]: CDSR dist = 279.0, time = 892054317882
+[local_3 <- neighbor_4]: CDSR dist = 273.0, time = 904879507026
+[local_3 <- neighbor_4]: CDSR dist = 259.0, time = 917726088012
+[local_3 <- neighbor_4]: CDSR dist = 244.0, time = 930553041929
+[local_3 <- neighbor_4]: CDSR dist = 232.0, time = 943385085072
+[local_3 <- neighbor_4]: CDSR dist = 210.0, time = 956223896836
+[local_3 <- neighbor_4]: CDSR dist = 193.0, time = 969061839693
+[local_3 <- neighbor_4]: CDSR dist = 179.0, time = 981903467368
+[local_3 <- neighbor_4]: CDSR dist = 170.0, time = 994731487045
+[local_3 <- neighbor_4]: CDSR dist = 159.0, time = 1007573729510
+[local_3 <- neighbor_4]: CDSR dist = 138.0, time = 1020411360335
+[local_3 <- neighbor_4]: CDSR dist = 119.0, time = 1033235262839
+[local_3 <- neighbor_4]: CDSR dist = 104.0, time = 1046079945866
+[local_3 <- neighbor_4]: CDSR dist = 103.0, time = 1058910612817
+[local_3 <- neighbor_4]: CDSR dist = 85.0, time = 1071748596199
+[local_3 <- neighbor_4]: CDSR dist = 75.0, time = 1084579604056
+[local_3 <- neighbor_4]: CDSR dist = 71.0, time = 1097416819857
+[local_3 <- neighbor_4]: CDSR dist = 64.0, time = 10731375795
+[local_3 <- neighbor_4]: CDSR dist = 67.0, time = 23504311956
+[local_3 <- neighbor_4]: CDSR dist = 78.0, time = 36275648609
+[local_3 <- neighbor_4]: CDSR dist = 92.0, time = 49047359488
+[local_3 <- neighbor_4]: CDSR dist = 105.0, time = 61821924240
+[local_3 <- neighbor_4]: CDSR dist = 130.0, time = 74591501017
+[local_3 <- neighbor_4]: CDSR dist = 145.0, time = 87367021037
+[local_3 <- neighbor_4]: CDSR dist = 165.0, time = 100265779989
+[local_3 <- neighbor_4]: CDSR dist = 182.0, time = 113103525823
+[local_3 <- neighbor_4]: CDSR dist = 185.0, time = 125948983370
+[local_3 <- neighbor_4]: CDSR dist = 203.0, time = 138774790290
+[local_3 <- neighbor_4]: CDSR dist = 221.0, time = 151608763024
+[local_3 <- neighbor_4]: CDSR dist = 235.0, time = 164442039382
+[local_3 <- neighbor_4]: CDSR dist = 250.0, time = 177278135252
+[local_3 <- neighbor_4]: CDSR dist = 255.0, time = 190055604461
+[local_3 <- neighbor_4]: CDSR dist = 257.0, time = 202884991458
+[local_3 <- neighbor_4]: CDSR dist = 253.0, time = 215729763469
+[local_3 <- neighbor_4]: CDSR dist = 238.0, time = 228556208367
+[local_3 <- neighbor_4]: CDSR dist = 233.0, time = 241394064615
+[local_3 <- neighbor_4]: CDSR dist = 207.0, time = 254236743886
+[local_3 <- neighbor_4]: CDSR dist = 199.0, time = 267062050935
+[local_3 <- neighbor_4]: CDSR dist = 180.0, time = 279827413974
+[local_3 <- neighbor_4]: CDSR dist = 163.0, time = 292604966692
+[local_3 <- neighbor_4]: CDSR dist = 154.0, time = 305381354092
+[local_3 <- neighbor_4]: CDSR dist = 154.0, time = 318157559695
+[local_3 <- neighbor_4]: CDSR dist = 156.0, time = 330920346754
+[local_3 <- neighbor_4]: CDSR dist = 155.0, time = 343825920379
+[local_3 <- neighbor_4]: CDSR dist = 158.0, time = 356722495001
+[local_3 <- neighbor_4]: CDSR dist = 156.0, time = 369558831727
+[local_3 <- neighbor_4]: CDSR dist = 157.0, time = 382392344718
+[local_3 <- neighbor_4]: CDSR dist = 155.0, time = 395227823207
+[local_3 <- neighbor_4]: CDSR dist = 152.0, time = 408068308523
+[local_3 <- neighbor_4]: CDSR dist = 156.0, time = 420897652144
+[local_3 <- neighbor_4]: CDSR dist = 157.0, time = 433739413253
+[local_3 <- neighbor_4]: CDSR dist = 155.0, time = 446567885874
+[local_3 <- neighbor_4]: CDSR dist = 155.0, time = 459402575656
+[local_3 <- neighbor_4]: CDSR dist = 152.0, time = 472174594031
+[local_3 <- neighbor_4]: CDSR dist = 155.0, time = 485017156790
+[local_3 <- neighbor_4]: CDSR dist = 157.0, time = 497855030082
+[local_3 <- neighbor_4]: CDSR dist = 156.0, time = 510683584420
+[local_3 <- neighbor_4]: CDSR dist = 151.0, time = 523519866875
+[local_3 <- neighbor_4]: CDSR dist = 155.0, time = 536361522211
+[local_3 <- neighbor_4]: CDSR dist = 154.0, time = 549183625777
+[local_3 <- neighbor_4]: CDSR dist = 157.0, time = 561970032132
+[local_3 <- neighbor_4]: CDSR dist = 157.0, time = 574798474174
+[local_3 <- neighbor_4]: CDSR dist = 154.0, time = 587637137765
+[local_3 <- neighbor_4]: CDSR dist = 154.0, time = 600470016237
+[local_3 <- neighbor_4]: CDSR dist = 158.0, time = 613303943239
+[local_3 <- neighbor_4]: CDSR dist = 156.0, time = 626143527313
+[local_3 <- neighbor_4]: CDSR dist = 154.0, time = 638973425341
+[local_3 <- neighbor_4]: CDSR dist = 155.0, time = 651814908868
+[local_3 <- neighbor_4]: CDSR dist = 153.0, time = 664645423808
+[local_3 <- neighbor_4]: CDSR dist = 154.0, time = 677478330259
+[local_3 <- neighbor_4]: CDSR dist = 151.0, time = 690249919045
+[local_3 <- neighbor_4]: CDSR dist = 153.0, time = 703025144020
+[local_3 <- neighbor_4]: CDSR dist = 150.0, time = 715864527724
+[local_3 <- neighbor_4]: CDSR dist = 151.0, time = 728693719012
+[local_3 <- neighbor_4]: CDSR dist = 149.0, time = 741471040076
+[local_3 <- neighbor_4]: CDSR dist = 153.0, time = 754235596950
+[local_3 <- neighbor_4]: CDSR dist = 150.0, time = 767007650545
+[local_3 <- neighbor_4]: CDSR dist = 155.0, time = 779849727306
+[local_3 <- neighbor_4]: CDSR dist = 151.0, time = 792679403421
+[local_3 <- neighbor_4]: CDSR dist = 154.0, time = 805511765986
+[local_3 <- neighbor_4]: CDSR dist = 150.0, time = 818290456087
+[local_3 <- neighbor_4]: CDSR dist = 150.0, time = 831128354893
+[local_3 <- neighbor_4]: CDSR dist = 152.0, time = 843969198721
+[local_3 <- neighbor_4]: CDSR dist = 155.0, time = 856794358423
+TDoA dist diff = -81.367057, anchor1 = 1, anchor2 = 2, time = 960874366963
+TDoA dist diff = 29.389217, anchor1 = 2, anchor2 = 1, time = 963692708878
+TDoA dist diff = 29.777009, anchor1 = 2, anchor2 = 1, time = 967019119309
+TDoA dist diff = -72.081428, anchor1 = 1, anchor2 = 2, time = 967482250702
+TDoA dist diff = -44.496387, anchor1 = 2, anchor2 = 1, time = 970078266885
+TDoA dist diff = -41.747104, anchor1 = 1, anchor2 = 2, time = 970732237114
+TDoA dist diff = 93.898338, anchor1 = 2, anchor2 = 1, time = 973277197310
+TDoA dist diff = -34.354991, anchor1 = 1, anchor2 = 2, time = 973990214340
+TDoA dist diff = 84.297920, anchor1 = 2, anchor2 = 1, time = 976463943694
+TDoA dist diff = -76.926818, anchor1 = 1, anchor2 = 2, time = 977250636884
+TDoA dist diff = 4.618684, anchor1 = 2, anchor2 = 1, time = 979681480160
+TDoA dist diff = -69.259162, anchor1 = 1, anchor2 = 2, time = 980571481705
+TDoA dist diff = 76.755241, anchor1 = 2, anchor2 = 1, time = 982849348136
+TDoA dist diff = -44.960338, anchor1 = 1, anchor2 = 2, time = 983823049184
+TDoA dist diff = 89.444496, anchor1 = 2, anchor2 = 1, time = 986174914802
+TDoA dist diff = -43.823528, anchor1 = 1, anchor2 = 2, time = 987081588082
+TDoA dist diff = -11.589608, anchor1 = 2, anchor2 = 1, time = 989235207752
+TDoA dist diff = -83.359893, anchor1 = 1, anchor2 = 2, time = 990336425716
+TDoA dist diff = 67.095870, anchor1 = 2, anchor2 = 1, time = 992499343785
+TDoA dist diff = -90.786720, anchor1 = 1, anchor2 = 2, time = 993598775946
+TDoA dist diff = -88.789199, anchor1 = 1, anchor2 = 2, time = 996920731312
+TDoA dist diff = 38.744880, anchor1 = 2, anchor2 = 1, time = 998819025533
+TDoA dist diff = -61.229167, anchor1 = 1, anchor2 = 2, time = 1000172964407
+TDoA dist diff = 21.533748, anchor1 = 2, anchor2 = 1, time = 1002005126318
+TDoA dist diff = -133.262359, anchor1 = 1, anchor2 = 2, time = 1003430098379
+TDoA dist diff = 7.612289, anchor1 = 2, anchor2 = 1, time = 1005265961008
+TDoA dist diff = -92.610939, anchor1 = 1, anchor2 = 2, time = 1006686943577
+TDoA dist diff = -148.202987, anchor1 = 1, anchor2 = 2, time = 1009946657010
+TDoA dist diff = -16.278823, anchor1 = 2, anchor2 = 1, time = 1011588424988
+TDoA dist diff = -119.386871, anchor1 = 1, anchor2 = 2, time = 1013197659777
+TDoA dist diff = 34.854618, anchor1 = 2, anchor2 = 1, time = 1014775972176
+TDoA dist diff = -118.563804, anchor1 = 1, anchor2 = 2, time = 1016454500892
+TDoA dist diff = 23.927509, anchor1 = 2, anchor2 = 1, time = 1018229071125
+TDoA dist diff = -75.966835, anchor1 = 1, anchor2 = 2, time = 1019711548858
+TDoA dist diff = -96.882263, anchor1 = 1, anchor2 = 2, time = 1022963289423
+TDoA dist diff = 2.921785, anchor1 = 2, anchor2 = 1, time = 1024377905587
+TDoA dist diff = -91.266349, anchor1 = 1, anchor2 = 2, time = 1026219249896
+TDoA dist diff = 20.979579, anchor1 = 2, anchor2 = 1, time = 1027550356004
+TDoA dist diff = -137.983398, anchor1 = 1, anchor2 = 2, time = 1029494829746
+TDoA dist diff = 24.843853, anchor1 = 2, anchor2 = 1, time = 1030802816981
+TDoA dist diff = -133.234954, anchor1 = 1, anchor2 = 2, time = 1032804206300
+TDoA dist diff = 21.812866, anchor1 = 2, anchor2 = 1, time = 1033937091230
+TDoA dist diff = -24.908395, anchor1 = 1, anchor2 = 2, time = 1036065185412
+TDoA dist diff = 66.160629, anchor1 = 2, anchor2 = 1, time = 1037476637622
+TDoA dist diff = -98.414619, anchor1 = 1, anchor2 = 2, time = 1039384940743
+TDoA dist diff = 17.440280, anchor1 = 2, anchor2 = 1, time = 1040323669815
+TDoA dist diff = 13.957139, anchor1 = 1, anchor2 = 2, time = 1042636698205
+TDoA dist diff = 2.888718, anchor1 = 2, anchor2 = 1, time = 1043533785425
+TDoA dist diff = -185.173202, anchor1 = 1, anchor2 = 2, time = 1045893151756
+TDoA dist diff = -116.897659, anchor1 = 1, anchor2 = 2, time = 1049149838265
+TDoA dist diff = 19.059425, anchor1 = 2, anchor2 = 1, time = 1050215154995
+TDoA dist diff = -87.868400, anchor1 = 1, anchor2 = 2, time = 1052404418402
+TDoA dist diff = -166.838668, anchor1 = 1, anchor2 = 2, time = 1055657721619
+TDoA dist diff = 21.879602, anchor1 = 2, anchor2 = 1, time = 1056352724528
+TDoA dist diff = -104.079849, anchor1 = 1, anchor2 = 2, time = 1058933359853
+TDoA dist diff = -124.191085, anchor1 = 1, anchor2 = 2, time = 1062244944165
+TDoA dist diff = 42.395576, anchor1 = 2, anchor2 = 1, time = 1063061474803
+TDoA dist diff = 65.869873, anchor1 = 1, anchor2 = 2, time = 1065563563890
+TDoA dist diff = -16.496215, anchor1 = 1, anchor2 = 2, time = 1068823614246
+TDoA dist diff = 24.644454, anchor1 = 2, anchor2 = 1, time = 1072253884113
+TDoA dist diff = -183.928543, anchor1 = 1, anchor2 = 2, time = 1075331916441
+TDoA dist diff = 113.737648, anchor1 = 2, anchor2 = 1, time = 1075653954390
+TDoA dist diff = -80.033981, anchor1 = 1, anchor2 = 2, time = 1078588601942
+TDoA dist diff = 96.254417, anchor1 = 2, anchor2 = 1, time = 1091413117344
+TDoA dist diff = 77.296470, anchor1 = 2, anchor2 = 1, time = 1094606634017
+TDoA dist diff = -53.500385, anchor1 = 1, anchor2 = 2, time = 1095001912381
+TDoA dist diff = 0.573856, anchor1 = 2, anchor2 = 1, time = 1097806581392
+TDoA dist diff = -51.804153, anchor1 = 1, anchor2 = 2, time = 1098265803789
+TDoA dist diff = 14.482385, anchor1 = 2, anchor2 = 1, time = 1488464138
+TDoA dist diff = -63.277462, anchor1 = 1, anchor2 = 2, time = 2002944954
+TDoA dist diff = -65.035026, anchor1 = 1, anchor2 = 2, time = 5259391348
+TDoA dist diff = 38.526557, anchor1 = 2, anchor2 = 1, time = 7874916896
+TDoA dist diff = -46.085186, anchor1 = 1, anchor2 = 2, time = 8515894587
+TDoA dist diff = -30.019851, anchor1 = 2, anchor2 = 1, time = 11067849382
+TDoA dist diff = -86.425407, anchor1 = 1, anchor2 = 2, time = 11770656502
+TDoA dist diff = -99.352783, anchor1 = 2, anchor2 = 1, time = 14260891427
+TDoA dist diff = -65.505966, anchor1 = 1, anchor2 = 2, time = 15022982832
+TDoA dist diff = 23.081911, anchor1 = 2, anchor2 = 1, time = 17454331316
+TDoA dist diff = -71.766868, anchor1 = 1, anchor2 = 2, time = 18303205041
+TDoA dist diff = 9.327193, anchor1 = 2, anchor2 = 1, time = 20647473730
+TDoA dist diff = -78.759826, anchor1 = 1, anchor2 = 2, time = 21606490342
+TDoA dist diff = 34.463611, anchor1 = 2, anchor2 = 1, time = 23840347853
+TDoA dist diff = -51.829288, anchor1 = 1, anchor2 = 2, time = 24868551355
+TDoA dist diff = 34.153701, anchor1 = 2, anchor2 = 1, time = 27034399070
+TDoA dist diff = -69.167266, anchor1 = 1, anchor2 = 2, time = 28127620233
+TDoA dist diff = 80.088546, anchor1 = 2, anchor2 = 1, time = 30227097566
+TDoA dist diff = -81.841476, anchor1 = 1, anchor2 = 2, time = 31377175618
+TDoA dist diff = 66.414604, anchor1 = 2, anchor2 = 1, time = 33419873910
+TDoA dist diff = -85.387153, anchor1 = 1, anchor2 = 2, time = 34635542036
+TDoA dist diff = -54.223129, anchor1 = 2, anchor2 = 1, time = 36612438276
+TDoA dist diff = -98.701667, anchor1 = 1, anchor2 = 2, time = 37891403224
+TDoA dist diff = -5.880433, anchor1 = 2, anchor2 = 1, time = 39805153162
+TDoA dist diff = -49.396366, anchor1 = 1, anchor2 = 2, time = 41148138398
+TDoA dist diff = -14.695861, anchor1 = 2, anchor2 = 1, time = 42997807139
+TDoA dist diff = -60.954906, anchor1 = 1, anchor2 = 2, time = 44397664605
+TDoA dist diff = -24.530801, anchor1 = 2, anchor2 = 1, time = 46190444223
+TDoA dist diff = -124.572349, anchor1 = 1, anchor2 = 2, time = 47678870360
+TDoA dist diff = 33.532642, anchor1 = 2, anchor2 = 1, time = 49383107427
+TDoA dist diff = -103.536186, anchor1 = 1, anchor2 = 2, time = 50986955674
+TDoA dist diff = -2.980887, anchor1 = 2, anchor2 = 1, time = 52575953908
+TDoA dist diff = -22.834980, anchor1 = 1, anchor2 = 2, time = 54306851320
+TDoA dist diff = 51.498565, anchor1 = 2, anchor2 = 1, time = 55767083663
+TDoA dist diff = 22.317329, anchor1 = 1, anchor2 = 2, time = 57566739925
+TDoA dist diff = -28.884117, anchor1 = 2, anchor2 = 1, time = 58961142054
+TDoA dist diff = -91.351112, anchor1 = 1, anchor2 = 2, time = 60816615313
+TDoA dist diff = 19.427865, anchor1 = 2, anchor2 = 1, time = 62152436671
+TDoA dist diff = -93.733451, anchor1 = 1, anchor2 = 2, time = 64074861409
+TDoA dist diff = -44.462688, anchor1 = 2, anchor2 = 1, time = 65346974815
+TDoA dist diff = -108.570838, anchor1 = 1, anchor2 = 2, time = 67330632994
+TDoA dist diff = 6.163893, anchor1 = 2, anchor2 = 1, time = 68540098304
+TDoA dist diff = -56.957454, anchor1 = 1, anchor2 = 2, time = 70587505390
+TDoA dist diff = 57.946376, anchor1 = 2, anchor2 = 1, time = 71732732317
+TDoA dist diff = -68.212448, anchor1 = 1, anchor2 = 2, time = 73838525124
+TDoA dist diff = -12.114575, anchor1 = 2, anchor2 = 1, time = 74925627974
+TDoA dist diff = -133.522872, anchor1 = 1, anchor2 = 2, time = 77116032186
+TDoA dist diff = -15.452448, anchor1 = 2, anchor2 = 1, time = 78118537455
+TDoA dist diff = -168.114700, anchor1 = 1, anchor2 = 2, time = 80425752846
+TDoA dist diff = 12.391056, anchor1 = 2, anchor2 = 1, time = 81311879065
+TDoA dist diff = 70.481369, anchor1 = 1, anchor2 = 2, time = 83745203053
+TDoA dist diff = 5.572425, anchor1 = 2, anchor2 = 1, time = 84504794692
+TDoA dist diff = 56.578453, anchor1 = 1, anchor2 = 2, time = 87005066588
+TDoA dist diff = -154.405609, anchor1 = 1, anchor2 = 2, time = 90255090970
+TDoA dist diff = 5.597845, anchor1 = 2, anchor2 = 1, time = 90891720101
+TDoA dist diff = -97.301933, anchor1 = 1, anchor2 = 2, time = 93513103100
+TDoA dist diff = -169.771423, anchor1 = 1, anchor2 = 2, time = 96770903247
+TDoA dist diff = 24.358026, anchor1 = 2, anchor2 = 1, time = 97279209231
+TDoA dist diff = -120.634925, anchor1 = 1, anchor2 = 2, time = 100029594292
+TDoA dist diff = -73.854904, anchor1 = 1, anchor2 = 2, time = 103277543028
+TDoA dist diff = 17.118495, anchor1 = 2, anchor2 = 1, time = 103664852604
+TDoA dist diff = -15.408768, anchor1 = 1, anchor2 = 2, time = 106554295931
+TDoA dist diff = -109.296455, anchor1 = 1, anchor2 = 2, time = 109863441619
+TDoA dist diff = 30.542821, anchor1 = 2, anchor2 = 1, time = 110050904574
+TDoA dist diff = 48.745594, anchor1 = 1, anchor2 = 2, time = 113183572304
+TDoA dist diff = -4.474715, anchor1 = 2, anchor2 = 1, time = 126017022462
+TDoA dist diff = 46.372993, anchor1 = 2, anchor2 = 1, time = 129210190019
+TDoA dist diff = -62.500762, anchor1 = 1, anchor2 = 2, time = 129528927008
+TDoA dist diff = -40.861343, anchor1 = 2, anchor2 = 1, time = 132403387301
+TDoA dist diff = -71.280448, anchor1 = 1, anchor2 = 2, time = 132789821711
+TDoA dist diff = 132.275543, anchor1 = 2, anchor2 = 1, time = 135596517494
+TDoA dist diff = -86.952301, anchor1 = 1, anchor2 = 2, time = 136056576779
+TDoA dist diff = -61.740173, anchor1 = 2, anchor2 = 1, time = 138789708616
+TDoA dist diff = -79.227294, anchor1 = 1, anchor2 = 2, time = 139362099542
+TDoA dist diff = -21.862928, anchor1 = 2, anchor2 = 1, time = 141982959665
+TDoA dist diff = -67.772232, anchor1 = 1, anchor2 = 2, time = 142621969729
+TDoA dist diff = 95.907074, anchor1 = 2, anchor2 = 1, time = 145177660667
+TDoA dist diff = -84.224426, anchor1 = 1, anchor2 = 2, time = 145881775401
+TDoA dist diff = 24.831077, anchor1 = 2, anchor2 = 1, time = 148370941411
+TDoA dist diff = -66.968704, anchor1 = 1, anchor2 = 2, time = 149141758226
+TDoA dist diff = 72.385299, anchor1 = 2, anchor2 = 1, time = 151564059837
+TDoA dist diff = -81.527175, anchor1 = 1, anchor2 = 2, time = 152389816031
+TDoA dist diff = 119.569305, anchor1 = 2, anchor2 = 1, time = 154756590492
+TDoA dist diff = -82.927864, anchor1 = 1, anchor2 = 2, time = 155649452757
+TDoA dist diff = 59.009227, anchor1 = 2, anchor2 = 1, time = 157949447274
+TDoA dist diff = -97.938217, anchor1 = 1, anchor2 = 2, time = 158906266814
+TDoA dist diff = 106.285369, anchor1 = 2, anchor2 = 1, time = 161142372709
+TDoA dist diff = -79.398941, anchor1 = 1, anchor2 = 2, time = 162162226852
+TDoA dist diff = 36.605945, anchor1 = 2, anchor2 = 1, time = 164335739963
+TDoA dist diff = -89.854988, anchor1 = 1, anchor2 = 2, time = 165430948507
+TDoA dist diff = 88.448738, anchor1 = 2, anchor2 = 1, time = 167528567074
+TDoA dist diff = -84.064651, anchor1 = 1, anchor2 = 2, time = 168741067013
+TDoA dist diff = 5.675093, anchor1 = 2, anchor2 = 1, time = 170740863955
+TDoA dist diff = -27.342590, anchor1 = 1, anchor2 = 2, time = 172060194684
+TDoA dist diff = 79.150436, anchor1 = 2, anchor2 = 1, time = 173915542765
+TDoA dist diff = -20.759338, anchor1 = 1, anchor2 = 2, time = 175320535920
+TDoA dist diff = 41.717769, anchor1 = 2, anchor2 = 1, time = 177126877594
+TDoA dist diff = -130.317214, anchor1 = 1, anchor2 = 2, time = 178581136740
+TDoA dist diff = -11.730573, anchor1 = 2, anchor2 = 1, time = 180303198898
+TDoA dist diff = -65.316947, anchor1 = 1, anchor2 = 2, time = 181830882105
+TDoA dist diff = 76.514358, anchor1 = 2, anchor2 = 1, time = 183495823265
+TDoA dist diff = -87.394584, anchor1 = 1, anchor2 = 2, time = 185087960865
+TDoA dist diff = 74.270401, anchor1 = 2, anchor2 = 1, time = 186688712348
+TDoA dist diff = -99.438797, anchor1 = 1, anchor2 = 2, time = 188344827157
+TDoA dist diff = 64.317070, anchor1 = 2, anchor2 = 1, time = 189881371016
+TDoA dist diff = -110.949226, anchor1 = 1, anchor2 = 2, time = 194868960017
+TDoA dist diff = 84.394897, anchor1 = 2, anchor2 = 1, time = 199460790890
+TDoA dist diff = 76.031219, anchor1 = 2, anchor2 = 1, time = 202708410588
+TDoA dist diff = 92.087409, anchor1 = 2, anchor2 = 1, time = 205847125078
+TDoA dist diff = 76.969146, anchor1 = 2, anchor2 = 1, time = 215498321081
+TDoA dist diff = 60.312507, anchor1 = 2, anchor2 = 1, time = 218620340827
+TDoA dist diff = 36.696781, anchor1 = 2, anchor2 = 1, time = 221833808696
+TDoA dist diff = 43.605121, anchor1 = 2, anchor2 = 1, time = 225006790262
+TDoA dist diff = 41.031223, anchor1 = 2, anchor2 = 1, time = 231401789564
+TDoA dist diff = 51.248889, anchor1 = 2, anchor2 = 1, time = 237787200675
+TDoA dist diff = 54.617557, anchor1 = 2, anchor2 = 1, time = 244172528347
+TDoA dist diff = 11.988325, anchor1 = 2, anchor2 = 1, time = 263333760959
+TDoA dist diff = -79.902389, anchor1 = 1, anchor2 = 2, time = 263700125286
+TDoA dist diff = -46.249401, anchor1 = 2, anchor2 = 1, time = 266598577747
+TDoA dist diff = -94.529197, anchor1 = 1, anchor2 = 2, time = 266962952839
+TDoA dist diff = -42.722343, anchor1 = 2, anchor2 = 1, time = 269719278117
+TDoA dist diff = -77.290367, anchor1 = 1, anchor2 = 2, time = 270274172165
+TDoA dist diff = 123.541786, anchor1 = 2, anchor2 = 1, time = 272915179346
+TDoA dist diff = -49.178810, anchor1 = 1, anchor2 = 2, time = 273530004731
+TDoA dist diff = -2.228774, anchor1 = 2, anchor2 = 1, time = 276104416917
+TDoA dist diff = -87.198760, anchor1 = 1, anchor2 = 2, time = 276793588503
+TDoA dist diff = 165.358108, anchor1 = 2, anchor2 = 1, time = 279362398523
+TDoA dist diff = -80.280586, anchor1 = 1, anchor2 = 2, time = 280107776417
+TDoA dist diff = -32.698036, anchor1 = 2, anchor2 = 1, time = 282489826569
+TDoA dist diff = -83.098472, anchor1 = 1, anchor2 = 2, time = 283367926694
+TDoA dist diff = 9.054898, anchor1 = 2, anchor2 = 1, time = 285777500014
+TDoA dist diff = -111.452552, anchor1 = 1, anchor2 = 2, time = 286620372892
+TDoA dist diff = -102.074638, anchor1 = 1, anchor2 = 2, time = 289880275373
+TDoA dist diff = 56.983055, anchor1 = 2, anchor2 = 1, time = 292133229104
+TDoA dist diff = -73.365371, anchor1 = 1, anchor2 = 2, time = 293201675332
+TDoA dist diff = 112.085571, anchor1 = 2, anchor2 = 1, time = 295260517377
+TDoA dist diff = -114.182891, anchor1 = 1, anchor2 = 2, time = 296461295705
+TDoA dist diff = -34.137538, anchor1 = 2, anchor2 = 1, time = 298508439747
+TDoA dist diff = -82.045967, anchor1 = 1, anchor2 = 2, time = 299712787544
+TDoA dist diff = -86.038719, anchor1 = 1, anchor2 = 2, time = 302968492632
+TDoA dist diff = 12.412399, anchor1 = 2, anchor2 = 1, time = 304904069948
+TDoA dist diff = -98.202568, anchor1 = 1, anchor2 = 2, time = 306232307815
+TDoA dist diff = 15.035723, anchor1 = 2, anchor2 = 1, time = 308031530782
+TDoA dist diff = -104.513137, anchor1 = 1, anchor2 = 2, time = 309546169096
+TDoA dist diff = -9.755635, anchor1 = 2, anchor2 = 1, time = 311411963579
+TDoA dist diff = -72.802551, anchor1 = 1, anchor2 = 2, time = 312806351123
+TDoA dist diff = 0.933713, anchor1 = 2, anchor2 = 1, time = 314418492848
+TDoA dist diff = -58.399063, anchor1 = 1, anchor2 = 2, time = 316061209368
+TDoA dist diff = 76.739677, anchor1 = 2, anchor2 = 1, time = 317738657757
+TDoA dist diff = -95.961868, anchor1 = 1, anchor2 = 2, time = 319320332064
+TDoA dist diff = 87.911300, anchor1 = 2, anchor2 = 1, time = 320805096520
+TDoA dist diff = -87.734588, anchor1 = 1, anchor2 = 2, time = 322640164809
+TDoA dist diff = 57.925975, anchor1 = 2, anchor2 = 1, time = 323999510430
+TDoA dist diff = -130.963073, anchor1 = 1, anchor2 = 2, time = 325899894739
+TDoA dist diff = 101.302757, anchor1 = 2, anchor2 = 1, time = 327191821040
+TDoA dist diff = -143.971038, anchor1 = 1, anchor2 = 2, time = 329151233494
+TDoA dist diff = 87.827011, anchor1 = 2, anchor2 = 1, time = 330542965984
+TDoA dist diff = -89.890777, anchor1 = 1, anchor2 = 2, time = 332407071201
+TDoA dist diff = 37.650619, anchor1 = 2, anchor2 = 1, time = 333578355618
+TDoA dist diff = -103.389167, anchor1 = 1, anchor2 = 2, time = 335670463495
+TDoA dist diff = 103.658584, anchor1 = 2, anchor2 = 1, time = 336895282647
+TDoA dist diff = -118.214927, anchor1 = 1, anchor2 = 2, time = 338984556182
+TDoA dist diff = 74.691886, anchor1 = 2, anchor2 = 1, time = 339964213841
+TDoA dist diff = -115.044326, anchor1 = 1, anchor2 = 2, time = 342244852916
+TDoA dist diff = 77.554222, anchor1 = 2, anchor2 = 1, time = 343215529258
+TDoA dist diff = -148.942321, anchor1 = 1, anchor2 = 2, time = 345500279495
+TDoA dist diff = 40.613746, anchor1 = 2, anchor2 = 1, time = 346349785357
+TDoA dist diff = -33.431854, anchor1 = 1, anchor2 = 2, time = 348758364897
+TDoA dist diff = 61.985179, anchor1 = 2, anchor2 = 1, time = 349562881593
+TDoA dist diff = -51.838264, anchor1 = 1, anchor2 = 2, time = 352078482312
+TDoA dist diff = 66.702018, anchor1 = 2, anchor2 = 1, time = 352736057796
+TDoA dist diff = -171.552413, anchor1 = 1, anchor2 = 2, time = 355338198441
+TDoA dist diff = 38.189186, anchor1 = 2, anchor2 = 1, time = 355948409087
+TDoA dist diff = -148.246978, anchor1 = 1, anchor2 = 2, time = 358589734320
+TDoA dist diff = 64.974876, anchor1 = 2, anchor2 = 1, time = 359122496656
+TDoA dist diff = -71.969612, anchor1 = 1, anchor2 = 2, time = 361846273489
+TDoA dist diff = 55.689662, anchor1 = 2, anchor2 = 1, time = 362441850577
+TDoA dist diff = -164.200119, anchor1 = 1, anchor2 = 2, time = 365109101030
+TDoA dist diff = 49.014976, anchor1 = 2, anchor2 = 1, time = 365508623707
+TDoA dist diff = -100.969543, anchor1 = 1, anchor2 = 2, time = 368423018125
+TDoA dist diff = -137.206787, anchor1 = 1, anchor2 = 2, time = 371685281450
+TDoA dist diff = 54.725555, anchor1 = 2, anchor2 = 1, time = 371894946863
+TDoA dist diff = -152.652313, anchor1 = 1, anchor2 = 2, time = 374938943146
+TDoA dist diff = -162.070388, anchor1 = 1, anchor2 = 2, time = 378195553484
+TDoA dist diff = 75.278785, anchor1 = 2, anchor2 = 1, time = 378281389845
+TDoA dist diff = -214.902267, anchor1 = 1, anchor2 = 2, time = 381453800173
+TDoA dist diff = -14.544983, anchor1 = 2, anchor2 = 1, time = 394289411129
+TDoA dist diff = 194.934387, anchor1 = 2, anchor2 = 1, time = 397449663505
+TDoA dist diff = -79.139419, anchor1 = 1, anchor2 = 2, time = 397865974991
+TDoA dist diff = 80.729972, anchor1 = 2, anchor2 = 1, time = 400704966945
+TDoA dist diff = -90.345558, anchor1 = 1, anchor2 = 2, time = 401123879174
+TDoA dist diff = 14.199330, anchor1 = 2, anchor2 = 1, time = 403836151607
+TDoA dist diff = -108.268432, anchor1 = 1, anchor2 = 2, time = 404377590585
+TDoA dist diff = -0.353228, anchor1 = 2, anchor2 = 1, time = 407090380876
+TDoA dist diff = -95.190505, anchor1 = 1, anchor2 = 2, time = 407634261859
+TDoA dist diff = 0.197117, anchor1 = 2, anchor2 = 1, time = 410224216695
+TDoA dist diff = -116.285331, anchor1 = 1, anchor2 = 2, time = 417403043346
+TDoA dist diff = 91.162528, anchor1 = 2, anchor2 = 1, time = 419841347341
+TDoA dist diff = -106.812706, anchor1 = 1, anchor2 = 2, time = 420661100108
+TDoA dist diff = 137.022033, anchor1 = 2, anchor2 = 1, time = 422994938130
+TDoA dist diff = -106.239738, anchor1 = 1, anchor2 = 2, time = 423949900503
+TDoA dist diff = 77.930206, anchor1 = 2, anchor2 = 1, time = 426246454326
+TDoA dist diff = -107.348892, anchor1 = 1, anchor2 = 2, time = 427243228540
+TDoA dist diff = 38.309108, anchor1 = 2, anchor2 = 1, time = 429380273266
+TDoA dist diff = -94.065048, anchor1 = 1, anchor2 = 2, time = 430562416215
+TDoA dist diff = 48.966457, anchor1 = 2, anchor2 = 1, time = 432631835040
+TDoA dist diff = -61.200344, anchor1 = 1, anchor2 = 2, time = 433816447112
+TDoA dist diff = 97.211135, anchor1 = 2, anchor2 = 1, time = 435765710301
+TDoA dist diff = -124.017036, anchor1 = 1, anchor2 = 2, time = 437071149798
+TDoA dist diff = 89.633796, anchor1 = 2, anchor2 = 1, time = 439017352966
+TDoA dist diff = -79.010833, anchor1 = 1, anchor2 = 2, time = 440330583871
+TDoA dist diff = -87.726280, anchor1 = 1, anchor2 = 2, time = 443588990354
+TDoA dist diff = 73.022003, anchor1 = 2, anchor2 = 1, time = 445402835089
+TDoA dist diff = -106.960853, anchor1 = 1, anchor2 = 2, time = 446841733088
+TDoA dist diff = 65.837036, anchor1 = 2, anchor2 = 1, time = 448536776941
+TDoA dist diff = -48.133907, anchor1 = 1, anchor2 = 2, time = 450099437116
+TDoA dist diff = 59.699356, anchor1 = 2, anchor2 = 1, time = 451886107464
+TDoA dist diff = -66.465293, anchor1 = 1, anchor2 = 2, time = 453352386188
+TDoA dist diff = -78.762100, anchor1 = 1, anchor2 = 2, time = 456615274748
+TDoA dist diff = 46.675415, anchor1 = 2, anchor2 = 1, time = 458237540144
+TDoA dist diff = -92.295082, anchor1 = 1, anchor2 = 2, time = 459881440622
+TDoA dist diff = 42.414016, anchor1 = 2, anchor2 = 1, time = 461308026381
+TDoA dist diff = -97.286148, anchor1 = 1, anchor2 = 2, time = 463198101588
+TDoA dist diff = 74.688247, anchor1 = 2, anchor2 = 1, time = 464623008971
+TDoA dist diff = -72.384635, anchor1 = 1, anchor2 = 2, time = 466448340126
+TDoA dist diff = 72.904724, anchor1 = 2, anchor2 = 1, time = 467692577210
+TDoA dist diff = -60.016407, anchor1 = 1, anchor2 = 2, time = 469704280840
+TDoA dist diff = 61.074466, anchor1 = 2, anchor2 = 1, time = 471009217661
+TDoA dist diff = 65.524070, anchor1 = 2, anchor2 = 1, time = 474078224752
+TDoA dist diff = -90.063743, anchor1 = 1, anchor2 = 2, time = 476216829385
+TDoA dist diff = 97.992538, anchor1 = 2, anchor2 = 1, time = 477398399536
+TDoA dist diff = -50.116939, anchor1 = 1, anchor2 = 2, time = 479475597889
+TDoA dist diff = 114.588920, anchor1 = 2, anchor2 = 1, time = 480464665386
+TDoA dist diff = -101.537033, anchor1 = 1, anchor2 = 2, time = 482731096231
+TDoA dist diff = 90.184776, anchor1 = 2, anchor2 = 1, time = 483715309200
+TDoA dist diff = -133.048904, anchor1 = 1, anchor2 = 2, time = 485987172120
+TDoA dist diff = 85.025993, anchor1 = 2, anchor2 = 1, time = 486851249402
+TDoA dist diff = -19.016077, anchor1 = 1, anchor2 = 2, time = 489253494168
+TDoA dist diff = 77.469879, anchor1 = 2, anchor2 = 1, time = 490102088790
+TDoA dist diff = -44.752223, anchor1 = 1, anchor2 = 2, time = 492577641655
+TDoA dist diff = 61.016830, anchor1 = 2, anchor2 = 1, time = 493236992713
+TDoA dist diff = -126.754722, anchor1 = 1, anchor2 = 2, time = 495884804000
+TDoA dist diff = 40.076015, anchor1 = 2, anchor2 = 1, time = 496583808345
+TDoA dist diff = -79.224891, anchor1 = 1, anchor2 = 2, time = 499142701591
+TDoA dist diff = -99.870315, anchor1 = 1, anchor2 = 2, time = 502407468706
+TDoA dist diff = 60.959701, anchor1 = 2, anchor2 = 1, time = 503071299685
+TDoA dist diff = -110.962341, anchor1 = 1, anchor2 = 2, time = 505655456015
+TDoA dist diff = -8.020270, anchor1 = 1, anchor2 = 2, time = 508914587032
+TDoA dist diff = 76.742080, anchor1 = 2, anchor2 = 1, time = 509329361797
+TDoA dist diff = -5.863903, anchor1 = 1, anchor2 = 2, time = 512169997327
+TDoA dist diff = -54.700000, anchor1 = 1, anchor2 = 2, time = 515428126359
+TDoA dist diff = -27.923442, anchor1 = 1, anchor2 = 2, time = 518692057392
+TDoA dist diff = -59.084098, anchor1 = 1, anchor2 = 2, time = 522016193116
+TDoA dist diff = 79.444915, anchor1 = 2, anchor2 = 1, time = 531556279559
+TDoA dist diff = -76.967048, anchor1 = 1, anchor2 = 2, time = 531908844831
+TDoA dist diff = 88.742225, anchor1 = 2, anchor2 = 1, time = 534749676314
+TDoA dist diff = -79.093536, anchor1 = 1, anchor2 = 2, time = 535158175140
+TDoA dist diff = 136.263137, anchor1 = 2, anchor2 = 1, time = 537942608715
+TDoA dist diff = -66.592597, anchor1 = 1, anchor2 = 2, time = 538416451655
+TDoA dist diff = 76.330657, anchor1 = 2, anchor2 = 1, time = 541136008566
+TDoA dist diff = -64.618377, anchor1 = 1, anchor2 = 2, time = 541678176488
+TDoA dist diff = 127.496688, anchor1 = 2, anchor2 = 1, time = 544329291686
+TDoA dist diff = -65.978561, anchor1 = 1, anchor2 = 2, time = 544935472530
+TDoA dist diff = 174.874496, anchor1 = 2, anchor2 = 1, time = 547524776400
+TDoA dist diff = -47.501575, anchor1 = 1, anchor2 = 2, time = 548254323914
+TDoA dist diff = 109.189094, anchor1 = 2, anchor2 = 1, time = 550716995587
+TDoA dist diff = -65.390533, anchor1 = 1, anchor2 = 2, time = 551569752578
+TDoA dist diff = 94.729309, anchor1 = 2, anchor2 = 1, time = 553910298683
+TDoA dist diff = -53.076297, anchor1 = 1, anchor2 = 2, time = 554826628773
+TDoA dist diff = 85.058586, anchor1 = 2, anchor2 = 1, time = 557102742137
+TDoA dist diff = -64.134704, anchor1 = 1, anchor2 = 2, time = 558085653341
+TDoA dist diff = 136.696609, anchor1 = 2, anchor2 = 1, time = 560295612611
+TDoA dist diff = -48.530506, anchor1 = 1, anchor2 = 2, time = 561347123225
+TDoA dist diff = 66.396247, anchor1 = 2, anchor2 = 1, time = 563488436500
+TDoA dist diff = -65.211280, anchor1 = 1, anchor2 = 2, time = 564597280970
+TDoA dist diff = 113.556968, anchor1 = 2, anchor2 = 1, time = 566681471319
+TDoA dist diff = -99.317749, anchor1 = 1, anchor2 = 2, time = 567857865604
+TDoA dist diff = 52.853931, anchor1 = 2, anchor2 = 1, time = 569874829744
+TDoA dist diff = -54.769786, anchor1 = 1, anchor2 = 2, time = 571118446157
+TDoA dist diff = 41.468826, anchor1 = 2, anchor2 = 1, time = 573067687932
+TDoA dist diff = -69.910003, anchor1 = 1, anchor2 = 2, time = 574372642045
+TDoA dist diff = 29.556503, anchor1 = 2, anchor2 = 1, time = 576261463119
+TDoA dist diff = -78.467895, anchor1 = 1, anchor2 = 2, time = 577691842651
+TDoA dist diff = 85.458007, anchor1 = 2, anchor2 = 1, time = 579454654647
+TDoA dist diff = -38.605052, anchor1 = 1, anchor2 = 2, time = 580944146202
+TDoA dist diff = 71.660377, anchor1 = 2, anchor2 = 1, time = 582647204115
+TDoA dist diff = -44.673301, anchor1 = 1, anchor2 = 2, time = 584201597920
+TDoA dist diff = 68.215705, anchor1 = 2, anchor2 = 1, time = 585840866676
+TDoA dist diff = 2.836220, anchor1 = 1, anchor2 = 2, time = 587458413741
+TDoA dist diff = 60.483070, anchor1 = 2, anchor2 = 1, time = 589034117089
+TDoA dist diff = -67.807128, anchor1 = 1, anchor2 = 2, time = 590723084175
+TDoA dist diff = 52.988204, anchor1 = 2, anchor2 = 1, time = 592227305542
+TDoA dist diff = -27.588398, anchor1 = 1, anchor2 = 2, time = 593971577424
+TDoA dist diff = 37.080635, anchor1 = 2, anchor2 = 1, time = 595420442274
+TDoA dist diff = -29.397865, anchor1 = 1, anchor2 = 2, time = 597232001325
+TDoA dist diff = 98.363723, anchor1 = 2, anchor2 = 1, time = 598613631262
+TDoA dist diff = -44.610820, anchor1 = 1, anchor2 = 2, time = 600488536082
+TDoA dist diff = 86.969375, anchor1 = 2, anchor2 = 1, time = 601815175546
+TDoA dist diff = 4.639789, anchor1 = 1, anchor2 = 2, time = 603744402145
+TDoA dist diff = 88.586906, anchor1 = 2, anchor2 = 1, time = 605008157668
+TDoA dist diff = 3.929953, anchor1 = 1, anchor2 = 2, time = 607007177154
+TDoA dist diff = 21.761777, anchor1 = 2, anchor2 = 1, time = 608200970327
+TDoA dist diff = -14.085916, anchor1 = 1, anchor2 = 2, time = 610330129725
+TDoA dist diff = 67.523513, anchor1 = 2, anchor2 = 1, time = 611393525458
+TDoA dist diff = 20.503273, anchor1 = 1, anchor2 = 2, time = 613577618445
+TDoA dist diff = 49.062488, anchor1 = 2, anchor2 = 1, time = 614586534238
+TDoA dist diff = -40.945549, anchor1 = 1, anchor2 = 2, time = 616836898030
+TDoA dist diff = -5.206421, anchor1 = 2, anchor2 = 1, time = 617779504098
+TDoA dist diff = 5.032936, anchor1 = 1, anchor2 = 2, time = 620096806877
+TDoA dist diff = 18.118410, anchor1 = 2, anchor2 = 1, time = 620972131430
+TDoA dist diff = 50.264301, anchor1 = 1, anchor2 = 2, time = 623356665549
+TDoA dist diff = 10.437622, anchor1 = 2, anchor2 = 1, time = 624164950753
+TDoA dist diff = -24.940803, anchor1 = 1, anchor2 = 2, time = 626673095233
+TDoA dist diff = 18.181058, anchor1 = 2, anchor2 = 1, time = 627361634144
+TDoA dist diff = -43.102375, anchor1 = 1, anchor2 = 2, time = 629996100049
+TDoA dist diff = 11.038718, anchor1 = 2, anchor2 = 1, time = 630554494445
+TDoA dist diff = -211.642349, anchor1 = 1, anchor2 = 2, time = 633314597197
+TDoA dist diff = -84.724945, anchor1 = 1, anchor2 = 2, time = 636632506570
+TDoA dist diff = 15.205472, anchor1 = 2, anchor2 = 1, time = 636939957530
+TDoA dist diff = 15.514493, anchor1 = 1, anchor2 = 2, time = 639960000610
+TDoA dist diff = -184.078018, anchor1 = 1, anchor2 = 2, time = 643238297996
+TDoA dist diff = 16.674194, anchor1 = 2, anchor2 = 1, time = 643325665365
+TDoA dist diff = -33.031806, anchor1 = 2, anchor2 = 1, time = 656096844533
+TDoA dist diff = -10.408391, anchor1 = 2, anchor2 = 1, time = 659290102698
+TDoA dist diff = -40.251022, anchor1 = 1, anchor2 = 2, time = 659685301212
+TDoA dist diff = -1.318957, anchor1 = 2, anchor2 = 1, time = 662482289239
+TDoA dist diff = -36.701164, anchor1 = 1, anchor2 = 2, time = 662942456540
+TDoA dist diff = -66.764686, anchor1 = 2, anchor2 = 1, time = 665674942731
+TDoA dist diff = -34.307064, anchor1 = 1, anchor2 = 2, time = 666199043539
+TDoA dist diff = 88.266014, anchor1 = 2, anchor2 = 1, time = 675253043502
+TDoA dist diff = -62.023086, anchor1 = 1, anchor2 = 2, time = 676101165587
+TDoA dist diff = -30.364109, anchor1 = 2, anchor2 = 1, time = 678445778918
+TDoA dist diff = -65.299858, anchor1 = 1, anchor2 = 2, time = 679421959624
+TDoA dist diff = -41.754123, anchor1 = 2, anchor2 = 1, time = 681638545072
+TDoA dist diff = -65.572227, anchor1 = 1, anchor2 = 2, time = 682737290575
+TDoA dist diff = -50.536460, anchor1 = 2, anchor2 = 1, time = 684855951672
+TDoA dist diff = -89.419204, anchor1 = 1, anchor2 = 2, time = 685995436116
+TDoA dist diff = -29.012248, anchor1 = 2, anchor2 = 1, time = 688024113216
+TDoA dist diff = -13.482321, anchor1 = 1, anchor2 = 2, time = 689254067051
+TDoA dist diff = 57.238124, anchor1 = 2, anchor2 = 1, time = 691246899410
+TDoA dist diff = -54.626979, anchor1 = 1, anchor2 = 2, time = 692573724944
+TDoA dist diff = 24.473861, anchor1 = 2, anchor2 = 1, time = 694411848153
+TDoA dist diff = -117.087982, anchor1 = 1, anchor2 = 2, time = 695885594277
+TDoA dist diff = 40.233783, anchor1 = 2, anchor2 = 1, time = 697605008052
+TDoA dist diff = -49.432407, anchor1 = 1, anchor2 = 2, time = 699162530804
+TDoA dist diff = -10.570715, anchor1 = 2, anchor2 = 1, time = 700797644173
+TDoA dist diff = -60.718425, anchor1 = 1, anchor2 = 2, time = 702473586563
+TDoA dist diff = -35.385147, anchor1 = 2, anchor2 = 1, time = 703991689329
+TDoA dist diff = -106.754539, anchor1 = 1, anchor2 = 2, time = 705792103232
+TDoA dist diff = 26.978603, anchor1 = 2, anchor2 = 1, time = 707184908618
+TDoA dist diff = -72.786399, anchor1 = 1, anchor2 = 2, time = 709051638371
+TDoA dist diff = 20.945173, anchor1 = 2, anchor2 = 1, time = 710381043757
+TDoA dist diff = 13.784491, anchor1 = 1, anchor2 = 2, time = 712374399005
+TDoA dist diff = 17.172161, anchor1 = 2, anchor2 = 1, time = 713571676948
+TDoA dist diff = -119.238327, anchor1 = 1, anchor2 = 2, time = 715623692601
+TDoA dist diff = 4.262592, anchor1 = 2, anchor2 = 1, time = 716826380156
+TDoA dist diff = -13.312823, anchor1 = 1, anchor2 = 2, time = 718877150803
+TDoA dist diff = 43.342079, anchor1 = 2, anchor2 = 1, time = 719957955310
+TDoA dist diff = 48.134483, anchor1 = 1, anchor2 = 2, time = 722128235878
+TDoA dist diff = 37.337463, anchor1 = 2, anchor2 = 1, time = 723217474395
+TDoA dist diff = -25.494857, anchor1 = 1, anchor2 = 2, time = 725382203543
+TDoA dist diff = 46.064243, anchor1 = 2, anchor2 = 1, time = 726343452376
+TDoA dist diff = -19.285085, anchor1 = 1, anchor2 = 2, time = 728660727785
+TDoA dist diff = 33.741119, anchor1 = 2, anchor2 = 1, time = 729603237701
+TDoA dist diff = 50.294944, anchor1 = 1, anchor2 = 2, time = 731968312728
+TDoA dist diff = 14.351777, anchor1 = 2, anchor2 = 1, time = 732729595093
+TDoA dist diff = -135.452575, anchor1 = 1, anchor2 = 2, time = 735230243028
+TDoA dist diff = 15.735322, anchor1 = 2, anchor2 = 1, time = 735945239449
+TDoA dist diff = 85.392623, anchor1 = 1, anchor2 = 2, time = 738490096132
+TDoA dist diff = -0.835527, anchor1 = 2, anchor2 = 1, time = 739115811523
+TDoA dist diff = -84.168769, anchor1 = 1, anchor2 = 2, time = 741750272848
+TDoA dist diff = 55.817791, anchor1 = 1, anchor2 = 2, time = 744998182502
+TDoA dist diff = 8.797372, anchor1 = 2, anchor2 = 1, time = 745502029517
+TDoA dist diff = 13.295240, anchor1 = 1, anchor2 = 2, time = 748253018012
+TDoA dist diff = 45.579582, anchor1 = 1, anchor2 = 2, time = 751509883598
+TDoA dist diff = 15.176748, anchor1 = 2, anchor2 = 1, time = 751888431314
+TDoA dist diff = 80.424469, anchor1 = 1, anchor2 = 2, time = 754759193603
+TDoA dist diff = 31.709728, anchor1 = 1, anchor2 = 2, time = 758035077998
+TDoA dist diff = 14.831901, anchor1 = 2, anchor2 = 1, time = 758274749679
+TDoA dist diff = -4.618512, anchor1 = 1, anchor2 = 2, time = 761283159693
+TDoA dist diff = 117.955200, anchor1 = 1, anchor2 = 2, time = 764539440596
+TDoA dist diff = 25.683879, anchor1 = 2, anchor2 = 1, time = 764661191454
+TDoA dist diff = -17.340627, anchor1 = 1, anchor2 = 2, time = 767800711459
+TDoA dist diff = -31.696525, anchor1 = 2, anchor2 = 1, time = 783827542491
+TDoA dist diff = 156.669235, anchor1 = 2, anchor2 = 1, time = 787151577071
+TDoA dist diff = -59.342922, anchor1 = 1, anchor2 = 2, time = 787401740681
+TDoA dist diff = 35.484416, anchor1 = 2, anchor2 = 1, time = 790213904440
+TDoA dist diff = -24.601379, anchor1 = 1, anchor2 = 2, time = 790655017169
+TDoA dist diff = 68.622489, anchor1 = 2, anchor2 = 1, time = 793444713247
+TDoA dist diff = -28.006242, anchor1 = 1, anchor2 = 2, time = 793919941705
+TDoA dist diff = -74.105758, anchor1 = 2, anchor2 = 1, time = 796601719456
+TDoA dist diff = -36.140846, anchor1 = 1, anchor2 = 2, time = 797239523378
+TDoA dist diff = -137.639251, anchor1 = 2, anchor2 = 1, time = 799897414406
+TDoA dist diff = -58.492912, anchor1 = 1, anchor2 = 2, time = 800491069820
+TDoA dist diff = 33.418308, anchor1 = 2, anchor2 = 1, time = 802987377947
+TDoA dist diff = -33.490573, anchor1 = 1, anchor2 = 2, time = 803748212442
+TDoA dist diff = 110.963661, anchor1 = 2, anchor2 = 1, time = 806286608249
+TDoA dist diff = -10.306174, anchor1 = 1, anchor2 = 2, time = 807005803590
+TDoA dist diff = 33.226245, anchor1 = 2, anchor2 = 1, time = 809373063070
+TDoA dist diff = -23.783168, anchor1 = 1, anchor2 = 2, time = 810260614556
+TDoA dist diff = -18.955396, anchor1 = 2, anchor2 = 1, time = 812682141675
+TDoA dist diff = -1.915464, anchor1 = 1, anchor2 = 2, time = 813519028488
+TDoA dist diff = 35.678195, anchor1 = 2, anchor2 = 1, time = 815759157809
+TDoA dist diff = -35.323822, anchor1 = 1, anchor2 = 2, time = 816771120730
+TDoA dist diff = -26.833889, anchor1 = 2, anchor2 = 1, time = 819049159857
+TDoA dist diff = 9.054225, anchor1 = 1, anchor2 = 2, time = 820031254474
+TDoA dist diff = 75.037216, anchor1 = 2, anchor2 = 1, time = 822144725198
+TDoA dist diff = -17.589647, anchor1 = 1, anchor2 = 2, time = 823292610880
+TDoA dist diff = 25.816801, anchor1 = 2, anchor2 = 1, time = 825526475414
+TDoA dist diff = 37.174697, anchor1 = 1, anchor2 = 2, time = 826616354132
+TDoA dist diff = -33.140968, anchor1 = 2, anchor2 = 1, time = 828530035074
+TDoA dist diff = -79.004829, anchor1 = 1, anchor2 = 2, time = 829930244422
+TDoA dist diff = 4.843078, anchor1 = 2, anchor2 = 1, time = 831757709980
+TDoA dist diff = -23.115707, anchor1 = 1, anchor2 = 2, time = 833188163779
+TDoA dist diff = 38.155303, anchor1 = 2, anchor2 = 1, time = 834915648061
+TDoA dist diff = -38.688095, anchor1 = 1, anchor2 = 2, time = 836444401207
+TDoA dist diff = 9.299326, anchor1 = 2, anchor2 = 1, time = 838255348836
+TDoA dist diff = 31.518007, anchor1 = 1, anchor2 = 2, time = 839700194725
+TDoA dist diff = 21.525901, anchor1 = 2, anchor2 = 1, time = 841300979970
+TDoA dist diff = 65.322189, anchor1 = 1, anchor2 = 2, time = 842957716769
+TDoA dist diff = 5.398002, anchor1 = 2, anchor2 = 1, time = 844660360985
+TDoA dist diff = 8.464505, anchor1 = 1, anchor2 = 2, time = 846210178705
+TDoA dist diff = 32.601116, anchor1 = 2, anchor2 = 1, time = 847686587355
+TDoA dist diff = 7.955094, anchor1 = 1, anchor2 = 2, time = 849528906403
+TDoA dist diff = 3.769823, anchor1 = 2, anchor2 = 1, time = 851070394294
+TDoA dist diff = -61.950695, anchor1 = 1, anchor2 = 2, time = 852801216593
+TDoA dist diff = 50.521385, anchor1 = 2, anchor2 = 1, time = 854072063679
+TDoA dist diff = -111.158073, anchor1 = 1, anchor2 = 2, time = 856116187228
+TDoA dist diff = -58.757904, anchor1 = 1, anchor2 = 2, time = 859369081809
+TDoA dist diff = 30.879827, anchor1 = 2, anchor2 = 1, time = 860458284475
+TDoA dist diff = 8.447122, anchor1 = 1, anchor2 = 2, time = 862626194274
+TDoA dist diff = 15.567441, anchor1 = 2, anchor2 = 1, time = 863888568636
+TDoA dist diff = -23.984996, anchor1 = 1, anchor2 = 2, time = 865882856166
+TDoA dist diff = 34.495521, anchor1 = 2, anchor2 = 1, time = 866844585145
+TDoA dist diff = 37.370243, anchor1 = 2, anchor2 = 1, time = 870132666743
+TDoA dist diff = -52.221763, anchor1 = 1, anchor2 = 2, time = 872396482064
+TDoA dist diff = 11.906647, anchor1 = 2, anchor2 = 1, time = 873232210365
+TDoA dist diff = -16.519840, anchor1 = 1, anchor2 = 2, time = 875648620440
+TDoA dist diff = 30.628837, anchor1 = 2, anchor2 = 1, time = 876485716681
+TDoA dist diff = -75.638015, anchor1 = 1, anchor2 = 2, time = 878909385512
+TDoA dist diff = 32.005996, anchor1 = 2, anchor2 = 1, time = 879618097889
+TDoA dist diff = -84.163513, anchor1 = 1, anchor2 = 2, time = 882170638033
+TDoA dist diff = 52.892517, anchor1 = 2, anchor2 = 1, time = 883034487450
+TDoA dist diff = -115.417915, anchor1 = 1, anchor2 = 2, time = 885495905559
+TDoA dist diff = 4.754651, anchor1 = 2, anchor2 = 1, time = 886004706309
+TDoA dist diff = -128.501281, anchor1 = 1, anchor2 = 2, time = 888817054026
+TDoA dist diff = 16.782535, anchor1 = 2, anchor2 = 1, time = 889255995690
+TDoA dist diff = -60.242233, anchor1 = 1, anchor2 = 2, time = 892064895701
+TDoA dist diff = 21.520442, anchor1 = 2, anchor2 = 1, time = 892390159178
+TDoA dist diff = -56.192966, anchor1 = 1, anchor2 = 2, time = 895321460855
+TDoA dist diff = -79.848259, anchor1 = 1, anchor2 = 2, time = 898577287189
+TDoA dist diff = 26.432424, anchor1 = 2, anchor2 = 1, time = 898777072802
+TDoA dist diff = -79.858184, anchor1 = 1, anchor2 = 2, time = 901835186122
+TDoA dist diff = -108.683380, anchor1 = 1, anchor2 = 2, time = 905087066971
+TDoA dist diff = 18.435997, anchor1 = 2, anchor2 = 1, time = 905162654714
+TDoA dist diff = -19.880506, anchor1 = 1, anchor2 = 2, time = 908348244239
+TDoA dist diff = 120.318634, anchor1 = 2, anchor2 = 1, time = 917935949022
+TDoA dist diff = 30.765975, anchor1 = 2, anchor2 = 1, time = 921256029584
+TDoA dist diff = -47.766098, anchor1 = 1, anchor2 = 2, time = 921503830802
+TDoA dist diff = -55.644645, anchor1 = 2, anchor2 = 1, time = 924322297435
+TDoA dist diff = -43.325168, anchor1 = 1, anchor2 = 2, time = 924760171205
+TDoA dist diff = -3.851132, anchor1 = 2, anchor2 = 1, time = 927666695385
+TDoA dist diff = -63.887100, anchor1 = 1, anchor2 = 2, time = 928017135741
+TDoA dist diff = 43.510211, anchor1 = 2, anchor2 = 1, time = 930710416857
+TDoA dist diff = -51.275692, anchor1 = 1, anchor2 = 2, time = 931274288183
+TDoA dist diff = -6.271103, anchor1 = 2, anchor2 = 1, time = 933925493625
+TDoA dist diff = -61.738651, anchor1 = 1, anchor2 = 2, time = 934525727713
+TDoA dist diff = -47.453834, anchor1 = 2, anchor2 = 1, time = 937097038180
+TDoA dist diff = -44.393283, anchor1 = 1, anchor2 = 2, time = 937789152687
+TDoA dist diff = 114.564712, anchor1 = 2, anchor2 = 1, time = 940320071408
+TDoA dist diff = -62.227813, anchor1 = 1, anchor2 = 2, time = 941050281351
+TDoA dist diff = -45.078948, anchor1 = 2, anchor2 = 1, time = 943482063106
+TDoA dist diff = -46.917449, anchor1 = 1, anchor2 = 2, time = 944371246039
+TDoA dist diff = -22.003204, anchor1 = 2, anchor2 = 1, time = 946705114771
+TDoA dist diff = -53.472431, anchor1 = 1, anchor2 = 2, time = 947683789340
+TDoA dist diff = 2.270754, anchor1 = 2, anchor2 = 1, time = 949868531357
+TDoA dist diff = -68.501312, anchor1 = 1, anchor2 = 2, time = 950942428646
+TDoA dist diff = 96.526649, anchor1 = 2, anchor2 = 1, time = 953090682423
+TDoA dist diff = -0.179506, anchor1 = 1, anchor2 = 2, time = 954198743999
+TDoA dist diff = -59.296363, anchor1 = 2, anchor2 = 1, time = 956254878799
+TDoA dist diff = -40.306545, anchor1 = 1, anchor2 = 2, time = 957455693205
+TDoA dist diff = 30.703012, anchor1 = 2, anchor2 = 1, time = 959623397560
+TDoA dist diff = -29.138505, anchor1 = 1, anchor2 = 2, time = 960713101151
+TDoA dist diff = 20.361665, anchor1 = 2, anchor2 = 1, time = 962642889732
+TDoA dist diff = -78.799163, anchor1 = 1, anchor2 = 2, time = 963964880161
+TDoA dist diff = 21.059345, anchor1 = 2, anchor2 = 1, time = 965853367742
+TDoA dist diff = -51.354293, anchor1 = 1, anchor2 = 2, time = 967228066055
+TDoA dist diff = -13.277543, anchor1 = 2, anchor2 = 1, time = 969028996043
+TDoA dist diff = 6.847873, anchor1 = 1, anchor2 = 2, time = 970489272017
+TDoA dist diff = 21.131984, anchor1 = 2, anchor2 = 1, time = 972330190036
+TDoA dist diff = -33.611190, anchor1 = 1, anchor2 = 2, time = 973808256847
+TDoA dist diff = 0.216883, anchor1 = 2, anchor2 = 1, time = 975414600604
+TDoA dist diff = -54.507144, anchor1 = 1, anchor2 = 2, time = 977065284351
+TDoA dist diff = 10.838568, anchor1 = 2, anchor2 = 1, time = 978671451911
+TDoA dist diff = -17.032693, anchor1 = 1, anchor2 = 2, time = 980317501099
+TDoA dist diff = 55.582771, anchor1 = 2, anchor2 = 1, time = 981800226169
+TDoA dist diff = -71.643905, anchor1 = 1, anchor2 = 2, time = 983574008947
+TDoA dist diff = 111.471275, anchor1 = 2, anchor2 = 1, time = 985038484754
+TDoA dist diff = -41.507194, anchor1 = 1, anchor2 = 2, time = 986831432279
+TDoA dist diff = -48.864154, anchor1 = 2, anchor2 = 1, time = 988186614623
+TDoA dist diff = -3.962169, anchor1 = 1, anchor2 = 2, time = 990088397909
+TDoA dist diff = 5.224999, anchor1 = 2, anchor2 = 1, time = 991456991419
+TDoA dist diff = -11.683942, anchor1 = 1, anchor2 = 2, time = 993338894939
+TDoA dist diff = 18.351591, anchor1 = 2, anchor2 = 1, time = 994573509456
+TDoA dist diff = -48.389163, anchor1 = 1, anchor2 = 2, time = 996603665049
+TDoA dist diff = -27.201421, anchor1 = 2, anchor2 = 1, time = 997809344759
+TDoA dist diff = 17.702568, anchor1 = 1, anchor2 = 2, time = 999865964256
+TDoA dist diff = 39.058479, anchor1 = 2, anchor2 = 1, time = 1000959548760
+TDoA dist diff = -13.380146, anchor1 = 1, anchor2 = 2, time = 1003121385769
+TDoA dist diff = -10.603443, anchor1 = 2, anchor2 = 1, time = 1004344042444
+TDoA dist diff = -16.852251, anchor1 = 1, anchor2 = 2, time = 1006380943254
+TDoA dist diff = 29.812418, anchor1 = 2, anchor2 = 1, time = 1007346232677
+TDoA dist diff = -13.034228, anchor1 = 2, anchor2 = 1, time = 1010602568935
+TDoA dist diff = 7.823424, anchor1 = 1, anchor2 = 2, time = 1012950907154
+TDoA dist diff = -34.640079, anchor1 = 2, anchor2 = 1, time = 1013732550523
+TDoA dist diff = -127.027877, anchor1 = 1, anchor2 = 2, time = 1016206582163
+TDoA dist diff = 11.778752, anchor1 = 2, anchor2 = 1, time = 1023580059537
+TDoA dist diff = -85.438873, anchor1 = 1, anchor2 = 2, time = 1025986083725
+TDoA dist diff = 24.834108, anchor1 = 2, anchor2 = 1, time = 1026513795522
+TDoA dist diff = -77.898979, anchor1 = 1, anchor2 = 2, time = 1029236008008
+TDoA dist diff = 21.063591, anchor1 = 2, anchor2 = 1, time = 1029708017630
+TDoA dist diff = -106.629043, anchor1 = 1, anchor2 = 2, time = 1032495345938
+TDoA dist diff = 11.584354, anchor1 = 2, anchor2 = 1, time = 1032899467272
+TDoA dist diff = -186.751510, anchor1 = 1, anchor2 = 2, time = 1035759719406
+TDoA dist diff = 20.204843, anchor1 = 2, anchor2 = 1, time = 1036165074333
+TDoA dist diff = -36.262805, anchor1 = 1, anchor2 = 2, time = 1039080080738
+TDoA dist diff = 10.076421, anchor1 = 2, anchor2 = 1, time = 1039285050968
+TDoA dist diff = 59.400428, anchor1 = 1, anchor2 = 2, time = 1042325160476
+[local_3 <- neighbor_4]: CDSR dist = 179.0, time = 136460830344
+[local_3 <- neighbor_4]: CDSR dist = 177.0, time = 149434711361
+[local_3 <- neighbor_4]: CDSR dist = 179.0, time = 162388245484
+[local_3 <- neighbor_4]: CDSR dist = 179.0, time = 175348986009
+[local_3 <- neighbor_4]: CDSR dist = 178.0, time = 188249594679
+[local_3 <- neighbor_4]: CDSR dist = 180.0, time = 201216538091
+[local_3 <- neighbor_4]: CDSR dist = 180.0, time = 214173051010
+[local_3 <- neighbor_4]: CDSR dist = 181.0, time = 227073589000
+[local_3 <- neighbor_4]: CDSR dist = 183.0, time = 239854259527
+[local_3 <- neighbor_4]: CDSR dist = 181.0, time = 252686333842
+[local_3 <- neighbor_4]: CDSR dist = 181.0, time = 265448643493
+[local_3 <- neighbor_4]: CDSR dist = 180.0, time = 278227162028
+[local_3 <- neighbor_4]: CDSR dist = 180.0, time = 291066710939
+[local_3 <- neighbor_4]: CDSR dist = 181.0, time = 303906572149
+[local_3 <- neighbor_4]: CDSR dist = 179.0, time = 316734163732
+[local_3 <- neighbor_4]: CDSR dist = 177.0, time = 329570020021
+[local_3 <- neighbor_4]: CDSR dist = 176.0, time = 342402039379
+[local_3 <- neighbor_4]: CDSR dist = 181.0, time = 355238761448
+[local_3 <- neighbor_4]: CDSR dist = 179.0, time = 368080492943
+[local_3 <- neighbor_4]: CDSR dist = 179.0, time = 380907921718
+[local_3 <- neighbor_4]: CDSR dist = 170.0, time = 393681993953
+[local_3 <- neighbor_4]: CDSR dist = 177.0, time = 406452319371
+[local_3 <- neighbor_4]: CDSR dist = 176.0, time = 419225032772
+[local_3 <- neighbor_4]: CDSR dist = 174.0, time = 432132929094
+[local_3 <- neighbor_4]: CDSR dist = 176.0, time = 445088601727
+[local_3 <- neighbor_4]: CDSR dist = 179.0, time = 457931057782
+[local_3 <- neighbor_4]: CDSR dist = 177.0, time = 470761981584
+[local_3 <- neighbor_4]: CDSR dist = 170.0, time = 483523956893
+[local_3 <- neighbor_4]: CDSR dist = 169.0, time = 496302630085
+[local_3 <- neighbor_4]: CDSR dist = 169.0, time = 509140973328
+[local_3 <- neighbor_4]: CDSR dist = 165.0, time = 521982966134
+[local_3 <- neighbor_4]: CDSR dist = 168.0, time = 534811406314
+[local_3 <- neighbor_4]: CDSR dist = 165.0, time = 547650663019
+[local_3 <- neighbor_4]: CDSR dist = 170.0, time = 560477119716
+[local_3 <- neighbor_4]: CDSR dist = 168.0, time = 573312163665
+[local_3 <- neighbor_4]: CDSR dist = 175.0, time = 586083624833
+[local_3 <- neighbor_4]: CDSR dist = 194.0, time = 598856288113
+[local_3 <- neighbor_4]: CDSR dist = 210.0, time = 611629926750
+[local_3 <- neighbor_4]: CDSR dist = 210.0, time = 624400835947
+[local_3 <- neighbor_4]: CDSR dist = 231.0, time = 637369241983
+[local_3 <- neighbor_4]: CDSR dist = 254.0, time = 650324643176
+[local_3 <- neighbor_4]: CDSR dist = 275.0, time = 663096478415
+[local_3 <- neighbor_4]: CDSR dist = 290.0, time = 675875716111
+[local_3 <- neighbor_4]: CDSR dist = 296.0, time = 688639929638
+[local_3 <- neighbor_4]: CDSR dist = 296.0, time = 701412285471
+[local_3 <- neighbor_4]: CDSR dist = 290.0, time = 714247208235
+[local_3 <- neighbor_4]: CDSR dist = 285.0, time = 727091860474
+[local_3 <- neighbor_4]: CDSR dist = 275.0, time = 739930128047
+[local_3 <- neighbor_4]: CDSR dist = 260.0, time = 752757674312
+[local_3 <- neighbor_4]: CDSR dist = 249.0, time = 765596663248
+[local_3 <- neighbor_4]: CDSR dist = 236.0, time = 778426554935
+[local_3 <- neighbor_4]: CDSR dist = 229.0, time = 791260223047
+[local_3 <- neighbor_4]: CDSR dist = 213.0, time = 804094969399
+[local_3 <- neighbor_4]: CDSR dist = 167.0, time = 816869600231
+[local_3 <- neighbor_4]: CDSR dist = 144.0, time = 829707928986
+[local_3 <- neighbor_4]: CDSR dist = 135.0, time = 842665962358
+[local_3 <- neighbor_4]: CDSR dist = 134.0, time = 855571487485
+[local_3 <- neighbor_4]: CDSR dist = 125.0, time = 868401862732
+[local_3 <- neighbor_4]: CDSR dist = 119.0, time = 881237407130
+[local_3 <- neighbor_4]: CDSR dist = 120.0, time = 894078927059
+[local_3 <- neighbor_4]: CDSR dist = 126.0, time = 906910346241
+[local_3 <- neighbor_4]: CDSR dist = 151.0, time = 919674722501
+[local_3 <- neighbor_4]: CDSR dist = 183.0, time = 932453446975
+[local_3 <- neighbor_4]: CDSR dist = 216.0, time = 945291128680
+[local_3 <- neighbor_4]: CDSR dist = 241.0, time = 958133672323
+[local_3 <- neighbor_4]: CDSR dist = 260.0, time = 970961305486
+[local_3 <- neighbor_4]: CDSR dist = 283.0, time = 983802363241
+[local_3 <- neighbor_4]: CDSR dist = 305.0, time = 996629322505
+[local_3 <- neighbor_4]: CDSR dist = 315.0, time = 1009465092207
+[local_3 <- neighbor_4]: CDSR dist = 319.0, time = 1022309188497
+[local_3 <- neighbor_4]: CDSR dist = 323.0, time = 1035140630143
+[local_3 <- neighbor_4]: CDSR dist = 321.0, time = 1047975122215
+[local_3 <- neighbor_4]: CDSR dist = 312.0, time = 1060810474901
+[local_3 <- neighbor_4]: CDSR dist = 307.0, time = 1073645481930
+[local_3 <- neighbor_4]: CDSR dist = 299.0, time = 1086474968009
+[local_3 <- neighbor_4]: CDSR dist = 285.0, time = 1099245515142
+[local_3 <- neighbor_4]: CDSR dist = 220.0, time = 12504369909
+[local_3 <- neighbor_4]: CDSR dist = 186.0, time = 25277053996
+[local_3 <- neighbor_4]: CDSR dist = 178.0, time = 38178016080
+[local_3 <- neighbor_4]: CDSR dist = 173.0, time = 51078885446
+[local_3 <- neighbor_4]: CDSR dist = 168.0, time = 63917356266
+[local_3 <- neighbor_4]: CDSR dist = 164.0, time = 76694593365
+[local_3 <- neighbor_4]: CDSR dist = 156.0, time = 89459028364
+[local_3 <- neighbor_4]: CDSR dist = 152.0, time = 102301886908
+[local_3 <- neighbor_4]: CDSR dist = 148.0, time = 115128299972
+[local_3 <- neighbor_4]: CDSR dist = 159.0, time = 127900212138
+[local_3 <- neighbor_4]: CDSR dist = 169.0, time = 140671383403
+[local_3 <- neighbor_4]: CDSR dist = 189.0, time = 153444612352
+[local_3 <- neighbor_4]: CDSR dist = 189.0, time = 166217582171
+[local_3 <- neighbor_4]: CDSR dist = 196.0, time = 178985379739
+[local_3 <- neighbor_4]: CDSR dist = 206.0, time = 191889597125
+[local_3 <- neighbor_4]: CDSR dist = 214.0, time = 204848084911
+[local_3 <- neighbor_4]: CDSR dist = 217.0, time = 217624669260
+[local_3 <- neighbor_4]: CDSR dist = 201.0, time = 230468171989
+[local_3 <- neighbor_4]: CDSR dist = 206.0, time = 243290877731
+[local_3 <- neighbor_4]: CDSR dist = 204.0, time = 256062282563
+[local_3 <- neighbor_4]: CDSR dist = 212.0, time = 268834006292
+[local_3 <- neighbor_4]: CDSR dist = 213.0, time = 281607815364
+[local_3 <- neighbor_4]: CDSR dist = 219.0, time = 294385171009
+[local_3 <- neighbor_4]: CDSR dist = 213.0, time = 307151324026
+[local_3 <- neighbor_4]: CDSR dist = 211.0, time = 319993629338
+[local_3 <- neighbor_4]: CDSR dist = 212.0, time = 332958439318
+[local_3 <- neighbor_4]: CDSR dist = 214.0, time = 345914144858
+[local_3 <- neighbor_4]: CDSR dist = 218.0, time = 358747449570
+[local_3 <- neighbor_4]: CDSR dist = 207.0, time = 371584468761
+[local_3 <- neighbor_4]: CDSR dist = 205.0, time = 384420806459
+[local_3 <- neighbor_4]: CDSR dist = 211.0, time = 397191515395
+[local_3 <- neighbor_4]: CDSR dist = 207.0, time = 410032459968
+[local_3 <- neighbor_4]: CDSR dist = 210.0, time = 422869283398
+[local_3 <- neighbor_4]: CDSR dist = 209.0, time = 435700856739
+[local_3 <- neighbor_4]: CDSR dist = 207.0, time = 448542855913
+[local_3 <- neighbor_4]: CDSR dist = 211.0, time = 461367273471
+[local_3 <- neighbor_4]: CDSR dist = 212.0, time = 474204747498
+[local_3 <- neighbor_4]: CDSR dist = 207.0, time = 487038521290
+[local_3 <- neighbor_4]: CDSR dist = 209.0, time = 499882525326
+[local_3 <- neighbor_4]: CDSR dist = 207.0, time = 512720263488
+[local_3 <- neighbor_4]: CDSR dist = 210.0, time = 525549854677
+[local_3 <- neighbor_4]: CDSR dist = 211.0, time = 538386179151
+[local_3 <- neighbor_4]: CDSR dist = 206.0, time = 551226792110
+[local_3 <- neighbor_4]: CDSR dist = 206.0, time = 564052275444
+[local_3 <- neighbor_4]: CDSR dist = 205.0, time = 576895058727
+[local_3 <- neighbor_4]: CDSR dist = 205.0, time = 589724312394
+[local_3 <- neighbor_4]: CDSR dist = 207.0, time = 602558671689
+[local_3 <- neighbor_4]: CDSR dist = 208.0, time = 615393923887
+[local_3 <- neighbor_4]: CDSR dist = 207.0, time = 628234644236
+[local_3 <- neighbor_4]: CDSR dist = 208.0, time = 641076223157
+[local_3 <- neighbor_4]: CDSR dist = 207.0, time = 653901388376
+[local_3 <- neighbor_4]: CDSR dist = 211.0, time = 666745412587
+[local_3 <- neighbor_4]: CDSR dist = 211.0, time = 679571056474
+[local_3 <- neighbor_4]: CDSR dist = 209.0, time = 692407316168
+TDoA dist diff = 132.448379, anchor1 = 2, anchor2 = 1, time = 445934809620
+TDoA dist diff = -90.900543, anchor1 = 1, anchor2 = 2, time = 446371631253
+TDoA dist diff = 35.779525, anchor1 = 2, anchor2 = 1, time = 449097503928
+TDoA dist diff = -98.274604, anchor1 = 1, anchor2 = 2, time = 449622061912
+TDoA dist diff = 57.978847, anchor1 = 2, anchor2 = 1, time = 452330655946
+TDoA dist diff = -91.321044, anchor1 = 1, anchor2 = 2, time = 452882260027
+TDoA dist diff = 40.100406, anchor1 = 2, anchor2 = 1, time = 455482953622
+TDoA dist diff = -76.533889, anchor1 = 1, anchor2 = 2, time = 456199890847
+TDoA dist diff = 48.563831, anchor1 = 2, anchor2 = 1, time = 458731237255
+TDoA dist diff = -81.311958, anchor1 = 1, anchor2 = 2, time = 459450910838
+TDoA dist diff = 96.918724, anchor1 = 2, anchor2 = 1, time = 461868917884
+TDoA dist diff = -84.372886, anchor1 = 1, anchor2 = 2, time = 462716794732
+TDoA dist diff = 99.754394, anchor1 = 2, anchor2 = 1, time = 465078451415
+TDoA dist diff = -77.644729, anchor1 = 1, anchor2 = 2, time = 465984134256
+TDoA dist diff = 41.448093, anchor1 = 2, anchor2 = 1, time = 468255195519
+TDoA dist diff = -82.251960, anchor1 = 1, anchor2 = 2, time = 469296645597
+TDoA dist diff = 67.817237, anchor1 = 2, anchor2 = 1, time = 471542813496
+TDoA dist diff = -83.984886, anchor1 = 1, anchor2 = 2, time = 472614559076
+TDoA dist diff = 42.059787, anchor1 = 2, anchor2 = 1, time = 474641639568
+TDoA dist diff = -117.761673, anchor1 = 1, anchor2 = 2, time = 475877625952
+TDoA dist diff = 55.586036, anchor1 = 2, anchor2 = 1, time = 477888352422
+TDoA dist diff = -61.375114, anchor1 = 1, anchor2 = 2, time = 479189271006
+TDoA dist diff = 98.718948, anchor1 = 2, anchor2 = 1, time = 481027857841
+TDoA dist diff = -73.953674, anchor1 = 1, anchor2 = 2, time = 482494943570
+TDoA dist diff = 100.767944, anchor1 = 2, anchor2 = 1, time = 484279149505
+TDoA dist diff = -79.664718, anchor1 = 1, anchor2 = 2, time = 485765832823
+TDoA dist diff = -101.586631, anchor1 = 1, anchor2 = 2, time = 489035314587
+TDoA dist diff = 84.118942, anchor1 = 2, anchor2 = 1, time = 490664394491
+TDoA dist diff = -11.732846, anchor1 = 1, anchor2 = 2, time = 492354127136
+TDoA dist diff = 64.152679, anchor1 = 2, anchor2 = 1, time = 493800761380
+TDoA dist diff = -183.006332, anchor1 = 1, anchor2 = 2, time = 495666231460
+TDoA dist diff = 55.537921, anchor1 = 2, anchor2 = 1, time = 497109993416
+TDoA dist diff = -149.197036, anchor1 = 1, anchor2 = 2, time = 498985727060
+TDoA dist diff = 12.190883, anchor1 = 2, anchor2 = 1, time = 500187199866
+TDoA dist diff = -161.251922, anchor1 = 1, anchor2 = 2, time = 502244330845
+TDoA dist diff = 8.485695, anchor1 = 2, anchor2 = 1, time = 503495123753
+TDoA dist diff = -19.034919, anchor1 = 1, anchor2 = 2, time = 505497067109
+TDoA dist diff = 58.138469, anchor1 = 2, anchor2 = 1, time = 506573621462
+TDoA dist diff = -77.411186, anchor1 = 1, anchor2 = 2, time = 508754990465
+TDoA dist diff = 62.888282, anchor1 = 2, anchor2 = 1, time = 509815724329
+TDoA dist diff = -37.898651, anchor1 = 1, anchor2 = 2, time = 512016407204
+TDoA dist diff = 76.624702, anchor1 = 2, anchor2 = 1, time = 512967037506
+TDoA dist diff = -59.502990, anchor1 = 1, anchor2 = 2, time = 515339087452
+TDoA dist diff = 52.781230, anchor1 = 2, anchor2 = 1, time = 516210483860
+TDoA dist diff = -143.644928, anchor1 = 1, anchor2 = 2, time = 518656932883
+TDoA dist diff = 60.878959, anchor1 = 2, anchor2 = 1, time = 519353464793
+TDoA dist diff = -231.029052, anchor1 = 1, anchor2 = 2, time = 521917705024
+TDoA dist diff = 60.108516, anchor1 = 2, anchor2 = 1, time = 522549014684
+TDoA dist diff = -105.851287, anchor1 = 1, anchor2 = 2, time = 525230733549
+TDoA dist diff = 35.022262, anchor1 = 2, anchor2 = 1, time = 525739996020
+TDoA dist diff = -147.033126, anchor1 = 1, anchor2 = 2, time = 528487966750
+TDoA dist diff = 48.955226, anchor1 = 1, anchor2 = 2, time = 531750928234
+TDoA dist diff = 60.175598, anchor1 = 2, anchor2 = 1, time = 532126522661
+TDoA dist diff = -95.241897, anchor1 = 1, anchor2 = 2, time = 535010882715
+TDoA dist diff = -103.610153, anchor1 = 1, anchor2 = 2, time = 538334227073
+TDoA dist diff = 60.885589, anchor1 = 2, anchor2 = 1, time = 538512961789
+TDoA dist diff = -96.267829, anchor1 = 1, anchor2 = 2, time = 541644509748
+TDoA dist diff = 34.875408, anchor1 = 2, anchor2 = 1, time = 554554563887
+TDoA dist diff = -54.490947, anchor1 = 1, anchor2 = 2, time = 554792967820
+TDoA dist diff = 120.850837, anchor1 = 2, anchor2 = 1, time = 557671405792
+TDoA dist diff = -48.981159, anchor1 = 1, anchor2 = 2, time = 558052528096
+TDoA dist diff = 15.234545, anchor1 = 2, anchor2 = 1, time = 560959300371
+TDoA dist diff = -65.996490, anchor1 = 1, anchor2 = 2, time = 561318047571
+TDoA dist diff = 125.048286, anchor1 = 2, anchor2 = 1, time = 564057026803
+TDoA dist diff = -55.981296, anchor1 = 1, anchor2 = 2, time = 564572684449
+TDoA dist diff = 115.053375, anchor1 = 2, anchor2 = 1, time = 567285407660
+TDoA dist diff = -66.351402, anchor1 = 1, anchor2 = 2, time = 567824084973
+TDoA dist diff = -31.488712, anchor1 = 2, anchor2 = 1, time = 570442153250
+TDoA dist diff = -32.046577, anchor1 = 1, anchor2 = 2, time = 571079354194
+TDoA dist diff = 66.541603, anchor1 = 2, anchor2 = 1, time = 573701521320
+TDoA dist diff = -22.146049, anchor1 = 1, anchor2 = 2, time = 574335420082
+TDoA dist diff = -2.546622, anchor1 = 2, anchor2 = 1, time = 576828373331
+TDoA dist diff = -48.479549, anchor1 = 1, anchor2 = 2, time = 577582743049
+TDoA dist diff = 107.586151, anchor1 = 2, anchor2 = 1, time = 580092147683
+TDoA dist diff = -75.293968, anchor1 = 1, anchor2 = 2, time = 580855189402
+TDoA dist diff = 4.039515, anchor1 = 2, anchor2 = 1, time = 583214225812
+TDoA dist diff = -55.452159, anchor1 = 1, anchor2 = 2, time = 584103947011
+TDoA dist diff = -27.233823, anchor1 = 2, anchor2 = 1, time = 586472498227
+TDoA dist diff = -4.342530, anchor1 = 1, anchor2 = 2, time = 587360624761
+TDoA dist diff = -17.654911, anchor1 = 2, anchor2 = 1, time = 589600408057
+TDoA dist diff = -2.558706, anchor1 = 1, anchor2 = 2, time = 590623636471
+TDoA dist diff = 92.926826, anchor1 = 2, anchor2 = 1, time = 592891919450
+TDoA dist diff = -3.547373, anchor1 = 1, anchor2 = 2, time = 593888120210
+TDoA dist diff = 64.942436, anchor1 = 2, anchor2 = 1, time = 595985879643
+TDoA dist diff = -59.059070, anchor1 = 1, anchor2 = 2, time = 597199096217
+TDoA dist diff = 9.999623, anchor1 = 2, anchor2 = 1, time = 599337825356
+TDoA dist diff = -103.759864, anchor1 = 1, anchor2 = 2, time = 600460008736
+TDoA dist diff = -8.808956, anchor1 = 2, anchor2 = 1, time = 602370825453
+TDoA dist diff = -56.893146, anchor1 = 1, anchor2 = 2, time = 603774121789
+TDoA dist diff = 8.577807, anchor1 = 2, anchor2 = 1, time = 605668286298
+TDoA dist diff = -26.741466, anchor1 = 1, anchor2 = 2, time = 607022022308
+TDoA dist diff = -14.804944, anchor1 = 2, anchor2 = 1, time = 608757177219
+TDoA dist diff = 47.128604, anchor1 = 1, anchor2 = 2, time = 610294137439
+TDoA dist diff = 65.331069, anchor1 = 2, anchor2 = 1, time = 611983855252
+TDoA dist diff = -63.624755, anchor1 = 1, anchor2 = 2, time = 613543148010
+TDoA dist diff = 19.587484, anchor1 = 2, anchor2 = 1, time = 615144343075
+TDoA dist diff = -29.800355, anchor1 = 1, anchor2 = 2, time = 616799315325
+TDoA dist diff = -54.255420, anchor1 = 2, anchor2 = 1, time = 618439729827
+TDoA dist diff = -22.069696, anchor1 = 1, anchor2 = 2, time = 620062275365
+TDoA dist diff = 30.006170, anchor1 = 2, anchor2 = 1, time = 621531814609
+TDoA dist diff = -44.038108, anchor1 = 1, anchor2 = 2, time = 623327134425
+TDoA dist diff = -21.912462, anchor1 = 2, anchor2 = 1, time = 624830952797
+TDoA dist diff = -66.803161, anchor1 = 1, anchor2 = 2, time = 626639376636
+TDoA dist diff = -29.456647, anchor1 = 2, anchor2 = 1, time = 627919115676
+TDoA dist diff = -82.194252, anchor1 = 1, anchor2 = 2, time = 629895152791
+TDoA dist diff = 27.225261, anchor1 = 2, anchor2 = 1, time = 631150353570
+TDoA dist diff = -38.842845, anchor1 = 1, anchor2 = 2, time = 633149469244
+TDoA dist diff = 2.521551, anchor1 = 2, anchor2 = 1, time = 634303550073
+TDoA dist diff = -65.949363, anchor1 = 1, anchor2 = 2, time = 636398235599
+TDoA dist diff = -11.445478, anchor1 = 2, anchor2 = 1, time = 637664059518
+TDoA dist diff = -58.090011, anchor1 = 1, anchor2 = 2, time = 639658063744
+TDoA dist diff = 13.216290, anchor1 = 2, anchor2 = 1, time = 640689993566
+TDoA dist diff = -10.895288, anchor1 = 2, anchor2 = 1, time = 644048387932
+TDoA dist diff = -94.565574, anchor1 = 1, anchor2 = 2, time = 646175172314
+TDoA dist diff = -3.019879, anchor1 = 2, anchor2 = 1, time = 647075913803
+TDoA dist diff = -35.736427, anchor1 = 1, anchor2 = 2, time = 649438196891
+TDoA dist diff = 10.836605, anchor1 = 2, anchor2 = 1, time = 650391673028
+TDoA dist diff = -132.173355, anchor1 = 1, anchor2 = 2, time = 652690382912
+TDoA dist diff = 29.061790, anchor1 = 2, anchor2 = 1, time = 653462186834
+TDoA dist diff = -177.613876, anchor1 = 1, anchor2 = 2, time = 655949007877
+TDoA dist diff = 4.744195, anchor1 = 2, anchor2 = 1, time = 656742193186
+TDoA dist diff = -38.228672, anchor1 = 1, anchor2 = 2, time = 659208998342
+TDoA dist diff = -4.355406, anchor1 = 2, anchor2 = 1, time = 659849195627
+TDoA dist diff = -14.719350, anchor1 = 1, anchor2 = 2, time = 662465709455
+TDoA dist diff = 43.969875, anchor1 = 2, anchor2 = 1, time = 663077930407
+TDoA dist diff = -70.447654, anchor1 = 1, anchor2 = 2, time = 665781685201
+TDoA dist diff = 15.804836, anchor1 = 2, anchor2 = 1, time = 666235649930
+TDoA dist diff = -52.805656, anchor1 = 1, anchor2 = 2, time = 669034408339
+TDoA dist diff = -44.281200, anchor1 = 1, anchor2 = 2, time = 672295446869
+TDoA dist diff = 41.013259, anchor1 = 2, anchor2 = 1, time = 672621966016
+TDoA dist diff = -63.965419, anchor1 = 1, anchor2 = 2, time = 675553863449
+TDoA dist diff = -80.547943, anchor1 = 1, anchor2 = 2, time = 678814254831
+TDoA dist diff = 52.881259, anchor1 = 2, anchor2 = 1, time = 679009844762
+TDoA dist diff = 15.700543, anchor1 = 1, anchor2 = 2, time = 682071531189
+TDoA dist diff = 7.229179, anchor1 = 1, anchor2 = 2, time = 685324929141
+TDoA dist diff = 57.007831, anchor1 = 2, anchor2 = 1, time = 685396316535
+TDoA dist diff = -37.580059, anchor1 = 1, anchor2 = 2, time = 688584135253
+TDoA dist diff = 20.584163, anchor1 = 2, anchor2 = 1, time = 698167554658
+TDoA dist diff = -14.201234, anchor1 = 1, anchor2 = 2, time = 894655172155
+TDoA dist diff = 236.161819, anchor1 = 2, anchor2 = 1, time = 907456766220
+TDoA dist diff = -62.512916, anchor1 = 2, anchor2 = 1, time = 910772483238
+TDoA dist diff = -85.698921, anchor1 = 1, anchor2 = 2, time = 911064828945
+TDoA dist diff = -17.294065, anchor1 = 2, anchor2 = 1, time = 913842484316
+TDoA dist diff = -104.488250, anchor1 = 1, anchor2 = 2, time = 914386782521
+TDoA dist diff = -86.227661, anchor1 = 2, anchor2 = 1, time = 917099291785
+TDoA dist diff = -98.804084, anchor1 = 1, anchor2 = 2, time = 917637764022
+TDoA dist diff = 44.151565, anchor1 = 2, anchor2 = 1, time = 920228120552
+TDoA dist diff = -109.737983, anchor1 = 1, anchor2 = 2, time = 927417166737
+TDoA dist diff = 77.764129, anchor1 = 2, anchor2 = 1, time = 929874807796
+TDoA dist diff = -108.024780, anchor1 = 1, anchor2 = 2, time = 930731824817
+TDoA dist diff = 20.655052, anchor1 = 2, anchor2 = 1, time = 933007566200
+TDoA dist diff = -75.747238, anchor1 = 1, anchor2 = 2, time = 934000007015
+TDoA dist diff = 129.127319, anchor1 = 2, anchor2 = 1, time = 936231511088
+TDoA dist diff = -110.150169, anchor1 = 1, anchor2 = 2, time = 937308134544
+TDoA dist diff = 84.591697, anchor1 = 2, anchor2 = 1, time = 939396864378
+TDoA dist diff = -63.436187, anchor1 = 1, anchor2 = 2, time = 940564708640
+TDoA dist diff = 119.375198, anchor1 = 2, anchor2 = 1, time = 942645660182
+TDoA dist diff = -115.786163, anchor1 = 1, anchor2 = 2, time = 943825627091
+TDoA dist diff = 53.132797, anchor1 = 2, anchor2 = 1, time = 945782548405
+TDoA dist diff = -130.702621, anchor1 = 1, anchor2 = 2, time = 947076602461
+TDoA dist diff = 48.375110, anchor1 = 2, anchor2 = 1, time = 949162097986
+TDoA dist diff = -150.973297, anchor1 = 1, anchor2 = 2, time = 950334946063
+TDoA dist diff = 57.707439, anchor1 = 2, anchor2 = 1, time = 952168644107
+TDoA dist diff = -121.943283, anchor1 = 1, anchor2 = 2, time = 953597369277
+TDoA dist diff = 44.429779, anchor1 = 2, anchor2 = 1, time = 955426859192
+TDoA dist diff = -136.517044, anchor1 = 1, anchor2 = 2, time = 956855725666
+TDoA dist diff = 40.193275, anchor1 = 2, anchor2 = 1, time = 958554402951
+TDoA dist diff = -136.690933, anchor1 = 1, anchor2 = 2, time = 960169904541
+TDoA dist diff = 28.607389, anchor1 = 2, anchor2 = 1, time = 961807435105
+TDoA dist diff = -35.764728, anchor1 = 1, anchor2 = 2, time = 963423253571
+TDoA dist diff = -126.509780, anchor1 = 1, anchor2 = 2, time = 966685322492
+TDoA dist diff = 85.212989, anchor1 = 2, anchor2 = 1, time = 968198069757
+TDoA dist diff = -106.251243, anchor1 = 1, anchor2 = 2, time = 969941286816
+TDoA dist diff = 81.641418, anchor1 = 2, anchor2 = 1, time = 971325101552
+TDoA dist diff = -163.159622, anchor1 = 1, anchor2 = 2, time = 973201748572
+TDoA dist diff = 71.948402, anchor1 = 2, anchor2 = 1, time = 974583389899
+TDoA dist diff = -147.176254, anchor1 = 1, anchor2 = 2, time = 976459035920
+TDoA dist diff = 69.760307, anchor1 = 2, anchor2 = 1, time = 977710684348
+TDoA dist diff = -85.889869, anchor1 = 1, anchor2 = 2, time = 979711607219
+TDoA dist diff = 58.999664, anchor1 = 2, anchor2 = 1, time = 981055661298
+TDoA dist diff = -119.928993, anchor1 = 1, anchor2 = 2, time = 982972854899
+TDoA dist diff = 31.919517, anchor1 = 2, anchor2 = 1, time = 984096204729
+TDoA dist diff = -137.012603, anchor1 = 1, anchor2 = 2, time = 986226562845
+TDoA dist diff = 78.584716, anchor1 = 2, anchor2 = 1, time = 987354684076
+TDoA dist diff = -159.084960, anchor1 = 1, anchor2 = 2, time = 989494868460
+TDoA dist diff = 54.748413, anchor1 = 2, anchor2 = 1, time = 990481773240
+TDoA dist diff = -171.175720, anchor1 = 1, anchor2 = 2, time = 992811012423
+TDoA dist diff = 62.715820, anchor1 = 2, anchor2 = 1, time = 993892559486
+TDoA dist diff = 26.747064, anchor1 = 1, anchor2 = 2, time = 996122968721
+TDoA dist diff = 37.668964, anchor1 = 2, anchor2 = 1, time = 996867240932
+TDoA dist diff = 22.716884, anchor1 = 1, anchor2 = 2, time = 999380409675
+TDoA dist diff = 58.664890, anchor1 = 2, anchor2 = 1, time = 1000256944098
+TDoA dist diff = -209.736373, anchor1 = 1, anchor2 = 2, time = 1002640644107
+TDoA dist diff = 47.197673, anchor1 = 2, anchor2 = 1, time = 1003253162768
+TDoA dist diff = -170.539291, anchor1 = 1, anchor2 = 2, time = 1005897920202
+TDoA dist diff = 76.159027, anchor1 = 2, anchor2 = 1, time = 1006631861044
+TDoA dist diff = -131.432800, anchor1 = 1, anchor2 = 2, time = 1009150398341
+TDoA dist diff = 78.291122, anchor1 = 2, anchor2 = 1, time = 1009638407793
+TDoA dist diff = -216.342208, anchor1 = 1, anchor2 = 2, time = 1012412247121
+TDoA dist diff = 70.919105, anchor1 = 2, anchor2 = 1, time = 1012957155612
+TDoA dist diff = -170.153915, anchor1 = 1, anchor2 = 2, time = 1015730308008
+TDoA dist diff = 52.908931, anchor1 = 2, anchor2 = 1, time = 1016024029658
+TDoA dist diff = 105.903244, anchor1 = 1, anchor2 = 2, time = 1018988841586
+TDoA dist diff = -164.919982, anchor1 = 1, anchor2 = 2, time = 1022299921356
+TDoA dist diff = 67.894172, anchor1 = 2, anchor2 = 1, time = 1022410720616
+TDoA dist diff = 56.256366, anchor1 = 1, anchor2 = 2, time = 1025561894555
+TDoA dist diff = -6.405679, anchor1 = 2, anchor2 = 1, time = 1038458758123
+TDoA dist diff = 139.403671, anchor1 = 2, anchor2 = 1, time = 1041569313907
+TDoA dist diff = 75.514785, anchor1 = 2, anchor2 = 1, time = 1045134402383
+TDoA dist diff = -74.818664, anchor1 = 1, anchor2 = 2, time = 1045311502720
+TDoA dist diff = -33.557403, anchor1 = 2, anchor2 = 1, time = 1047955293247
+TDoA dist diff = 65.397644, anchor1 = 2, anchor2 = 1, time = 1051230006676
+TDoA dist diff = -53.854122, anchor1 = 1, anchor2 = 2, time = 1051878280617
+TDoA dist diff = 37.505504, anchor1 = 2, anchor2 = 1, time = 1054341533743
+TDoA dist diff = -107.048301, anchor1 = 1, anchor2 = 2, time = 1055127987312
+TDoA dist diff = 128.909439, anchor1 = 2, anchor2 = 1, time = 1057650365237
+TDoA dist diff = -96.909187, anchor1 = 1, anchor2 = 2, time = 1058384151375
+TDoA dist diff = 66.670539, anchor1 = 2, anchor2 = 1, time = 1060728038970
+TDoA dist diff = -122.185874, anchor1 = 1, anchor2 = 2, time = 1061648756794
+TDoA dist diff = 132.185867, anchor1 = 2, anchor2 = 1, time = 1064175693863
+TDoA dist diff = -111.979682, anchor1 = 1, anchor2 = 2, time = 1064909105435
+TDoA dist diff = 71.132888, anchor1 = 2, anchor2 = 1, time = 1067114170435
+TDoA dist diff = -91.697662, anchor1 = 1, anchor2 = 2, time = 1068231393440
+TDoA dist diff = -3.690733, anchor1 = 2, anchor2 = 1, time = 1070421359465
+TDoA dist diff = -113.553352, anchor1 = 1, anchor2 = 2, time = 1071541710867
+TDoA dist diff = 101.639724, anchor1 = 2, anchor2 = 1, time = 1073500608626
+TDoA dist diff = -54.741325, anchor1 = 1, anchor2 = 2, time = 1074796834026
+TDoA dist diff = 115.692924, anchor1 = 2, anchor2 = 1, time = 1076713062487
+TDoA dist diff = -93.590385, anchor1 = 1, anchor2 = 2, time = 1078053555151
+TDoA dist diff = 73.929130, anchor1 = 2, anchor2 = 1, time = 1079886958239
+TDoA dist diff = -88.004928, anchor1 = 1, anchor2 = 2, time = 1081317021892
+TDoA dist diff = 112.970390, anchor1 = 2, anchor2 = 1, time = 1083197144002
+TDoA dist diff = -138.164016, anchor1 = 1, anchor2 = 2, time = 1084566940053
+TDoA dist diff = 98.643455, anchor1 = 2, anchor2 = 1, time = 1086273480427
+TDoA dist diff = -64.006996, anchor1 = 1, anchor2 = 2, time = 1087825327231
+TDoA dist diff = 108.908836, anchor1 = 2, anchor2 = 1, time = 1089721057527
+TDoA dist diff = -107.849624, anchor1 = 1, anchor2 = 2, time = 1091148412433
+TDoA dist diff = 53.865959, anchor1 = 2, anchor2 = 1, time = 1092659871027
+TDoA dist diff = -134.831024, anchor1 = 1, anchor2 = 2, time = 1094415072530
+TDoA dist diff = 38.075859, anchor1 = 2, anchor2 = 1, time = 1096059071925
+TDoA dist diff = -117.851394, anchor1 = 1, anchor2 = 2, time = 1097724975750
+TDoA dist diff = 1.720315, anchor1 = 2, anchor2 = 1, time = 1099046323598
+TDoA dist diff = 25.145517, anchor1 = 1, anchor2 = 2, time = 1467287901
+TDoA dist diff = 92.217437, anchor1 = 2, anchor2 = 1, time = 3063405832
+TDoA dist diff = -95.905197, anchor1 = 1, anchor2 = 2, time = 4723840079
+TDoA dist diff = 60.884117, anchor1 = 2, anchor2 = 1, time = 5931879386
+TDoA dist diff = -61.298454, anchor1 = 1, anchor2 = 2, time = 7980757812
+TDoA dist diff = 7.584956, anchor1 = 2, anchor2 = 1, time = 9254871818
+TDoA dist diff = -118.881881, anchor1 = 1, anchor2 = 2, time = 11244323888
+TDoA dist diff = 106.040481, anchor1 = 2, anchor2 = 1, time = 12318146672
+TDoA dist diff = -165.869262, anchor1 = 1, anchor2 = 2, time = 14495995669
+TDoA dist diff = 30.108598, anchor1 = 2, anchor2 = 1, time = 15637993373
+TDoA dist diff = -37.356655, anchor1 = 1, anchor2 = 2, time = 17752652809
+TDoA dist diff = 96.836784, anchor1 = 2, anchor2 = 1, time = 18704898799
+TDoA dist diff = -139.768295, anchor1 = 1, anchor2 = 2, time = 21074899356
+TDoA dist diff = 91.275329, anchor1 = 2, anchor2 = 1, time = 21994252395
+TDoA dist diff = -33.573287, anchor1 = 1, anchor2 = 2, time = 24342281381
+TDoA dist diff = 59.080383, anchor1 = 2, anchor2 = 1, time = 25092470656
+TDoA dist diff = -126.647361, anchor1 = 1, anchor2 = 2, time = 27652678184
+TDoA dist diff = 73.669921, anchor1 = 2, anchor2 = 1, time = 28570877317
+TDoA dist diff = -147.506668, anchor1 = 1, anchor2 = 2, time = 30970346950
+TDoA dist diff = 57.950954, anchor1 = 2, anchor2 = 1, time = 31478752800
+TDoA dist diff = -189.943222, anchor1 = 1, anchor2 = 2, time = 34227136188
+TDoA dist diff = 48.004158, anchor1 = 2, anchor2 = 1, time = 34730721279
+TDoA dist diff = -138.831375, anchor1 = 1, anchor2 = 2, time = 37485772731
+TDoA dist diff = 43.420509, anchor1 = 2, anchor2 = 1, time = 37864326367
+TDoA dist diff = -147.036148, anchor1 = 1, anchor2 = 2, time = 40763561189
+TDoA dist diff = 59.661483, anchor1 = 2, anchor2 = 1, time = 41086450943
