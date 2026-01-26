@@ -26,32 +26,27 @@
 
 
 /* -------------------- Define -------------------- */
-#define         CLASSIC_SUPPORT_ENABLE
-// simulation mode
-#ifdef SIMULATION_COMPILE
+/* Mode Enable */
+#ifdef SIMULATION_COMPILE                                               // simulation mode
     #ifdef COMPENSATE_DYNAMIC_RANGING
     #define         COMPENSATE_ENABLE
     #endif
-// crazyflie-firmware mode
-#else
-    #define         COMPENSATE_ENABLE
+#else                                                                   // crazyflie-firmware mode
+    #define         COMPENSATE_ENABLE                                   // Perform compensation after each received packet calculation
 #endif
-// #define         PACKET_LOSS_ENABLE
-#define         OPTIMAL_RANGING_SCHEDULE_ENABLE
-#define         TDOA_COMPAT_ENABLE
+#define         OPTIMAL_RANGING_SCHEDULE_ENABLE                         // Enable Midpoint_Adjustment to ensure equal message-sending intervals among drones within the swarm
+#define         TDOA_COMPAT_ENABLE                                      // Fusion of DSR ranging and TDoA-based range-difference measurements
 
 /* Ranging Constants */
 #define         RANGING_PERIOD              200
-#define         RANGING_PERIOD_MIN          50
-#define         RANGING_PERIOD_MAX          500
 
 /* Ranging Message */
 #define         MESSAGE_TX_POOL_SIZE        3
 #define         MESSAGE_BODYUNIT_SIZE       3
 
 /* Ranging Table Set */
-#define         Tr_Rr_BUFFER_SIZE           3
 #define         RANGING_TABLE_SIZE          10
+#define         Tr_Rr_BUFFER_SIZE           3
 #define         SEND_LIST_SIZE              5
 #define         RECEIVE_LIST_SIZE           RANGING_TABLE_SIZE
 
@@ -78,7 +73,6 @@
 #define         CHECK_PERIOD                15
 #define         CONVERGENCE_THRESHOLD       0.989f
 #define         NEIGHBOR_ADDRESS_MAX        32
-#define         PACKET_LOSS_RATE            0.1f
 #define         UWB_MAX_TIMESTAMP           1099511627776
 #define         VELOCITY                    0.4691763978616f
 
@@ -101,13 +95,7 @@
 typedef struct {
     dwTime_t timestamp;
     uint16_t seqNumber;
-} __attribute__((packed)) Timestamp_Tuple_t;            // 10 byte
-
-typedef struct {
-    uint16_t x;
-    uint16_t y;
-    uint16_t z;
-} __attribute__((packed)) Coordinate_Tuple_t;           // 48 byte
+} __attribute__((packed)) Timestamp_Tuple_t;
 
 typedef enum {
     UNUSED,
@@ -118,20 +106,20 @@ typedef enum {
     RANGING_STATE_RESERVED,
     RANGING_STATE_S1,
     RANGING_STATE_S2,
-    RANGING_STATE_S3,       // RANGING_STATE_S3 is effectively a temporary state for initialization, never been invoked
+    RANGING_STATE_S3,                                                   // Temporary internal state for initialization, never been invoked
     RANGING_STATE_S4,
     RANGING_STATE_S5,
-    RANGING_STATE_S6,       // RANGING_STATE_S6 is effectively a temporary state for distance calculation, never been invoked
+    RANGING_STATE_S6,                                                   // Temporary internal state for distance calculation, never been invoked
     RANGING_TABLE_STATE_COUNT
 } RANGING_TABLE_STATE;
 
 typedef enum {
     RANGING_SUBSTATE_RESERVED,
-    RANGING_SUBSTATE_S1,    // initialize
-    RANGING_SUBSTATE_S2,    // swarm ranging
-    RANGING_SUBSTATE_S3,    // dynamic swarm ranging
+    RANGING_SUBSTATE_S1,                                                // Initialize
+    RANGING_SUBSTATE_S2,                                                // Swarm Ranging
+    RANGING_SUBSTATE_S3,                                                // Dynamic Swarm Ranging
     RANGING_TABLE_SUBSTATE_COUNT
-} RANGING_TABLE_SUBSTATE;   // used during RANGING_STATE_S4 ~ RANGING_STATE_S6
+} RANGING_TABLE_SUBSTATE;                                               // Valid only when RANGING_TABLE_STATE is S4 ~ S6
 
 typedef enum {
     RANGING_EVENT_TX,
@@ -148,32 +136,31 @@ typedef enum {
 
 /* -------------------- Ranging Message -------------------- */
 typedef struct {
-    uint16_t srcAddress;                // address of the source of message
-    uint16_t msgSequence;               // sequence of message
-    Timestamp_Tuple_t Txtimestamps[MESSAGE_TX_POOL_SIZE];
-                                        // last local Txtimestamps when message is sent
-    uint8_t msgLength;                  // size of message
-    uint8_t type;                       // type of message: default DSR-0
-    uint16_t filter;                    // bloom filter
-} __attribute__((packed)) Ranging_Message_Header_t;     // 8 + 10 * MESSAGE_TX_POOL_SIZE byte = 38 byte
+    uint16_t srcAddress;                                                // Source address
+    uint16_t msgSequence;                                               // Message sequence number
+    Timestamp_Tuple_t Txtimestamps[MESSAGE_TX_POOL_SIZE];               // Local Tx timestamps prior to current transmission
+    uint8_t msgLength;                                                  // Message length
+    uint8_t type;                                                       // Message type
+    uint16_t filter;                                                    // Bloom filter
+} __attribute__((packed)) Ranging_Message_Header_t;
 
-typedef union{
+typedef union {
     struct {
-        uint8_t rawtime[5]; 
-        uint8_t address;                // address of neighbor
-        uint16_t seqNumber;             // last local Rxtimestamp.seqNumber when message is received
+        uint8_t rawtime[5];                                             // Local Rx timestamp of last received message
+        uint8_t address;                                                // Neighbor address
+        uint16_t seqNumber;                                             // Message sequence number of last received message
     } __attribute__((packed));
-    dwTime_t timestamp;                 // last local Rxtimestamp.timestamp when message is received
-} Ranging_Message_Body_Unit_t;                          // 8 byte
+    dwTime_t timestamp;
+} Ranging_Message_Body_Unit_t;
 
 typedef struct {
     Ranging_Message_Header_t header;
     Ranging_Message_Body_Unit_t bodyUnits[MESSAGE_BODYUNIT_SIZE];
-} __attribute__((packed)) Ranging_Message_t;            // 38 + 12 * MESSAGE_BODYUNIT_SIZE byte = 158 byte
+} __attribute__((packed)) Ranging_Message_t;
 
 typedef struct {
     Ranging_Message_t rangingMessage;
-    dwTime_t timestamp;                 // local timestamp when message is received
+    dwTime_t timestamp;                                                 // Local Rx timestamp of received message
 } __attribute__((packed)) Ranging_Message_With_Additional_Info_t;
 
 
@@ -194,7 +181,7 @@ typedef struct {
 } __attribute__((packed)) Ranging_Table_Tr_Rr_Candidate_t;
 
 typedef struct {
-    index_t topIndex;                   // index of latest valid (Tr,Rr) pair
+    index_t topIndex;                                                   // Index of latest valid (Tr,Rr) pair
     Ranging_Table_Tr_Rr_Candidate_t candidates[Tr_Rr_BUFFER_SIZE];
 } __attribute__((packed)) Ranging_Table_Tr_Rr_Buffer_t;
 
@@ -206,8 +193,8 @@ typedef struct {
     +------+------+------+------+------+------+------+
     |    EPToF    |    PToF     |
     +------+------+------+------+
-    Note:   1. EPToF = ToF_eb + ToF_ep = ToF_ebep
-            2. PToF = ToF_b + ToFp = ToF_bp
+    Note:   1. EPToF = ToF_eb + ToF_ep
+            2. PToF = ToF_b + ToFp
 */
 typedef struct {
     uint16_t neighborAddress;
@@ -225,42 +212,42 @@ typedef struct {
     Timestamp_Tuple_t Rf;
     Timestamp_Tuple_t Re;
 
-    float PToF;                         // pair of ToF
-    float EPToF;                        // early pair of ToF
+    float PToF;                                                         // Pair of ToF
+    float EPToF;
 
-    bool continuitySign;                // true: contiguous | false: non-contiguous
-    bool expirationSign;                // true: no recent access --> expired | recent access --> not expired
+    bool continuitySign;                                                // True: sequence numbers are contiguous                | False: discontinuity detected
+    bool expirationSign;                                                // True: no recent frames received from this neighbor   | False: recently active
 
-    TableState tableState;              // UNUSED / USING
-    RANGING_TABLE_STATE rangingState;   // used for state machine
+    TableState tableState;
+    RANGING_TABLE_STATE rangingState;
 } __attribute__((packed)) Ranging_Table_t;
 
 typedef struct {
-    uint16_t size;                                          // number of neighbors
-    uint32_t localSeqNumber;                                // seqNumber of message sent
-    SendList_t sendList;                                    // timestamps of messages sent to neighbors
+    uint16_t size;                                                      // Number of neighbors
+    uint32_t localSeqNumber;                                            // Local message sequence number
+    SendList_t sendList;                                                // TX timestamps of messages sent to neighbors
     #ifdef OPTIMAL_RANGING_SCHEDULE_ENABLE
-    ReceiveList_t receiveList;                              // timestamps of messages received from neighbors
+    ReceiveList_t receiveList;                                          // RX timestamps of messages received from neighbors (sender-independent)
     #endif
-    Ranging_Table_t rangingTable[RANGING_TABLE_SIZE];
-    Timestamp_Tuple_t lastRxtimestamp[RANGING_TABLE_SIZE];  // timestamps of last received messages from neighbors
-    index_t priorityQueue[RANGING_TABLE_SIZE];              // circular priority queue used for choosing neighbors to send messages
+    Ranging_Table_t rangingTable[RANGING_TABLE_SIZE];                   // Per-neighbor ranging state table
+    Timestamp_Tuple_t lastRxtimestamp[RANGING_TABLE_SIZE];              // Last RX timestamp per neighbor
+    index_t priorityQueue[RANGING_TABLE_SIZE];                          // Circular priority queue for neighbor selection
     #ifndef SNIFFER_STORAGE_COMPILE
-    SemaphoreHandle_t mutex;
-    #endif
+    SemaphoreHandle_t mutex;                                            // Concurrency protection
+#endif
 } __attribute__((packed)) Ranging_Table_Set_t;
 
 
 /* -------------------- TDoA -------------------- */
+// Anchor must remain static during experiment, tag can move arbitrarily, but only one of two modes can be selected at a time
 #ifdef TDOA_COMPAT_ENABLE
-// anchor must remain static, tag can move arbitrarily, but only one of two modes can be selected at a time
 // #define         ANCHOR_MODE_ENABLE
-#define         TAG_MODE_ENABLE
+// #define         TAG_MODE_ENABLE
 #define         TYPE_TDOA                   1
 #define         TDOA_BROADCAST_PERIOD       50
-#define         ANCHOR_SIZE                 2
+#define         ANCHOR_SIZE                 2                           // Number of Anchors
 #define         TIMESTAMP_LIST_SIZE         7
-#define         TDOA_LOSS_TIME_THRESHOLD    15000000000
+#define         TDOA_LOSS_TIME_THRESHOLD    15000000000                 // Timeout threshold to fall back to DSR mode if no TDoA frames are received
 
 
 typedef struct {
@@ -283,11 +270,11 @@ typedef struct {
 typedef struct {
     uint16_t anchorAddress;
     uint8_t topIndex;
-    Timestamp_Tuple_t broadcastLog[TIMESTAMP_LIST_SIZE];                // anchor's broadcast timestamps
-    Timestamp_Tuple_t receiveLog[TIMESTAMP_LIST_SIZE];                  // tag's reception timestamps
+    Timestamp_Tuple_t broadcastLog[TIMESTAMP_LIST_SIZE];                // Anchor's broadcast timestamps
+    Timestamp_Tuple_t receiveLog[TIMESTAMP_LIST_SIZE];                  // Tag's reception timestamps
     Timestamp_Tuple_t anchorLastReceiveLog[2 * NEIGHBOR_ADDRESS_MAX]; 
-    /*  [0 ... NEIGHBOR_ADDRESS_MAX - 1]                                store the second most recent timestamp
-        [NEIGHBOR_ADDRESS_MAX ... 2 * NEIGHBOR_ADDRESS_MAX - 1]         store the most recent reception timestamp */
+    /*  [0 ... NEIGHBOR_ADDRESS_MAX - 1]                                Store the second most recent timestamp
+        [NEIGHBOR_ADDRESS_MAX ... 2 * NEIGHBOR_ADDRESS_MAX - 1]         Store the most recent reception timestamp */
     TableState tableState;
 } __attribute__((packed)) Tag_Table_t;
 
@@ -351,11 +338,8 @@ void shiftRangingTable(Ranging_Table_t *rangingTable, Timestamp_Tuple_t Tr, Time
 void replaceRangingTable(Ranging_Table_t *rangingTable, Timestamp_Tuple_t Tb, Timestamp_Tuple_t Rb, Timestamp_Tuple_t Tp, Timestamp_Tuple_t Rp, float PToF);
 
 void updatePriorityQueue(Ranging_Table_Set_t *rangingTableSet, int8_t shiftCount);
-
 void rangingTableSetInit();
-
 void checkExpirationCallback(Ranging_Table_Set_t *rangingTableSet);
-
 int getCurrentSubstate(Ranging_Table_t *rangingTable);
 
 
