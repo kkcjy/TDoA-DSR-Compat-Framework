@@ -131,11 +131,6 @@ typedef enum {
     RANGING_TABLE_EVENT_COUNT
 } RANGING_TABLE_EVENT;
 
-typedef enum {
-    FIRST_CALCULATE,
-    SECOND_CALCULATE
-} CalculateState;
-
 
 /* -------------------- Ranging Message -------------------- */
 typedef struct {
