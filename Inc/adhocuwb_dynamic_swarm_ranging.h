@@ -27,15 +27,18 @@
 
 /* -------------------- Define -------------------- */
 /* Mode Enable */
-#ifdef SIMULATION_COMPILE                                               // simulation mode
+// simulation mode
+#ifdef SIMULATION_COMPILE
     #ifdef COMPENSATE_DYNAMIC_RANGING
-    #define         COMPENSATE_ENABLE
+        #define         COMPENSATE_ENABLE
     #endif
-#else                                                                   // crazyflie-firmware mode
-    #define         COMPENSATE_ENABLE                                   // Perform compensation after each received packet calculation
+// crazyflie-firmware mode
+#else
+// Perform compensation after each received packet calculation
+    #define         COMPENSATE_ENABLE
 #endif
 #define         OPTIMAL_RANGING_SCHEDULE_ENABLE                         // Enable Midpoint_Adjustment to ensure equal message-sending intervals among drones within the swarm
-#define         TDOA_COMPAT_ENABLE                                      // Fusion of DSR ranging and TDoA-based range-difference measurements
+// #define         TDOA_COMPAT_ENABLE                                      // Fusion of DSR ranging and TDoA-based range-difference measurements
 
 /* Ranging Constants */
 #define         RANGING_PERIOD              200

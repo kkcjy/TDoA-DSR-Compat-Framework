@@ -135,7 +135,6 @@ bool COMPARE_TIME(uint64_t time_a, uint64_t time_b) {
 
 
 /* -------------------- Ranging Table Set Operation -------------------- */
-
 // Search for index of send list whose Tx seqNumber is same as seqNumber
 index_t findSendList(SendList_t *sendList, uint16_t seqNumber) {
     if(seqNumber == NULL_SEQ) {
@@ -391,7 +390,7 @@ void shiftRangingTable(Ranging_Table_t *rangingTable, Timestamp_Tuple_t Tr, Time
     }
 }
 
-/* Replace Ranging Table
+/* Replace Ranging Table ([]: modified)
     +------+------+------+------+------+------+                   +------+------+------+------+------+------+
     | ETb  | ERp  |  Tb  |  Rp  |  Tr  |  Rf  |                   | ETb  | ERp  | [Tb] | [Rp] |  Tr  |      |
     +------+------+------+------+------+------+------+            +------+------+------+------+------+------+------+   
@@ -608,9 +607,8 @@ float calculatePToF(Ranging_Table_t *rangingTable, Ranging_Table_Tr_Rr_Candidate
             tmpPToF = dsrRangingAlgorithm(rangingTable->ETb, rangingTable->ERb, rangingTable->ETp, rangingTable->ERp, rangingTable->Tb, rangingTable->Rb, (rangingTable->EPToF + rangingTable->PToF) / 2);
 
             if(tmpPToF != NULL_TOF) {
-                curPToF = dsrRangingAlgorithm(rangingTable->ETp, rangingTable->ERp, 
-                                           rangingTable->Tb, rangingTable->Rb,
-                                           rangingTable->Tf, rangingTable->Rf, tmpPToF);
+                curPToF = dsrRangingAlgorithm(rangingTable->ETp, rangingTable->ERp, rangingTable->Tb, rangingTable->Rb, rangingTable->Tf, rangingTable->Rf, tmpPToF);
+
                 // Use tmpPToF as the estimated value
                 curPToF = (curPToF == NULL_TOF) ? tmpPToF : curPToF;
 
@@ -649,7 +647,7 @@ float calculatePToF(Ranging_Table_t *rangingTable, Ranging_Table_Tr_Rr_Candidate
         if(tmpPToF != NULL_TOF) {
             curPToF = dsrRangingAlgorithm(rangingTable->Tp, rangingTable->Rp, Tr, Rr, rangingTable->Tf, rangingTable->Rf, tmpPToF);
 
-            // use tmpPToF as the estimated value
+            // Use tmpPToF as the estimated value
             curPToF = (curPToF == NULL_TOF) ? tmpPToF : curPToF;
             #ifdef COMPENSATE_ENABLE
                 ONCE_Rr[rangingTable->neighborAddress] = Rr.timestamp.full;
@@ -1566,7 +1564,7 @@ void processDSRMessage(Ranging_Message_With_Additional_Info_t *rangingMessageWit
             // Rr is updated in updateRangingTableRr_Buffer
             updateRangingTableTr_Buffer(&rangingTable->TrRrBuffer, rangingMessage->header.Txtimestamps[i]);
             break;
-            }
+        }
     }
 
     if(Tf.timestamp.full != NULL_TIMESTAMP && Rf.timestamp.full != NULL_TIMESTAMP && Rf.seqNumber != rangingTable->Rp.seqNumber) {
